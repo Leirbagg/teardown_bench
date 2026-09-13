@@ -42,7 +42,7 @@ var _failed_final_tests: int = 0
 static func create(disassembly_state: DisassemblyState, faults: Array[FaultDefinition], errors: Array[String]) -> Diagnosis:
 	var valid: bool = true
 	for fault: FaultDefinition in faults:
-		if disassembly_state.device.component_for_role(fault.target_role) == null:
+		if not fault.applies_to(disassembly_state.device):
 			errors.append("[inapplicable_fault] %s : l'appareil %s n'a pas de rôle '%s'" % [fault.id, disassembly_state.device.id, fault.target_role])
 			valid = false
 	if not valid:

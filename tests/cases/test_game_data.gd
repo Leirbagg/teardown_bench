@@ -63,6 +63,26 @@ func test_every_fault_applies_to_a_device_with_its_clue_roles() -> void:
 		assert_true(applicable > 0, "%s : aucun appareil ne porte le rôle '%s'" % [fault.id, fault.target_role])
 
 
+func test_tier_one_day_can_be_generated_and_played_to_the_report() -> void:
+	var rng: RandomNumberGenerator = RandomNumberGenerator.new()
+	rng.seed = 2026
+	var errors: Array[String] = []
+	var jobs: Array[RepairJob] = DayGenerator.generate(_load_devices(), _load_faults(), 1, rng, errors)
+	assert_no_errors(errors)
+	var day: WorkDay = WorkDay.new(jobs)
+	while not day.is_over():
+		var session: RepairSession = day.start_next_job()
+		session.advance(60.0)
+		DisassemblyFixture.repair_faults(session.state, session.job.faults)
+		assert_true(session.run_final_test().is_passed(), "%s : %s réparable" % [session.job.id, session.job.faults[0].id])
+		if not session.is_completed():
+			return
+	var report: DayReport = day.report()
+	assert_eq(report.completed_jobs(), jobs.size())
+	assert_eq(report.broken_parts_count(), 0)
+	assert_eq(report.diagnosis_errors(), 0)
+
+
 func test_every_device_can_be_torn_down_and_reassembled_cleanly() -> void:
 	for device: DeviceDefinition in _load_devices():
 		var state: DisassemblyState = DisassemblyState.new(device)

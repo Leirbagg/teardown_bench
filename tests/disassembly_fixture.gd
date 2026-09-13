@@ -13,6 +13,19 @@ static func load_test_phone() -> DeviceDefinition:
 	return device
 
 
+## Panne minimale valide ciblant `role`.
+static func make_fault(id: String, role: String, tier: int = 1, target_time_s: float = 100.0,
+		complaints: Array = ["Test complaint."]) -> FaultDefinition:
+	var data: Dictionary = {
+		"schema_version": 1, "id": id, "tier": tier, "target_role": role,
+		"complaints": complaints, "clues": [], "target_time_s": target_time_s,
+	}
+	var errors: Array[String] = DeviceValidator.validate_fault(data)
+	if not errors.is_empty():
+		push_error("panne de test invalide :\n%s" % "\n".join(PackedStringArray(errors)))
+	return FaultDefinition.from_dict(data)
+
+
 ## Retire le composant après avoir retiré, récursivement, tous ses prérequis.
 static func remove_with_prerequisites(state: DisassemblyState, component_id: String) -> void:
 	if state.is_removed(component_id):
@@ -30,6 +43,15 @@ static func reassemble(state: DisassemblyState) -> void:
 		for id: String in state.removed_ids():
 			if state.commit_install(id).outcome == DisassemblyResult.Outcome.INSTALLED:
 				progressed = true
+
+
+## Répare proprement : remplace la pièce de chaque panne, puis remonte tout.
+static func repair_faults(state: DisassemblyState, faults: Array[FaultDefinition]) -> void:
+	for fault: FaultDefinition in faults:
+		var component_id: String = state.device.component_for_role(fault.target_role).id
+		remove_with_prerequisites(state, component_id)
+		state.replace(component_id)
+	reassemble(state)
 
 
 ## Retire tout ce qui est libre jusqu'à ne plus progresser, sans séquence codée en dur.

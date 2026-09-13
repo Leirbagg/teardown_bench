@@ -143,3 +143,19 @@ Elles découlent des données ci-dessus, sans champ supplémentaire.
 - **Test final** : `NOT_ASSEMBLED` si l'appareil n'est pas remonté (non compté). Sinon
   `PASSED` si tous les tests sont `PASS` et qu'aucune pièce n'est cassée, `FAILED` sinon
   (compté au bilan).
+
+## Règles de la journée (`core/day/`)
+
+- **Clients** : `DayGenerator` en tire entre 3 et 5. Chacun reçoit une panne applicable dont le
+  `tier`, comme celui de l'appareil, ne dépasse pas le tier demandé. Deux clients consécutifs
+  n'ont pas la même panne quand une autre est possible. Même graine, même journée.
+- **Plainte** : tirée parmi les `complaints` de la panne.
+- **Délai** : somme des `target_time_s` des pannes du client, en temps réel de réparation.
+- **Temps** : `game/` appelle `advance(delta)`. Le temps ne compte ni en pause, ni entre deux
+  clients, ni après la fin de la réparation. La pause persiste d'un client au suivant.
+- **Fin d'un client** : au premier test final réussi. Il n'y a pas d'abandon : l'appareil est
+  toujours réparable (stock illimité).
+- **Bilan par client** : temps écoulé, délai respecté (temps ≤ délai), pièces cassées (une
+  entrée par casse), erreurs de diagnostic (remplacements inutiles + tests finaux ratés).
+- **Bilan de la journée** : les lignes des clients commencés et leurs totaux. Les délais
+  respectés ne comptent que les clients terminés.

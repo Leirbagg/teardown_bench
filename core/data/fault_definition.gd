@@ -23,6 +23,11 @@ var clues: Array[Clue] = []
 var target_time_s: float
 
 
+## Vrai si l'appareil possède le rôle ciblé.
+func applies_to(device: DeviceDefinition) -> bool:
+	return device.component_for_role(target_role) != null
+
+
 ## Construit la définition à partir d'un dictionnaire déjà validé par DeviceValidator.
 static func from_dict(data: Dictionary) -> FaultDefinition:
 	var fault: FaultDefinition = FaultDefinition.new()
