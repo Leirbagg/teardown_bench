@@ -1,0 +1,40 @@
+{
+  "schema_version": 1,
+  "id": "test_phone",
+  "name": "Test Phone",
+  "tier": 1,
+  "faces": ["front", "back"],
+  "software_tests": [
+    { "id": "boot", "roles": ["battery"], "after": [] },
+    { "id": "display", "roles": ["screen"], "after": ["boot"] },
+    { "id": "touch", "roles": ["screen"], "after": ["boot"] },
+    { "id": "charging", "roles": ["charge_port"], "after": ["boot"] }
+  ],
+  "components": [
+    { "id": "back_screw_l", "kind": "screw", "face": "back", "gesture": "rotate",
+      "gesture_params": { "turns": 2 }, "requires": [], "covered_by": [] },
+    { "id": "back_screw_r", "kind": "screw", "face": "back", "gesture": "rotate",
+      "gesture_params": { "turns": 2 }, "requires": [], "covered_by": [] },
+    { "id": "back_cover", "kind": "cover", "face": "back", "gesture": "pry",
+      "requires": ["back_screw_l", "back_screw_r"], "covered_by": [], "replaceable": true },
+    { "id": "battery_connector", "kind": "connector", "face": "back", "gesture": "pull",
+      "gesture_params": { "direction_deg": 90 },
+      "requires": ["back_cover"], "covered_by": ["back_cover"] },
+    { "id": "battery_adhesive", "kind": "adhesive", "face": "back", "gesture": "hold",
+      "gesture_params": { "duration_s": 2.5 },
+      "requires": ["back_cover"], "covered_by": ["back_cover"] },
+    { "id": "battery", "kind": "module", "role": "battery", "face": "back", "gesture": "pull",
+      "requires": ["battery_connector", "battery_adhesive"], "covered_by": [], "replaceable": true },
+    { "id": "port_screw", "kind": "screw", "face": "back", "gesture": "rotate",
+      "requires": ["back_cover"], "covered_by": ["back_cover"] },
+    { "id": "charge_port", "kind": "module", "role": "charge_port", "face": "back", "gesture": "pull",
+      "requires": ["port_screw", "battery_connector"], "covered_by": [], "replaceable": true },
+    { "id": "screen_flex", "kind": "connector", "face": "back", "gesture": "pull",
+      "requires": ["back_cover", "battery_connector"], "covered_by": ["back_cover"],
+      "force_breaks": ["screen"] },
+    { "id": "screen_adhesive", "kind": "adhesive", "face": "front", "gesture": "hold",
+      "requires": [], "covered_by": [] },
+    { "id": "screen", "kind": "module", "role": "screen", "face": "front", "gesture": "pry",
+      "requires": ["screen_adhesive", "screen_flex"], "covered_by": [], "replaceable": true }
+  ]
+}
