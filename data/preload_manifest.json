@@ -1,0 +1,11 @@
+{
+  "schema_version": 1,
+  "devices": [
+    "res://data/devices/starter_phone.json"
+  ],
+  "faults": [
+    "res://data/faults/screen_cracked.json",
+    "res://data/faults/battery_dead.json",
+    "res://data/faults/charge_port_faulty.json"
+  ]
+}

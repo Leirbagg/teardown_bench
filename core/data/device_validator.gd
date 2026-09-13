@@ -82,7 +82,7 @@ static func _check_components(raw_components: Array, faces: PackedStringArray, e
 		_check_enum(raw, "face", faces, path, errors)
 		_check_enum(raw, "gesture", ComponentDefinition.GESTURES, path, errors)
 		_check_dictionary(raw, "gesture_params", path, errors)
-		_check_dictionary(raw, "visual", path, errors)
+		_check_visual(raw, path, errors)
 		var requires: PackedStringArray = _check_string_array(raw, "requires", path, errors)
 		var covered_by: PackedStringArray = _check_string_array(raw, "covered_by", path, errors)
 		var force_breaks: PackedStringArray = _check_string_array(raw, "force_breaks", path, errors, false)
@@ -193,7 +193,26 @@ static func _check_software_tests(data: Dictionary, components: Dictionary[Strin
 		errors.append("[cycle] software_tests.after : %s" % " -> ".join(cycle))
 
 
+## Facultatif. Si présent, `rect` vaut [x, y, largeur, hauteur] avec largeur et hauteur > 0.
+static func _check_visual(component: Dictionary, path: String, errors: Array[String]) -> void:
+	_check_dictionary(component, "visual", path, errors)
+	if typeof(component.get("visual")) != TYPE_DICTIONARY or not (component["visual"] as Dictionary).has("rect"):
+		return
+	var rect: Variant = component["visual"]["rect"]
+	var valid: bool = typeof(rect) == TYPE_ARRAY and (rect as Array).size() == 4
+	if valid:
+		for value: Variant in rect:
+			valid = valid and _is_number(value)
+	if not valid or float(rect[2]) <= 0.0 or float(rect[3]) <= 0.0:
+		errors.append("[bad_value] %s : doit valoir [x, y, largeur, hauteur], dimensions > 0" % _field(path, "visual.rect"))
+
+
 # --- Champs ---
+
+## Version publique de la vérification d'un tableau de chaînes, pour les autres chargeurs.
+static func check_string_array(data: Dictionary, key: String, path: String, errors: Array[String]) -> PackedStringArray:
+	return _check_string_array(data, key, path, errors)
+
 
 static func _field(path: String, key: String) -> String:
 	return key if path.is_empty() else "%s.%s" % [path, key]

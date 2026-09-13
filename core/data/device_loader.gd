@@ -5,21 +5,22 @@ extends RefCounted
 
 
 static func load_device(path: String, errors: Array[String]) -> DeviceDefinition:
-	var data: Dictionary = _read_json(path, errors)
+	var data: Dictionary = read_json(path, errors)
 	if data.is_empty() or not _append_errors(DeviceValidator.validate_device(data), path, errors):
 		return null
 	return DeviceDefinition.from_dict(data)
 
 
 static func load_fault(path: String, errors: Array[String]) -> FaultDefinition:
-	var data: Dictionary = _read_json(path, errors)
+	var data: Dictionary = read_json(path, errors)
 	if data.is_empty() or not _append_errors(DeviceValidator.validate_fault(data), path, errors):
 		return null
 	return FaultDefinition.from_dict(data)
 
 
-## Renvoie un dictionnaire vide et ajoute une erreur si le fichier est absent ou illisible.
-static func _read_json(path: String, errors: Array[String]) -> Dictionary:
+## Lit un fichier JSON dont la racine est un objet. Renvoie un dictionnaire vide et ajoute
+## une erreur si le fichier est absent ou illisible.
+static func read_json(path: String, errors: Array[String]) -> Dictionary:
 	if not FileAccess.file_exists(path):
 		errors.append("[file] %s : fichier introuvable" % path)
 		return {}

@@ -112,6 +112,16 @@ func test_rejects_requires_with_non_string_items() -> void:
 	assert_has_code(DeviceValidator.validate_device(device), "bad_type")
 
 
+func test_visual_rect_must_have_four_numbers_and_positive_size() -> void:
+	for rect: Variant in [[0, 0, 10], [0, 0, 10, 0], [0, "0", 10, 10], "0,0,10,10"]:
+		var device: Dictionary = _valid_device()
+		_component(device, "screw")["visual"] = {"rect": rect}
+		assert_has_code(DeviceValidator.validate_device(device), "bad_value", var_to_str(rect))
+	var valid: Dictionary = _valid_device()
+	_component(valid, "screw")["visual"] = {"rect": [1.5, 2, 10, 10]}
+	assert_no_errors(DeviceValidator.validate_device(valid))
+
+
 # --- Appareil : graphe ---
 
 func test_rejects_unknown_requires() -> void:

@@ -37,6 +37,28 @@ func _load_faults() -> Array[FaultDefinition]:
 	return faults
 
 
+func test_manifest_lists_exactly_the_data_files() -> void:
+	var errors: Array[String] = []
+	var manifest: Dictionary = DeviceLoader.read_json(DataCatalog.MANIFEST_PATH, errors)
+	assert_no_errors(errors)
+	var listed: PackedStringArray = DataCatalog.listed_paths(manifest)
+	var on_disk: PackedStringArray = _json_files(DEVICES_DIR) + _json_files(FAULTS_DIR)
+	for path: String in on_disk:
+		assert_true(path in listed, "%s absent du manifeste : il ne serait pas exporté" % path)
+	for path: String in listed:
+		assert_true(path in on_disk, "%s listé mais introuvable" % path)
+	var catalog: DataCatalog = DataCatalog.load_manifest(DataCatalog.MANIFEST_PATH, errors)
+	assert_no_errors(errors)
+	if catalog != null:
+		assert_eq(catalog.devices.size() + catalog.faults.size(), on_disk.size())
+
+
+func test_every_component_has_a_display_rect() -> void:
+	for device: DeviceDefinition in _load_devices():
+		for component: ComponentDefinition in device.components:
+			assert_true(component.visual.has("rect"), "%s.%s : visual.rect manquant pour l'affichage" % [device.id, component.id])
+
+
 func test_mvp_content_is_present() -> void:
 	var device_ids: PackedStringArray = PackedStringArray()
 	for device: DeviceDefinition in _load_devices():
