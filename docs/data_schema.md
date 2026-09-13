@@ -1,0 +1,118 @@
+# Schéma des données — appareils et pannes
+
+Référence des fichiers `data/devices/*.json` et `data/faults/*.json`.
+Tout fichier doit passer `DeviceValidator` (`core/data/device_validator.gd`).
+
+## Principes
+
+- **`requires` est l'unique source du graphe de démontage** (graphe orienté acyclique).
+  Un composant ne peut être retiré que si tous ses `requires` sont retirés.
+- **`covered_by` ⊆ `requires`** liste les pièces qui *cachent* le composant. Il en découle
+  trois états :
+
+| État | Condition | Terminer le geste… |
+|---|---|---|
+| Caché | un `covered_by` est en place | refusé, sans conséquence |
+| Visible mais retenu | `covered_by` tous retirés, un `requires` en place | **forcer** : casse |
+| Libre | `requires` tous retirés | retire le composant |
+
+- « Retiré » signifie « défait » pour un connecteur ou un adhésif.
+- **Invariant** : si un composant est retiré, tous ses `requires` le sont aussi.
+- Les pannes ciblent un **rôle** (`screen`, `battery`…), pas un composant. Le module
+  `core/disassembly/` ignore tout des pannes.
+
+## Décisions
+
+1. `covered_by` est ajouté à `requires` pour distinguer une pièce cachée d'une pièce retenue.
+2. **Forcer casse sans retirer** : les pièces de `force_breaks` passent à « cassé », le
+   composant forcé reste en place et doit être démonté normalement.
+3. **Remonter dans le mauvais ordre est refusé sans pénalité.** Remonter X exige que tous
+   les composants qui requièrent X soient en place.
+4. **Les tests logiciels en échec se déduisent des rôles** : un test échoue si un de ses rôles
+   est en panne ou cassé. Les pannes partielles demanderont un champ supplémentaire plus tard.
+5. **Les plaintes sont en anglais directement dans le JSON** au MVP (pas de clés de traduction).
+
+## Appareil
+
+```json
+{
+  "schema_version": 1,
+  "id": "starter_phone",
+  "name": "Starter Phone",
+  "tier": 1,
+  "faces": ["front", "back"],
+  "software_tests": [
+    { "id": "boot", "roles": ["battery"], "after": [] }
+  ],
+  "components": [
+    {
+      "id": "back_cover", "kind": "cover", "face": "back", "gesture": "pry",
+      "gesture_params": {},
+      "requires": ["back_screw_l"], "covered_by": [],
+      "role": "", "replaceable": true, "force_breaks": [],
+      "visual": { "sprite": "res://…", "rect": [0, 0, 180, 360] }
+    }
+  ]
+}
+```
+
+| Champ | Obligatoire | Lu par | Valeurs / rôle |
+|---|---|---|---|
+| `schema_version` | oui | core | `1` |
+| `id` | oui | core | snake_case, unique dans `data/devices/` |
+| `name` | oui | game | Nom fictif, en anglais |
+| `tier` | oui | core | Entier ≥ 1 |
+| `faces` | oui | core + game | Sous-ensemble non vide de `front`, `back` |
+| `software_tests[].id` | oui | core | Unique |
+| `software_tests[].roles` | oui | core | Rôles existant sur l'appareil |
+| `software_tests[].after` | oui | core | Tests préalables ; indisponible si l'un échoue. Sans cycle |
+| `components[].id` | oui | core | Unique dans l'appareil |
+| `components[].kind` | oui | core + game | `screw`, `cover`, `connector`, `adhesive`, `module` |
+| `components[].face` | oui | game | Une valeur de `faces` |
+| `components[].gesture` | oui | game | `rotate`, `pull`, `hold`, `pry` |
+| `components[].gesture_params` | non | game | Réglages de reconnaissance (`turns`, `direction_deg`, `duration_s`) |
+| `components[].requires` | oui | core | Ids existants, sans cycle |
+| `components[].covered_by` | oui | core | Sous-ensemble de `requires` |
+| `components[].role` | non | core | Lien avec pannes et tests. Unique par appareil |
+| `components[].replaceable` | non (`false`) | core | Seules ces pièces peuvent être remplacées ou cassées |
+| `components[].force_breaks` | non (`[id]`) | core | Pièces cassées quand on force ce composant |
+| `components[].visual` | non | game | Ignoré par `core/`. Sprites à lister dans `data/preload_manifest.json` |
+
+### Règles du validateur
+
+- Ids uniques ; toute référence (`requires`, `covered_by`, `force_breaks`, rôles, `after`) existe.
+- Aucun cycle dans `requires` ni dans `after`.
+- Au moins un composant sans `requires`.
+- `covered_by` ⊆ `requires`.
+- Un composant qu'on peut forcer (`requires` non inclus dans `covered_by`) ne casse que des
+  pièces `replaceable`.
+- **Orphelin** : composant que rien ne requiert, non `replaceable` et sans rôle. Le retirer ne
+  sert à rien, c'est une erreur.
+
+## Panne
+
+```json
+{
+  "schema_version": 1,
+  "id": "charge_port_faulty",
+  "tier": 1,
+  "target_role": "charge_port",
+  "complaints": ["It stopped charging, even with a new cable."],
+  "clues": [
+    { "tool": "loupe", "role": "charge_port", "clue": "corrosion", "visible": "exposed" }
+  ],
+  "target_time_s": 150
+}
+```
+
+| Champ | Obligatoire | Valeurs / rôle |
+|---|---|---|
+| `id` | oui | Unique dans `data/faults/` |
+| `tier` | oui | Entier ≥ 1, pour la difficulté progressive |
+| `target_role` | oui | Rôle mis en panne |
+| `complaints` | oui | Au moins une phrase, en anglais |
+| `clues[].tool` | oui | `loupe` au MVP |
+| `clues[].visible` | oui | `always` ou `exposed` (quand le composant du rôle est visible) |
+| `target_time_s` | oui | Base du délai client, > 0 |
+
+Une panne s'applique à tout appareil qui possède son `target_role`.

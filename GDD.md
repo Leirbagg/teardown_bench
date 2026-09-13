@@ -213,7 +213,8 @@ Rappel de CLAUDE.md : toute règle de jeu vit dans `core/`.
 
 - **Nom** : « Teardown » est déjà le titre d'un jeu existant. Vérifier le risque de confusion
   ou de marque avant tout usage public de « Teardown Bench ».
-Tous ces points sont exclus du MVP. Ils restent à trancher pour le jeu complet.
+
+Les points suivants sont exclus du MVP. Ils restent à trancher pour le jeu complet.
 
 - Multijoueur / social (classements, partage) : dedans ou dehors ?
 - Narration : clients récurrents, histoire d'atelier, ou plaintes courtes uniquement ?
