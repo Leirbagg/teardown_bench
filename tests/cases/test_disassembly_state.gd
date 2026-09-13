@@ -12,7 +12,7 @@ func _new_state() -> DisassemblyState:
 	state.component_removed.connect(func(id: String) -> void: _events.append("removed:" + id))
 	state.component_installed.connect(func(id: String) -> void: _events.append("installed:" + id))
 	state.component_broken.connect(func(id: String, cause: String) -> void: _events.append("broken:%s<-%s" % [id, cause]))
-	state.component_replaced.connect(func(id: String) -> void: _events.append("replaced:" + id))
+	state.component_replaced.connect(func(id: String, was_broken: bool) -> void: _events.append("replaced:%s(%s)" % [id, "broken" if was_broken else "healthy"]))
 	return state
 
 
@@ -158,15 +158,17 @@ func test_replace_repairs_broken_part() -> void:
 	assert_false(state.is_broken("back_cover"))
 	assert_true(state.is_removed("back_cover"), "la pièce neuve reste à remonter")
 	assert_eq(state.replaced_ids(), PackedStringArray(["back_cover"]))
-	assert_eq(_events, ["replaced:back_cover"] as Array[String])
+	assert_eq(_events, ["replaced:back_cover(broken)"] as Array[String])
 
 
 func test_replacing_healthy_part_is_recorded() -> void:
 	var state: DisassemblyState = _new_state()
 	DisassemblyFixture.teardown(state)
+	_events.clear()
 	state.replace("battery")
 	state.replace("battery")
 	assert_eq(state.replaced_ids(), PackedStringArray(["battery", "battery"]))
+	assert_eq(_events, ["replaced:battery(healthy)", "replaced:battery(healthy)"] as Array[String])
 
 
 # --- Propriétés ---

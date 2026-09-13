@@ -12,7 +12,8 @@ signal component_removed(component_id: String)
 signal component_installed(component_id: String)
 ## `cause_id` est le composant forcé.
 signal component_broken(component_id: String, cause_id: String)
-signal component_replaced(component_id: String)
+## `was_broken` indique l'état de la pièce retirée, avant remplacement.
+signal component_replaced(component_id: String, was_broken: bool)
 
 var device: DeviceDefinition
 var graph: DisassemblyGraph
@@ -127,7 +128,7 @@ func replace(component_id: String) -> DisassemblyResult:
 		return DisassemblyResult.new(Outcome.NOT_REPLACEABLE, component_id)
 	if not is_removed(component_id):
 		return DisassemblyResult.new(Outcome.NOT_REMOVED, component_id)
-	_broken.erase(component_id)
+	var was_broken: bool = _broken.erase(component_id)
 	_replaced.append(component_id)
-	component_replaced.emit(component_id)
+	component_replaced.emit(component_id, was_broken)
 	return DisassemblyResult.new(Outcome.REPLACED, component_id)
