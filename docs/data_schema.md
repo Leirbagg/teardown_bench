@@ -29,7 +29,8 @@ Tout fichier doit passer `DeviceValidator` (`core/data/device_validator.gd`).
 3. **Remonter dans le mauvais ordre est refusé sans pénalité.** Remonter X exige que tous
    les composants qui requièrent X soient en place.
 4. **Les tests logiciels en échec se déduisent des rôles** : un test échoue si un de ses rôles
-   est en panne ou cassé. Les pannes partielles demanderont un champ supplémentaire plus tard.
+   est en panne ou cassé (détail dans [Règles du diagnostic](#règles-du-diagnostic-corediagnosisdiagnosisgd)).
+   Les pannes partielles demanderont un champ supplémentaire plus tard.
 5. **Les plaintes sont en anglais directement dans le JSON** au MVP (pas de clés de traduction).
 
 ## Appareil
@@ -116,3 +117,29 @@ Tout fichier doit passer `DeviceValidator` (`core/data/device_validator.gd`).
 | `target_time_s` | oui | Base du délai client, > 0 |
 
 Une panne s'applique à tout appareil qui possède son `target_role`.
+
+## Règles du diagnostic (`core/diagnosis/diagnosis.gd`)
+
+Elles découlent des données ci-dessus, sans champ supplémentaire.
+
+- **Rôle opérationnel** : le composant du rôle est en place et ses connecteurs directs
+  (`requires` de kind `connector`) sont branchés. On peut tester un appareil ouvert.
+- **Rôle en panne** : il porte une panne non résolue, ou son composant est cassé. Une casse
+  se comporte donc exactement comme une panne.
+- **Statut d'un test logiciel**, évalué dans cet ordre :
+
+| Statut | Condition |
+|---|---|
+| `BLOCKED` | un test de `after` n'est pas `PASS` |
+| `DISCONNECTED` | un de ses rôles n'est pas opérationnel |
+| `FAIL` | un de ses rôles est en panne |
+| `PASS` | sinon |
+
+- **Indices** : seuls ceux des pannes non résolues sont visibles. `always` en permanence,
+  `exposed` quand le composant du rôle est en place et visible.
+- **Résolution** : une panne est résolue au premier remplacement du composant de son rôle.
+- **Verdict d'un remplacement** : `FIXED_FAULT` (panne non résolue sur ce rôle), sinon
+  `FIXED_BREAK` (pièce cassée), sinon `UNNECESSARY` (erreur de diagnostic, comptée au bilan).
+- **Test final** : `NOT_ASSEMBLED` si l'appareil n'est pas remonté (non compté). Sinon
+  `PASSED` si tous les tests sont `PASS` et qu'aucune pièce n'est cassée, `FAILED` sinon
+  (compté au bilan).
