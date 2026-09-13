@@ -25,6 +25,18 @@ func _finish_current(day: WorkDay, seconds: float) -> void:
 	assert_true(day.current_session.run_final_test().is_passed(), "préparation : réparation réussie")
 
 
+func test_next_job_advances_as_jobs_start() -> void:
+	var day: WorkDay = _day(["screen", "battery"])
+	assert_eq(day.next_job().id, "job_1")
+	assert_eq(day.next_job_number(), 1)
+	day.start_next_job()
+	assert_eq(day.next_job().id, "job_2")
+	assert_eq(day.next_job_number(), 2)
+	_finish_current(day, 1.0)
+	day.start_next_job()
+	assert_eq(day.next_job(), null)
+
+
 func test_jobs_run_one_at_a_time() -> void:
 	var day: WorkDay = _day(["screen", "battery"])
 	assert_eq(day.current_session, null)

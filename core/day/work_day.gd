@@ -24,6 +24,16 @@ func has_next_job() -> bool:
 	return _next_job_index < jobs.size()
 
 
+## Prochain client à accueillir, null s'il n'en reste plus.
+func next_job() -> RepairJob:
+	return jobs[_next_job_index] if has_next_job() else null
+
+
+## Rang du prochain client, à partir de 1.
+func next_job_number() -> int:
+	return _next_job_index + 1
+
+
 func is_over() -> bool:
 	return current_session == null and not has_next_job()
 
