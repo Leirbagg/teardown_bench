@@ -1,0 +1,18 @@
+{
+  "schema_version": 1,
+  "id": "screen_cracked",
+  "tier": 1,
+  "target_role": "screen",
+  "complaints": [
+    "I dropped it and now the screen is cracked."
+  ],
+  "clues": [
+    {
+      "tool": "loupe",
+      "role": "screen",
+      "clue": "crack",
+      "visible": "always"
+    }
+  ],
+  "target_time_s": 180
+}

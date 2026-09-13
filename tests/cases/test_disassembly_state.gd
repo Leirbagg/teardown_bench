@@ -22,20 +22,6 @@ func _remove_all(state: DisassemblyState, ids: Array[String]) -> void:
 		assert_eq(result.outcome, Outcome.REMOVED, "préparation : retrait de %s" % id)
 
 
-## Retire ce qui est libre jusqu'à tout démonter, sans séquence codée en dur.
-func _teardown(state: DisassemblyState) -> PackedStringArray:
-	var order: PackedStringArray = PackedStringArray()
-	var progressed: bool = true
-	while progressed:
-		progressed = false
-		for id: String in _device.component_ids():
-			if not state.is_removed(id) and state.query_remove(id).outcome == Outcome.REMOVED:
-				state.commit_remove(id)
-				order.append(id)
-				progressed = true
-	return order
-
-
 func _assert_invariant(state: DisassemblyState, context: String) -> void:
 	for id: String in state.removed_ids():
 		for requirement: String in _device.get_component(id).requires:
@@ -177,7 +163,7 @@ func test_replace_repairs_broken_part() -> void:
 
 func test_replacing_healthy_part_is_recorded() -> void:
 	var state: DisassemblyState = _new_state()
-	_teardown(state)
+	DisassemblyFixture.teardown(state)
 	state.replace("battery")
 	state.replace("battery")
 	assert_eq(state.replaced_ids(), PackedStringArray(["battery", "battery"]))
@@ -187,7 +173,7 @@ func test_replacing_healthy_part_is_recorded() -> void:
 
 func test_full_teardown_then_reassembly() -> void:
 	var state: DisassemblyState = _new_state()
-	var order: PackedStringArray = _teardown(state)
+	var order: PackedStringArray = DisassemblyFixture.teardown(state)
 	assert_eq(order.size(), _device.components.size(), "tout est démontable")
 	assert_eq(state.broken_ids(), PackedStringArray(), "démontage propre sans casse")
 	order.reverse()

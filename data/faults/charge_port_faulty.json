@@ -1,0 +1,18 @@
+{
+  "schema_version": 1,
+  "id": "charge_port_faulty",
+  "tier": 1,
+  "target_role": "charge_port",
+  "complaints": [
+    "It stopped charging, even with a new cable."
+  ],
+  "clues": [
+    {
+      "tool": "loupe",
+      "role": "charge_port",
+      "clue": "corrosion",
+      "visible": "exposed"
+    }
+  ],
+  "target_time_s": 150
+}

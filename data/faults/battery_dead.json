@@ -1,0 +1,11 @@
+{
+  "schema_version": 1,
+  "id": "battery_dead",
+  "tier": 1,
+  "target_role": "battery",
+  "complaints": [
+    "It won't turn on anymore, even after charging all night."
+  ],
+  "clues": [],
+  "target_time_s": 150
+}

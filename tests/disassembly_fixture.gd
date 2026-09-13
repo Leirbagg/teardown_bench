@@ -11,3 +11,18 @@ static func load_test_phone() -> DeviceDefinition:
 	if device == null:
 		push_error("test_phone.json invalide :\n%s" % "\n".join(PackedStringArray(errors)))
 	return device
+
+
+## Retire tout ce qui est libre jusqu'à ne plus progresser, sans séquence codée en dur.
+## Renvoie l'ordre de retrait.
+static func teardown(state: DisassemblyState) -> PackedStringArray:
+	var order: PackedStringArray = PackedStringArray()
+	var progressed: bool = true
+	while progressed:
+		progressed = false
+		for id: String in state.device.component_ids():
+			if not state.is_removed(id) and state.query_remove(id).outcome == DisassemblyResult.Outcome.REMOVED:
+				state.commit_remove(id)
+				order.append(id)
+				progressed = true
+	return order
