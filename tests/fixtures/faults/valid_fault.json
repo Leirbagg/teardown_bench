@@ -1,0 +1,18 @@
+{
+  "schema_version": 1,
+  "id": "battery_dead",
+  "tier": 1,
+  "target_role": "battery",
+  "complaints": [
+    "It won't turn on."
+  ],
+  "clues": [
+    {
+      "tool": "loupe",
+      "role": "battery",
+      "clue": "swelling",
+      "visible": "exposed"
+    }
+  ],
+  "target_time_s": 120
+}

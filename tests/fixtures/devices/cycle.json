@@ -1,0 +1,59 @@
+{
+  "schema_version": 1,
+  "id": "cycle",
+  "name": "Valid Minimal",
+  "tier": 1,
+  "faces": [
+    "front",
+    "back"
+  ],
+  "software_tests": [
+    {
+      "id": "boot",
+      "roles": [
+        "battery"
+      ],
+      "after": []
+    }
+  ],
+  "components": [
+    {
+      "id": "screw",
+      "kind": "screw",
+      "face": "back",
+      "gesture": "rotate",
+      "gesture_params": {
+        "turns": 2
+      },
+      "requires": [
+        "battery"
+      ],
+      "covered_by": []
+    },
+    {
+      "id": "cover",
+      "kind": "cover",
+      "face": "back",
+      "gesture": "pry",
+      "requires": [
+        "screw"
+      ],
+      "covered_by": [],
+      "replaceable": true
+    },
+    {
+      "id": "battery",
+      "kind": "module",
+      "face": "back",
+      "gesture": "pull",
+      "requires": [
+        "cover"
+      ],
+      "covered_by": [
+        "cover"
+      ],
+      "role": "battery",
+      "replaceable": true
+    }
+  ]
+}
