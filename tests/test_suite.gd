@@ -19,6 +19,7 @@ static var _error_counter: ErrorCounter = null
 
 var _failures: int = 0
 var _current_test: String = ""
+var _expected_errors: int = 0
 
 
 func run() -> int:
@@ -34,11 +35,19 @@ func run() -> int:
 		_current_test = "%s::%s" % [suite_name, method_name]
 		test_count += 1
 		var errors_before: int = _error_counter.count
+		_expected_errors = 0
 		call(method_name)
-		if _error_counter.count != errors_before:
-			_fail("erreur(s) d'exécution pendant le test, voir ci-dessus")
+		var logged: int = _error_counter.count - errors_before
+		if logged != _expected_errors:
+			_fail("%d erreur(s) moteur journalisée(s), %d attendue(s) : voir ci-dessus" % [logged, _expected_errors])
 	print("%s : %d test(s), %d échec(s)" % [suite_name, test_count, _failures])
 	return _failures
+
+
+## Déclare que le test doit journaliser exactement `count` erreurs moteur (entrée volontairement
+## invalide, par exemple). Sans cet appel, toute erreur journalisée fait échouer le test.
+func expect_engine_errors(count: int) -> void:
+	_expected_errors = count
 
 
 func assert_true(condition: bool, message: String = "attendu vrai") -> void:
