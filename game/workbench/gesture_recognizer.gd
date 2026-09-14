@@ -47,6 +47,49 @@ func is_complete() -> bool:
 	return progress >= 1.0 - COMPLETION_EPSILON
 
 
+## Nombre de crans d'un geste complet, pour rythmer sons et vibrations : un par quart de tour,
+## quelques-uns pour tirer, chauffer ou faire levier.
+func step_count() -> int:
+	match gesture:
+		"rotate":
+			return maxi(roundi(float(_params.get("turns", DEFAULT_TURNS)) * 4.0), 1)
+		"pull":
+			return 3
+		"hold":
+			return 5
+		"pry":
+			return 6
+	return 1
+
+
+## Cran atteint, de 0 à step_count().
+func step() -> int:
+	return floori((progress + COMPLETION_EPSILON) * step_count())
+
+
+## Angle cumulé en radians, signé : la vis affichée tourne avec le doigt.
+func rotation_angle() -> float:
+	return _angle
+
+
+## Déplacement de la pièce qui suit le doigt : projeté sur la direction de tirage s'il y en a
+## une, borné à PULL_DISTANCE. Nul pour les autres gestes.
+func pull_offset() -> Vector2:
+	if gesture != "pull":
+		return Vector2.ZERO
+	var offset: Vector2 = _last - _start
+	if _params.has("direction_deg"):
+		var radians: float = deg_to_rad(float(_params["direction_deg"]))
+		var direction: Vector2 = Vector2(cos(radians), -sin(radians))
+		return direction * clampf(offset.dot(direction), 0.0, PULL_DISTANCE)
+	return offset.limit_length(PULL_DISTANCE)
+
+
+## Dernière position connue du doigt.
+func finger_position() -> Vector2:
+	return _last
+
+
 ## Nouvelle position du doigt. Renvoie l'avancement.
 func drag(position: Vector2) -> float:
 	match gesture:

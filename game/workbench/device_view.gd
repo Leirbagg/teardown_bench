@@ -2,9 +2,12 @@ class_name DeviceView
 extends Control
 ## Dessine la face courante de l'appareil (pièces en place et visibles) et transforme les
 ## touchers en gestes. N'applique aucune règle : lit DisassemblyState et émet des signaux.
+## La pièce en cours de geste suit le doigt ; retraits, remontages et casses sont animés.
 
 ## Le doigt s'est posé sur un composant (hors mode loupe).
 signal gesture_started(component_id: String)
+## Un cran de plus dans le geste (quart de tour, palier de tirage…), pour sons et vibrations.
+signal gesture_step(component_id: String, step: int, step_count: int)
 ## Le geste est allé au bout : à l'appelant de demander à core/ ce qu'il se passe.
 signal gesture_completed(component_id: String)
 ## Le doigt s'est levé avant la fin : aucune conséquence.
@@ -16,13 +19,19 @@ const MIN_TOUCH_TARGET: float = 48.0
 const VIEW_MARGIN: float = 16.0
 const LABEL_MIN_WIDTH: float = 56.0
 const LABEL_FONT_SIZE: int = 11
+const BUBBLE_FONT_SIZE: int = 14
+const BUBBLE_OFFSET: float = 64.0
+
 const BODY_COLOR: Color = Color("20252b")
 const OUTLINE_COLOR: Color = Color("0d1014")
 const LABEL_COLOR: Color = Color(1, 1, 1, 0.85)
+const SHADOW_COLOR: Color = Color(0, 0, 0, 0.35)
 const BROKEN_COLOR: Color = Color("e5484d")
 const RESIST_COLOR: Color = Color("f5a524")
+const HEAT_COLOR: Color = Color("ff6a2b")
 const PROGRESS_COLOR: Color = Color("46a758")
 const CLUE_COLOR: Color = Color("ffd60a")
+const BUBBLE_COLOR: Color = Color(0.05, 0.06, 0.08, 0.9)
 const KIND_COLORS: Dictionary[String, Color] = {
 	"screw": Color("9aa4ad"),
 	"cover": Color("3b4754"),
@@ -30,6 +39,37 @@ const KIND_COLORS: Dictionary[String, Color] = {
 	"adhesive": Color("e8dcc0"),
 	"module": Color("2f7f86"),
 }
+const KIND_CORNER_RADIUS: Dictionary[String, int] = {
+	"cover": 12,
+	"module": 6,
+	"connector": 3,
+	"adhesive": 2,
+}
+
+const FLY_OUT_S: float = 0.35
+const DROP_IN_S: float = 0.2
+const BREAK_FLASH_S: float = 0.3
+const SHARDS_S: float = 0.5
+const SHAKE_S: float = 0.25
+const SHAKE_PX: float = 5.0
+## Tremblement d'une pièce retenue, qui grandit avec l'effort.
+const RESIST_JITTER_PX: float = 3.0
+## Une pièce retenue ne suit le doigt qu'un peu : elle résiste.
+const RESIST_FOLLOW_RATIO: float = 0.15
+const SCREW_LIFT_RATIO: float = 0.25
+const PRY_LIFT_PX: float = 6.0
+
+
+## Animation ponctuelle dessinée par-dessus l'appareil.
+class Effect:
+	extends RefCounted
+	var kind: String
+	var rect: Rect2
+	var color: Color
+	var age_s: float = 0.0
+	var duration_s: float
+	var seed_value: int
+
 
 var face: String = "":
 	set(value):
@@ -59,7 +99,12 @@ var _device_bounds: Rect2
 var _recognizer: GestureRecognizer = GestureRecognizer.new()
 var _touch_index: int = -1
 var _active_id: String = ""
+var _last_step: int = 0
 var _resisting: bool = false
+var _effects: Array[Effect] = []
+var _shake_s: float = 0.0
+var _time_s: float = 0.0
+var _styles: Dictionary[String, StyleBoxFlat] = {}
 
 
 func setup(state: DisassemblyState) -> void:
@@ -68,10 +113,10 @@ func setup(state: DisassemblyState) -> void:
 	_device_bounds = _device_rect(state.device.components[0])
 	for component: ComponentDefinition in state.device.components:
 		_device_bounds = _device_bounds.merge(_device_rect(component))
-	state.component_removed.connect(_on_state_changed)
-	state.component_installed.connect(_on_state_changed)
+	state.component_removed.connect(_on_component_removed)
+	state.component_installed.connect(_on_component_installed)
 	state.component_replaced.connect(_on_state_changed.unbind(1))
-	state.component_broken.connect(_on_state_changed.unbind(1))
+	state.component_broken.connect(_on_component_broken.unbind(1))
 	face = state.device.faces[0]
 
 
@@ -116,33 +161,204 @@ func _is_drawn(component: ComponentDefinition) -> bool:
 	return component.face == face and not _state.is_removed(component.id) and _state.is_visible(component.id)
 
 
+# --- Animation ---
+
+func _process(delta: float) -> void:
+	_time_s += delta
+	if _active_id != "" and _recognizer.gesture == "hold":
+		_recognizer.tick(delta)
+		_check_progress()
+	for effect: Effect in _effects:
+		effect.age_s += delta
+	_effects = _effects.filter(func(effect: Effect) -> bool: return effect.age_s < effect.duration_s)
+	_shake_s = maxf(_shake_s - delta, 0.0)
+	if _active_id != "" or not _effects.is_empty() or _shake_s > 0.0 or loupe_mode:
+		queue_redraw()
+
+
+func _spawn(kind: String, component_id: String, duration_s: float) -> void:
+	var component: ComponentDefinition = _state.device.get_component(component_id)
+	if component.face != face:
+		return
+	var effect: Effect = Effect.new()
+	effect.kind = kind
+	effect.rect = view_rect(component)
+	effect.color = KIND_COLORS.get(component.kind, Color.MAGENTA)
+	effect.duration_s = duration_s
+	effect.seed_value = hash(component_id)
+	_effects.append(effect)
+	queue_redraw()
+
+
+func _on_component_removed(component_id: String) -> void:
+	_spawn("fly_out", component_id, FLY_OUT_S)
+
+
+func _on_component_installed(component_id: String) -> void:
+	_spawn("drop_in", component_id, DROP_IN_S)
+
+
+func _on_component_broken(component_id: String) -> void:
+	_spawn("flash", component_id, BREAK_FLASH_S)
+	_spawn("shards", component_id, SHARDS_S)
+	_shake_s = SHAKE_S
+
+
 # --- Dessin ---
 
 func _draw() -> void:
 	if _state == null or _scale() <= 0.0:
 		return
-	var font: Font = get_theme_default_font()
-	var body: Rect2 = _to_view(_device_bounds).grow(6.0)
-	draw_rect(body, BODY_COLOR)
+	if _shake_s > 0.0:
+		var strength: float = SHAKE_PX * _shake_s / SHAKE_S
+		draw_set_transform(Vector2(randf_range(-strength, strength), randf_range(-strength, strength)))
+	draw_rect(_to_view(_device_bounds).grow(6.0), BODY_COLOR)
 	for component: ComponentDefinition in _draw_order:
-		if not _is_drawn(component):
-			continue
-		var rect: Rect2 = view_rect(component)
-		draw_rect(rect, KIND_COLORS.get(component.kind, Color.MAGENTA))
-		draw_rect(rect, OUTLINE_COLOR, false, 1.0)
-		if _state.is_broken(component.id):
-			draw_line(rect.position, rect.end, BROKEN_COLOR, 3.0)
-			draw_line(Vector2(rect.end.x, rect.position.y), Vector2(rect.position.x, rect.end.y), BROKEN_COLOR, 3.0)
-		if rect.size.x >= LABEL_MIN_WIDTH and rect.size.y >= LABEL_FONT_SIZE + 6:
-			draw_string(font, Vector2(rect.position.x, rect.get_center().y + LABEL_FONT_SIZE / 2.0),
-				component.id.capitalize(), HORIZONTAL_ALIGNMENT_CENTER, rect.size.x, LABEL_FONT_SIZE, LABEL_COLOR)
-		if loupe_mode and component.id in clue_component_ids:
-			draw_arc(rect.get_center(), 18.0, 0.0, TAU, 32, CLUE_COLOR, 3.0)
+		if _is_drawn(component):
+			_draw_component(component)
+	for effect: Effect in _effects:
+		_draw_effect(effect)
+	draw_set_transform(Vector2.ZERO)
 	if _active_id != "" and _state.device.has_component(_active_id):
-		var active: Rect2 = view_rect(_state.device.get_component(_active_id))
+		_draw_gesture_overlay(_state.device.get_component(_active_id))
+
+
+func _draw_component(component: ComponentDefinition) -> void:
+	var rect: Rect2 = view_rect(component)
+	var color: Color = KIND_COLORS.get(component.kind, Color.MAGENTA)
+	var active: bool = component.id == _active_id
+	var progress: float = _recognizer.progress if active else 0.0
+
+	if active:
+		var offset: Vector2 = _recognizer.pull_offset() * (RESIST_FOLLOW_RATIO if _resisting else 1.0)
 		if _resisting:
-			draw_rect(active.grow(3.0), RESIST_COLOR, false, 3.0)
-		draw_arc(active.get_center(), 26.0, -PI / 2.0, -PI / 2.0 + TAU * _recognizer.progress, 48, PROGRESS_COLOR, 5.0)
+			var jitter: float = RESIST_JITTER_PX * (0.4 + progress)
+			offset += Vector2(randf_range(-jitter, jitter), randf_range(-jitter, jitter))
+		if component.gesture == "pry":
+			draw_style_box(_style(component.kind, SHADOW_COLOR), rect)
+			offset += Vector2(-1.0, -1.0) * PRY_LIFT_PX * progress
+		if component.gesture == "hold":
+			color = color.lerp(HEAT_COLOR, progress)
+		rect.position += offset
+
+	if component.kind == "screw":
+		_draw_screw(rect, color, _recognizer.rotation_angle() if active else 0.0, 1.0 + SCREW_LIFT_RATIO * progress)
+	else:
+		draw_style_box(_style(component.kind, color), rect)
+
+	if _state.is_broken(component.id):
+		_draw_cross(rect, BROKEN_COLOR)
+	if rect.size.x >= LABEL_MIN_WIDTH and rect.size.y >= LABEL_FONT_SIZE + 6:
+		draw_string(get_theme_default_font(), Vector2(rect.position.x, rect.get_center().y + LABEL_FONT_SIZE / 2.0),
+			UiFormat.label(component.id), HORIZONTAL_ALIGNMENT_CENTER, rect.size.x, LABEL_FONT_SIZE, LABEL_COLOR)
+	if loupe_mode and component.id in clue_component_ids:
+		var pulse: float = 18.0 + 3.0 * sin(_time_s * 6.0)
+		draw_arc(rect.get_center(), pulse, 0.0, TAU, 32, CLUE_COLOR, 3.0)
+
+
+func _draw_screw(rect: Rect2, color: Color, angle: float, lift: float) -> void:
+	var center: Vector2 = rect.get_center()
+	var radius: float = minf(rect.size.x, rect.size.y) / 2.0 * lift
+	draw_circle(center + Vector2(1.5, 1.5) * lift, radius, SHADOW_COLOR)
+	draw_circle(center, radius, color)
+	draw_arc(center, radius, 0.0, TAU, 24, OUTLINE_COLOR, 1.0)
+	var slot: Vector2 = Vector2.from_angle(angle) * radius * 0.7
+	draw_line(center - slot, center + slot, OUTLINE_COLOR, 2.0)
+	draw_line(center - slot.orthogonal(), center + slot.orthogonal(), OUTLINE_COLOR, 2.0)
+
+
+func _draw_cross(rect: Rect2, color: Color) -> void:
+	draw_line(rect.position, rect.end, color, 3.0)
+	draw_line(Vector2(rect.end.x, rect.position.y), Vector2(rect.position.x, rect.end.y), color, 3.0)
+
+
+func _draw_effect(effect: Effect) -> void:
+	var t: float = effect.age_s / effect.duration_s
+	match effect.kind:
+		"fly_out":
+			var eased: float = t * t
+			var target: Vector2 = Vector2(effect.rect.get_center().x, size.y + effect.rect.size.y)
+			var center: Vector2 = effect.rect.get_center().lerp(target, eased)
+			var scaled: Vector2 = effect.rect.size * (1.0 - 0.6 * eased)
+			var faded: Color = Color(effect.color, 1.0 - t)
+			draw_rect(Rect2(center - scaled / 2.0, scaled), faded)
+		"drop_in":
+			var grow: float = 8.0 * (1.0 - t)
+			draw_rect(effect.rect.grow(grow), Color(1, 1, 1, 0.25 * (1.0 - t)), false, 2.0)
+		"flash":
+			draw_rect(effect.rect.grow(4.0), Color(BROKEN_COLOR, 0.6 * (1.0 - t)))
+		"shards":
+			var rng: RandomNumberGenerator = RandomNumberGenerator.new()
+			rng.seed = effect.seed_value
+			var center: Vector2 = effect.rect.get_center()
+			for i: int in 8:
+				var direction: Vector2 = Vector2.from_angle(rng.randf() * TAU)
+				var start: Vector2 = center + direction * (6.0 + 60.0 * t)
+				draw_line(start, start + direction * 8.0, Color(BROKEN_COLOR, 1.0 - t), 2.0)
+
+
+## Anneau de progression, contour de résistance et nom de la pièce au-dessus du doigt.
+func _draw_gesture_overlay(component: ComponentDefinition) -> void:
+	var rect: Rect2 = view_rect(component)
+	if _resisting:
+		draw_rect(rect.grow(3.0), RESIST_COLOR, false, 3.0)
+	if component.gesture == "pry":
+		_draw_pry_edge(rect)
+	draw_arc(rect.get_center(), 26.0, -PI / 2.0, -PI / 2.0 + TAU * _recognizer.progress, 48, PROGRESS_COLOR, 5.0)
+
+	var font: Font = get_theme_default_font()
+	var text: String = UiFormat.label(component.id)
+	var text_size: Vector2 = font.get_string_size(text, HORIZONTAL_ALIGNMENT_LEFT, -1, BUBBLE_FONT_SIZE)
+	var bubble: Rect2 = Rect2(_recognizer.finger_position() - Vector2(text_size.x / 2.0 + 10.0, BUBBLE_OFFSET),
+		text_size + Vector2(20.0, 12.0))
+	if bubble.position.y < 0.0:
+		# Trop près du haut : sous le doigt plutôt que plaquée sur la pièce.
+		bubble.position.y = _recognizer.finger_position().y + BUBBLE_OFFSET - bubble.size.y
+	bubble.position = bubble.position.clamp(Vector2.ZERO, (size - bubble.size).max(Vector2.ZERO))
+	draw_style_box(_style("bubble", BUBBLE_COLOR), bubble)
+	draw_string(font, bubble.position + Vector2(10.0, 6.0 + text_size.y * 0.78), text,
+		HORIZONTAL_ALIGNMENT_LEFT, -1, BUBBLE_FONT_SIZE, _resisting_color())
+
+
+## Surligne le bord le plus proche du doigt, là où le médiator s'insère.
+func _draw_pry_edge(rect: Rect2) -> void:
+	var finger: Vector2 = _recognizer.finger_position().clamp(rect.position, rect.end)
+	var distances: Array[float] = [finger.x - rect.position.x, rect.end.x - finger.x, finger.y - rect.position.y, rect.end.y - finger.y]
+	var nearest: int = distances.find(distances.min())
+	var half: float = 22.0
+	var from: Vector2
+	var to: Vector2
+	match nearest:
+		0:
+			from = Vector2(rect.position.x, finger.y - half)
+			to = Vector2(rect.position.x, finger.y + half)
+		1:
+			from = Vector2(rect.end.x, finger.y - half)
+			to = Vector2(rect.end.x, finger.y + half)
+		2:
+			from = Vector2(finger.x - half, rect.position.y)
+			to = Vector2(finger.x + half, rect.position.y)
+		_:
+			from = Vector2(finger.x - half, rect.end.y)
+			to = Vector2(finger.x + half, rect.end.y)
+	draw_line(from, to, PROGRESS_COLOR.lightened(0.4), 4.0)
+
+
+func _resisting_color() -> Color:
+	return RESIST_COLOR if _resisting else Color.WHITE
+
+
+func _style(key: String, color: Color) -> StyleBoxFlat:
+	if not _styles.has(key):
+		var style: StyleBoxFlat = StyleBoxFlat.new()
+		style.set_corner_radius_all(KIND_CORNER_RADIUS.get(key, 8))
+		style.border_color = OUTLINE_COLOR
+		style.set_border_width_all(0 if key == "bubble" else 1)
+		style.anti_aliasing = true
+		_styles[key] = style
+	var cached: StyleBoxFlat = _styles[key]
+	cached.bg_color = color
+	return cached
 
 
 # --- Toucher ---
@@ -158,14 +374,8 @@ func _gui_input(event: InputEvent) -> void:
 	elif event is InputEventScreenDrag and (event as InputEventScreenDrag).index == _touch_index:
 		if _active_id != "":
 			_recognizer.drag((event as InputEventScreenDrag).position)
-			_check_completion()
+			_check_progress()
 		accept_event()
-
-
-func _process(delta: float) -> void:
-	if _active_id != "" and _recognizer.gesture == "hold":
-		_recognizer.tick(delta)
-		_check_completion()
 
 
 func _on_touch(touch: InputEventScreenTouch) -> void:
@@ -181,6 +391,7 @@ func _on_touch(touch: InputEventScreenTouch) -> void:
 		var component: ComponentDefinition = _state.device.get_component(component_id)
 		_touch_index = touch.index
 		_active_id = component_id
+		_last_step = 0
 		_resisting = false
 		_recognizer.begin(component.gesture, component.gesture_params, view_rect(component), touch.position)
 		gesture_started.emit(component_id)
@@ -192,8 +403,14 @@ func _on_touch(touch: InputEventScreenTouch) -> void:
 			gesture_cancelled.emit(cancelled_id)
 
 
-func _check_completion() -> void:
+func _check_progress() -> void:
 	queue_redraw()
+	var step: int = _recognizer.step()
+	if step > _last_step:
+		_last_step = step
+		gesture_step.emit(_active_id, step, _recognizer.step_count())
+	elif step < _last_step:
+		_last_step = step
 	if not _recognizer.is_complete():
 		return
 	var completed_id: String = _active_id

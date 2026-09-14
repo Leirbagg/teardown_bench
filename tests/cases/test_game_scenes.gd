@@ -124,7 +124,7 @@ func _play_repair(workbench: Workbench) -> void:
 	view.gesture_started.emit("back_screw_l")
 	view.gesture_completed.emit("back_screw_l")
 	assert_true(state.is_removed("back_screw_l"), "geste terminé → vis retirée")
-	var tray: HFlowContainer = workbench.get_node("%Tray") as HFlowContainer
+	var tray: Container = workbench.get_node("%Tray") as Container
 	assert_true(tray.get_children().any(func(child: Node) -> bool: return not child.is_queued_for_deletion()), "vis dans le bac")
 	view.gesture_completed.emit("back_cover")
 	assert_true(state.is_broken("back_cover"), "cache forcé → cassé")

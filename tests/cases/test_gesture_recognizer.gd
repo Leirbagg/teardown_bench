@@ -99,6 +99,36 @@ func test_tick_only_affects_hold() -> void:
 	assert_eq(recognizer.progress, 0.0)
 
 
+# --- Retour visuel et crans ---
+
+func test_steps_follow_progress() -> void:
+	var quarter: GestureRecognizer = _recognizer("rotate", {"turns": 2}, RECT.get_center() + Vector2(20, 0))
+	assert_eq(quarter.step_count(), 8, "un cran par quart de tour")
+	assert_eq(quarter.step(), 0)
+	_circle(quarter, 90.0)
+	assert_eq(quarter.step(), 1)
+	var full: GestureRecognizer = _recognizer("rotate", {"turns": 2}, RECT.get_center() + Vector2(20, 0))
+	_circle(full, 720.0)
+	assert_eq(full.step(), 8)
+
+
+func test_rotation_angle_is_signed() -> void:
+	var recognizer: GestureRecognizer = _recognizer("rotate", {}, RECT.get_center() + Vector2(20, 0))
+	_circle(recognizer, -180.0)
+	assert_true(absf(recognizer.rotation_angle() + PI) < 0.01, "demi-tour dans le sens inverse")
+
+
+func test_pull_offset_follows_direction_and_is_bounded() -> void:
+	var recognizer: GestureRecognizer = _recognizer("pull", {"direction_deg": 90})
+	recognizer.drag(RECT.get_center() + Vector2(30, -40))
+	assert_true(recognizer.pull_offset().is_equal_approx(Vector2(0, -40)), "seule la composante vers le haut")
+	recognizer.drag(RECT.get_center() + Vector2(0, -500))
+	assert_true(recognizer.pull_offset().is_equal_approx(Vector2(0, -GestureRecognizer.PULL_DISTANCE)), "borné")
+	recognizer.drag(RECT.get_center() + Vector2(0, 50))
+	assert_eq(recognizer.pull_offset(), Vector2.ZERO, "pas de recul")
+	assert_eq(_recognizer("hold").pull_offset(), Vector2.ZERO)
+
+
 # --- Levier ---
 
 func test_pry_along_the_edge_completes() -> void:

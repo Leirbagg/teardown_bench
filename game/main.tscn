@@ -1,6 +1,7 @@
-[gd_scene load_steps=2 format=3]
+[gd_scene load_steps=3 format=3]
 
 [ext_resource type="Script" path="res://game/main.gd" id="1_script"]
+[ext_resource type="Script" path="res://game/feedback/feedback.gd" id="2_feedback"]
 
 [node name="Main" type="Control"]
 layout_mode = 3
@@ -10,3 +11,7 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("1_script")
+
+[node name="Feedback" type="Node" parent="."]
+unique_name_in_owner = true
+script = ExtResource("2_feedback")

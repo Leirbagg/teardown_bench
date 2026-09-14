@@ -13,6 +13,9 @@ const MAX_TIER: int = 1
 var day: WorkDay
 var current_screen: Control
 
+## Survit aux changements d'écran, pour ne pas couper un son en cours.
+@onready var feedback: Feedback = %Feedback
+
 var _catalog: DataCatalog
 var _pause_overlay: PauseOverlay
 
@@ -63,7 +66,7 @@ func _on_start_pressed() -> void:
 	if session == null:
 		return
 	var workbench: Workbench = _set_screen(WORKBENCH) as Workbench
-	workbench.setup(session)
+	workbench.setup(session, feedback)
 
 
 func _on_job_completed(_report: RepairReport) -> void:

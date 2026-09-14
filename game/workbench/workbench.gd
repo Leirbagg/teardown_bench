@@ -5,18 +5,20 @@ extends Control
 
 const Outcome = DisassemblyResult.Outcome
 const TestStatus = Diagnosis.TestStatus
-const HAPTIC_TOUCH_MS: int = 15
-const HAPTIC_REMOVED_MS: int = 30
-const HAPTIC_BREAK_MS: int = 120
+const VIBRATE_STEP_MS: int = 8
+const VIBRATE_STRAIN_MS: int = 25
+const VIBRATE_REMOVED_MS: int = 30
+const VIBRATE_BREAK_MS: int = 120
+const VIBRATE_CLICK_MS: int = 15
 const TIMER_COLOR: Color = Color(1, 1, 1, 0.8)
 const TIMER_LATE_COLOR: Color = Color("e5484d")
 
-## Retour haptique des gestes, désactivable (GDD §6).
-@export var haptics_enabled: bool = true
-
 var session: RepairSession
 
+var _feedback: Feedback
 var _selected_tray_id: String = ""
+## Pièce en cours de geste alors qu'elle est retenue : ses crans grincent.
+var _resisting_id: String = ""
 
 @onready var _complaint: Label = %Complaint
 @onready var _timer: Label = %Timer
@@ -25,7 +27,7 @@ var _selected_tray_id: String = ""
 @onready var _loupe_button: Button = %LoupeButton
 @onready var _tests_button: Button = %TestsButton
 @onready var _final_test_button: Button = %FinalTestButton
-@onready var _tray: HFlowContainer = %Tray
+@onready var _tray: HBoxContainer = %Tray
 @onready var _reinstall_button: Button = %ReinstallButton
 @onready var _replace_button: Button = %ReplaceButton
 @onready var _status: Label = %Status
@@ -43,14 +45,17 @@ func _ready() -> void:
 	_replace_button.pressed.connect(_on_replace_pressed)
 	_info_close_button.pressed.connect(_close_info)
 	_device_view.gesture_started.connect(_on_gesture_started)
+	_device_view.gesture_step.connect(_on_gesture_step)
 	_device_view.gesture_completed.connect(_on_gesture_completed)
 	_device_view.gesture_cancelled.connect(_on_gesture_cancelled)
 	_device_view.component_inspected.connect(_on_component_inspected)
 
 
-## À appeler une fois la scène dans l'arbre.
-func setup(repair_session: RepairSession) -> void:
+## À appeler une fois la scène dans l'arbre. `feedback` doit survivre à l'écran : le son de
+## réussite se joue au moment où l'écran est remplacé.
+func setup(repair_session: RepairSession, feedback: Feedback) -> void:
 	session = repair_session
+	_feedback = feedback
 	_complaint.text = "\"%s\"" % session.job.complaint
 	_device_view.setup(session.state)
 	session.state.component_removed.connect(_refresh_tray.unbind(1))
@@ -74,28 +79,44 @@ func _process(_delta: float) -> void:
 func _on_gesture_started(component_id: String) -> void:
 	var prediction: DisassemblyResult = session.state.query_remove(component_id)
 	if prediction.outcome == Outcome.FORCED:
+		_resisting_id = component_id
 		_device_view.set_resisting(true)
 		_set_status("%s is held by: %s. Finish the gesture to force it." % [UiFormat.label(component_id), UiFormat.labels(prediction.blockers)])
-		_vibrate(HAPTIC_TOUCH_MS)
+		_feedback.pulse(&"creak", VIBRATE_STRAIN_MS)
 	else:
+		_resisting_id = ""
 		_set_status("%s…" % _gesture_hint(session.state.device.get_component(component_id)))
 
 
+func _on_gesture_step(component_id: String, _step: int, _step_count: int) -> void:
+	if component_id == _resisting_id:
+		_feedback.pulse(&"creak", VIBRATE_STRAIN_MS)
+		return
+	match session.state.device.get_component(component_id).gesture:
+		"hold":
+			_feedback.pulse(&"sizzle", VIBRATE_STEP_MS)
+		_:
+			_feedback.pulse(&"screw_tick", VIBRATE_STEP_MS)
+
+
 func _on_gesture_completed(component_id: String) -> void:
+	_resisting_id = ""
 	var result: DisassemblyResult = session.state.commit_remove(component_id)
 	match result.outcome:
 		Outcome.REMOVED:
 			_set_status("Removed %s." % UiFormat.label(component_id))
-			_vibrate(HAPTIC_REMOVED_MS)
+			_feedback.pulse(&"pop", VIBRATE_REMOVED_MS)
 		Outcome.FORCED:
 			if result.broken.is_empty():
 				_set_status("Still held by: %s." % UiFormat.labels(result.blockers))
+				_feedback.pulse(&"creak", VIBRATE_STRAIN_MS)
 			else:
 				_set_status("Forced it! Broke: %s." % UiFormat.labels(result.broken))
-				_vibrate(HAPTIC_BREAK_MS)
+				_feedback.pulse(&"crack", VIBRATE_BREAK_MS)
 
 
 func _on_gesture_cancelled(_component_id: String) -> void:
+	_resisting_id = ""
 	_set_status("")
 
 
@@ -146,9 +167,10 @@ func _on_final_test_pressed() -> void:
 				lines.append("Broken parts: %s." % UiFormat.labels(result.broken_ids))
 			lines.append("Reopen the device and keep looking.")
 			_show_info("\n".join(lines))
-			_vibrate(HAPTIC_BREAK_MS)
+			_feedback.pulse(&"failure", VIBRATE_BREAK_MS)
 		FinalTestResult.Outcome.PASSED:
 			_set_status("Repaired!")
+			_feedback.pulse(&"success", VIBRATE_REMOVED_MS)
 
 
 # --- Bac à pièces ---
@@ -189,13 +211,14 @@ func _on_reinstall_pressed() -> void:
 		_set_status("Reinstall first: %s." % UiFormat.labels(result.blockers))
 	elif result.outcome == Outcome.INSTALLED:
 		_set_status("Reinstalled %s." % UiFormat.label(component_id))
-		_vibrate(HAPTIC_TOUCH_MS)
+		_feedback.pulse(&"click", VIBRATE_CLICK_MS)
 
 
 func _on_replace_pressed() -> void:
 	var component_id: String = _selected_tray_id
 	if session.state.replace(component_id).is_success():
 		_set_status("Swapped %s for a new part." % UiFormat.label(component_id))
+		_feedback.pulse(&"click", VIBRATE_CLICK_MS)
 
 
 # --- Affichage ---
@@ -231,11 +254,6 @@ func _close_info() -> void:
 
 func _set_status(text: String) -> void:
 	_status.text = text
-
-
-func _vibrate(duration_ms: int) -> void:
-	if haptics_enabled:
-		Input.vibrate_handheld(duration_ms)
 
 
 static func _gesture_hint(component: ComponentDefinition) -> String:
