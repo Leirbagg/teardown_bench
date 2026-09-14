@@ -1,5 +1,8 @@
 extends SceneTree
 
+## Plus long que le son le plus long (success.wav, 0,58 s).
+const AUDIO_RELEASE_S: float = 0.8
+
 func _initialize() -> void:
 	_run.call_deferred()
 
@@ -13,4 +16,7 @@ func _run() -> void:
 		var suite = load("res://tests/cases/" + path).new()
 		failures += suite.run()
 	print("FAILURES: %d" % failures)
+	# Laisse les sons lancés par les tests de scènes se terminer : quitter pendant une lecture
+	# affiche « resources still in use at exit » et masquerait une vraie fuite.
+	await create_timer(AUDIO_RELEASE_S).timeout
 	quit(1 if failures > 0 else 0)
