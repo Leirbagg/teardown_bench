@@ -11,8 +11,8 @@
     {"id": "charging", "roles": ["charge_port"], "after": ["boot"]}
   ],
   "components": [
-    {"id": "pentalobe_left", "kind": "screw", "face": "front", "gesture": "rotate", "gesture_params": {"turns": 1.5}, "requires": [], "covered_by": [], "visual": {"rect": [70, 356, 10, 10]}},
-    {"id": "pentalobe_right", "kind": "screw", "face": "front", "gesture": "rotate", "gesture_params": {"turns": 1.5}, "requires": [], "covered_by": [], "visual": {"rect": [100, 356, 10, 10]}},
+    {"id": "pentalobe_left", "kind": "screw", "face": "front", "gesture": "rotate", "gesture_params": {"turns": 1.5}, "requires": [], "covered_by": [], "visual": {"rect": [56, 356, 10, 10]}},
+    {"id": "pentalobe_right", "kind": "screw", "face": "front", "gesture": "rotate", "gesture_params": {"turns": 1.5}, "requires": [], "covered_by": [], "visual": {"rect": [114, 356, 10, 10]}},
     {"id": "display_adhesive", "kind": "adhesive", "face": "front", "gesture": "hold", "gesture_params": {"duration_s": 3.0}, "requires": [], "covered_by": [], "visual": {"rect": [8, 338, 164, 12]}},
     {"id": "display", "kind": "module", "face": "front", "gesture": "pry", "requires": ["pentalobe_left", "pentalobe_right", "display_adhesive"], "covered_by": [], "role": "screen", "replaceable": true, "replace_requires": ["display_connector", "sensor_connector"], "visual": {"rect": [4, 4, 172, 360]}},
     {"id": "cover_screw_1", "kind": "screw", "face": "front", "gesture": "rotate", "gesture_params": {"turns": 0.5}, "requires": ["display"], "covered_by": ["display"], "visual": {"rect": [15, 153, 9, 9]}},
@@ -49,7 +49,7 @@
   ],
   "decorations": [
     {"id": "midframe", "face": "front", "kind": "frame", "rect": [2, 2, 176, 364]},
-    {"id": "logic_board", "face": "front", "kind": "board", "rect": [8, 16, 58, 256], "label": "Logic board"},
+    {"id": "logic_board", "face": "front", "kind": "board", "rect": [8, 16, 58, 256], "label": "Board"},
     {"id": "soc", "face": "front", "kind": "chip", "rect": [18, 104, 38, 36]},
     {"id": "rear_camera_modules", "face": "front", "kind": "camera", "rect": [110, 12, 60, 60], "label": "Cameras"},
     {"id": "notch", "face": "front", "kind": "notch", "rect": [58, 6, 64, 16], "attached_to": "display"},
