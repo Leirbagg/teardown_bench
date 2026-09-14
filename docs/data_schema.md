@@ -167,7 +167,7 @@ Elles découlent des données ci-dessus, sans champ supplémentaire.
 
 ## Règles de la journée (`core/day/`)
 
-- **Clients** : `DayGenerator` en tire entre 3 et 5. Chacun reçoit une panne applicable dont le
+- **Clients** : `DayGenerator` en tire entre 2 et 3. Chacun reçoit une panne applicable dont le
   `tier`, comme celui de l'appareil, ne dépasse pas le tier demandé. Deux clients consécutifs
   n'ont pas la même panne quand une autre est possible. Même graine, même journée.
 - **Plainte** : tirée parmi les `complaints` de la panne.

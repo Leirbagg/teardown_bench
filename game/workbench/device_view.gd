@@ -150,16 +150,39 @@ func view_rect(component: ComponentDefinition) -> Rect2:
 	return _to_view(_device_rect(component))
 
 
-## Composant touchable le plus haut sous `position`, ou "" s'il n'y en a pas. La zone de toucher
-## est agrandie à MIN_TOUCH_TARGET pour les petites pièces.
+## Composant touché sous `position`, ou "" s'il n'y en a pas. Les petites pièces ont une zone de
+## toucher agrandie à MIN_TOUCH_TARGET, sans jamais punir un doigt bien placé (pilier 2) :
+## - une pièce visée en plein l'emporte sur la zone agrandie d'une voisine ;
+## - mais une pièce posée sur une autre (vis sur l'écran) garde sa zone agrandie par-dessus.
 func component_at(position: Vector2) -> String:
 	if _state == null or _scale() <= 0.0:
 		return ""
+	var direct: ComponentDefinition = null
+	var direct_level: int = -1
+	var expanded: Array[int] = []
 	for i: int in range(_draw_order.size() - 1, -1, -1):
 		var component: ComponentDefinition = _draw_order[i]
-		if _is_drawn(component) and _touch_rect(view_rect(component)).has_point(position):
-			return component.id
-	return ""
+		if not _is_drawn(component):
+			continue
+		var rect: Rect2 = view_rect(component)
+		if direct == null and rect.has_point(position):
+			direct = component
+			direct_level = i
+		elif _touch_rect(rect).has_point(position):
+			expanded.append(i)
+
+	var nearest_id: String = "" if direct == null else direct.id
+	var nearest_distance: float = INF
+	for i: int in expanded:
+		var rect: Rect2 = view_rect(_draw_order[i])
+		var sits_on_direct: bool = direct != null and i > direct_level and rect.intersects(view_rect(direct))
+		if direct != null and not sits_on_direct:
+			continue
+		var distance: float = rect.get_center().distance_squared_to(position)
+		if distance < nearest_distance:
+			nearest_distance = distance
+			nearest_id = _draw_order[i].id
+	return nearest_id
 
 
 ## Repère local de l'appareil vers la vue : mis à l'échelle et centré.
@@ -292,7 +315,8 @@ func _draw_decoration(decoration: DeviceDefinition.Decoration) -> void:
 	else:
 		draw_style_box(_style(decoration.kind, color), rect)
 	if not decoration.label.is_empty() and rect.size.y >= LABEL_FONT_SIZE + 6:
-		draw_string(get_theme_default_font(), Vector2(rect.position.x, rect.position.y + LABEL_FONT_SIZE + 4),
+		# En bas du décor : le haut d'une carte mère est souvent couvert de caches.
+		draw_string(get_theme_default_font(), Vector2(rect.position.x, rect.end.y - 6),
 			decoration.label, HORIZONTAL_ALIGNMENT_CENTER, rect.size.x, LABEL_FONT_SIZE, DECORATION_LABEL_COLOR)
 
 

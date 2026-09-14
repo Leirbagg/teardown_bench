@@ -29,7 +29,9 @@ remplace la pièce, remonte, puis teste.
 
 ### 3.1 Session : la journée d'atelier
 
-- Une session = **une journée** de 5 à 10 min réelles, avec 3 à 5 clients.
+- Une session = **une journée** de 10 à 20 min réelles, avec 2 à 3 clients.
+- Chaque réparation suit fidèlement le process réel (4 à 7 min) : c'est le geste qui fait le jeu,
+  on ne le raccourcit pas en multipliant les clients.
 - La journée se termine par un **bilan**.
 
 ### 3.2 Une réparation
@@ -98,7 +100,9 @@ Plainte client → Inspection → Mesure / test → Démontage → Remplacement
 
 ### Inclus
 
-- **1 appareil** : un téléphone fictif.
+- **1 appareil** : un smartphone fictif, analogue fidèle d'un modèle 6,1 pouces de 2021 d'après les
+  guides de réparation publics (ouverture par l'écran, caches vissés, batterie débranchée en premier,
+  languettes adhésives, haut-parleur, vibreur, port de charge collé). Aucun nom ni logo réel.
 - **3 pannes** : écran cassé, batterie morte, connecteur de charge.
 - **Les 4 gestes** : rotation, glisser/tirer, maintien, levier.
 - **Retournement** avant/arrière.

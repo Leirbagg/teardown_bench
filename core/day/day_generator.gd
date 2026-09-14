@@ -2,8 +2,9 @@ class_name DayGenerator
 extends RefCounted
 ## Compose la file de clients d'une journée à partir des appareils et pannes disponibles.
 
-const MIN_CUSTOMERS: int = 3
-const MAX_CUSTOMERS: int = 5
+## Réparations fidèles aux guides : 4 à 7 min chacune (GDD §3.1).
+const MIN_CUSTOMERS: int = 2
+const MAX_CUSTOMERS: int = 3
 
 
 class _Candidate:

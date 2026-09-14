@@ -38,17 +38,17 @@ func _center_of(view: DeviceView, component_id: String) -> Vector2:
 func test_device_view_hits_topmost_visible_part() -> void:
 	var state: DisassemblyState = _starter_phone_state()
 	var view: DeviceView = _device_view(state)
-	view.face = "back"
-	assert_eq(view.component_at(_center_of(view, "back_screw_l")), "back_screw_l", "vis au-dessus du cache")
-	assert_eq(view.component_at(_center_of(view, "back_cover")), "back_cover")
-	assert_eq(view.component_at(_center_of(view, "battery")), "back_cover", "batterie cachée : on touche le cache")
+	assert_eq(view.face, "front", "on commence côté écran")
+	assert_eq(view.component_at(_center_of(view, "pentalobe_left")), "pentalobe_left", "vis au-dessus de l'écran")
+	assert_eq(view.component_at(_center_of(view, "display")), "display")
+	assert_eq(view.component_at(_center_of(view, "battery")), "display", "batterie cachée : on touche l'écran")
 	assert_eq(view.component_at(Vector2(-10, -10)), "")
-	DisassemblyFixture.remove_with_prerequisites(state, "back_cover")
+	DisassemblyFixture.remove_with_prerequisites(state, "display")
 	assert_eq(view.component_at(_center_of(view, "battery")), "battery")
-	assert_eq(view.component_at(_center_of(view, "battery_connector")), "battery_connector", "connecteur au-dessus de la batterie")
-	assert_eq(view.component_at(_center_of(view, "back_screw_l")), "", "vis retirée")
-	view.face = "front"
-	assert_eq(view.component_at(_center_of(view, "screen")), "screen")
+	assert_eq(view.component_at(_center_of(view, "battery_tab_top_left")), "battery_tab_top_left", "languette au-dessus de la batterie")
+	assert_true(view.component_at(_center_of(view, "pentalobe_left")) != "pentalobe_left", "vis retirée : plus touchable")
+	view.face = "back"
+	assert_eq(view.component_at(_center_of(view, "battery")), "", "dos scellé : rien à toucher")
 	view.free()
 
 
@@ -59,16 +59,15 @@ func test_device_view_receives_touches_through_gui_input() -> void:
 	assert_eq(view.mouse_filter, Control.MOUSE_FILTER_STOP, "la vue doit capter les touchers")
 	var completed: Array[String] = []
 	view.gesture_completed.connect(func(id: String) -> void: completed.append(id))
-	DisassemblyFixture.remove_with_prerequisites(state, "back_cover")
-	view.face = "back"
+	DisassemblyFixture.remove_with_prerequisites(state, "connector_cover")
 	var start: Vector2 = _center_of(view, "battery_connector")
 	view._gui_input(_touch(start, true))
 	for step: int in range(1, 11):
 		var drag: InputEventScreenDrag = InputEventScreenDrag.new()
-		drag.position = start + Vector2(0, -10.0 * step)
+		drag.position = start + Vector2(10.0 * step, 0)
 		view._gui_input(drag)
-	view._gui_input(_touch(start + Vector2(0, -100), false))
-	assert_eq(completed, ["battery_connector"] as Array[String], "tirer vers le haut retire le connecteur")
+	view._gui_input(_touch(start + Vector2(100, 0), false))
+	assert_eq(completed, ["battery_connector"] as Array[String], "tirer vers la droite débranche la batterie")
 	view.free()
 
 
@@ -79,14 +78,31 @@ func _touch(position: Vector2, pressed: bool) -> InputEventScreenTouch:
 	return touch
 
 
+## Pilier 2 : viser une pièce en plein centre ne doit jamais attraper sa voisine, même si la
+## zone agrandie de la voisine, dessinée par-dessus, recouvre le doigt.
+func test_touching_a_part_squarely_never_picks_its_overlapping_neighbour() -> void:
+	var state: DisassemblyState = _starter_phone_state()
+	var view: DeviceView = _device_view(state)
+	DisassemblyFixture.remove_with_prerequisites(state, "connector_cover")
+	var battery_connector: Rect2 = view.view_rect(state.device.get_component("battery_connector"))
+	var display_connector: Rect2 = view.view_rect(state.device.get_component("display_connector"))
+	assert_true(DeviceView._touch_rect(display_connector).has_point(battery_connector.get_center()),
+		"préparation : les zones de toucher se chevauchent")
+	assert_eq(view.component_at(battery_connector.get_center()), "battery_connector")
+	assert_eq(view.component_at(display_connector.get_center()), "display_connector")
+	var between_but_closer_to_battery: Vector2 = battery_connector.get_center().lerp(display_connector.get_center(), 0.3)
+	if not battery_connector.has_point(between_but_closer_to_battery) and not display_connector.has_point(between_but_closer_to_battery):
+		assert_eq(view.component_at(between_but_closer_to_battery), "battery_connector", "hors des pièces : la plus proche")
+	view.free()
+
+
 func test_small_parts_get_a_48dp_touch_target() -> void:
 	var state: DisassemblyState = _starter_phone_state()
 	var view: DeviceView = _device_view(state)
-	view.face = "back"
-	var screw: Rect2 = view.view_rect(state.device.get_component("back_screw_r"))
+	var screw: Rect2 = view.view_rect(state.device.get_component("pentalobe_right"))
 	assert_true(screw.size.x < DeviceView.MIN_TOUCH_TARGET, "préparation : la vis est plus petite que 48dp")
 	var near_edge: Vector2 = screw.get_center() + Vector2(DeviceView.MIN_TOUCH_TARGET / 2.0 - 1.0, 0)
-	assert_eq(view.component_at(near_edge), "back_screw_r")
+	assert_eq(view.component_at(near_edge), "pentalobe_right")
 	view.free()
 
 
@@ -117,24 +133,26 @@ func test_main_plays_a_full_day_through_screen_signals() -> void:
 	main.free()
 
 
-## Retire une vis par geste, force le cache (casse), puis répare et lance le test final.
+## Retire une vis par geste, force l'écran (fissure), puis répare et lance le test final.
 func _play_repair(workbench: Workbench) -> void:
 	var state: DisassemblyState = workbench.session.state
 	var view: DeviceView = workbench.get_node("%DeviceView") as DeviceView
-	view.gesture_started.emit("back_screw_l")
-	view.gesture_completed.emit("back_screw_l")
-	assert_true(state.is_removed("back_screw_l"), "geste terminé → vis retirée")
+	view.gesture_started.emit("pentalobe_left")
+	view.gesture_completed.emit("pentalobe_left")
+	assert_true(state.is_removed("pentalobe_left"), "geste terminé → vis retirée")
 	var tray: Container = workbench.get_node("%Tray") as Container
 	assert_true(tray.get_children().any(func(child: Node) -> bool: return not child.is_queued_for_deletion()), "vis dans le bac")
-	view.gesture_completed.emit("back_cover")
-	assert_true(state.is_broken("back_cover"), "cache forcé → cassé")
+	view.gesture_completed.emit("display")
+	assert_true(state.is_broken("display"), "écran forcé sans chauffer → cassé")
 	(workbench.get_node("%TestsButton") as Button).pressed.emit()
 	assert_true((workbench.get_node("%InfoPanel") as Control).visible, "résultats des tests affichés")
 	(workbench.get_node("%InfoCloseButton") as Button).pressed.emit()
 	(workbench.get_node("%FinalTestButton") as Button).pressed.emit()
 	assert_false(workbench.session.is_completed(), "appareil ouvert : pas de fin")
-	DisassemblyFixture.remove_with_prerequisites(state, "back_cover")
-	state.replace("back_cover")
+	DisassemblyFixture.remove_with_prerequisites(state, "display")
+	for attached: String in state.device.get_component("display").replace_requires:
+		DisassemblyFixture.remove_with_prerequisites(state, attached)
+	assert_eq(state.replace("display").outcome, DisassemblyResult.Outcome.REPLACED, "nappes débranchées → écran remplacé")
 	DisassemblyFixture.repair_faults(state, workbench.session.job.faults)
 	(workbench.get_node("%FinalTestButton") as Button).pressed.emit()
 	assert_true(workbench.session.is_completed(), "réparation terminée")
