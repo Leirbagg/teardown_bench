@@ -18,6 +18,8 @@ var covered_by: PackedStringArray
 var role: String
 var replaceable: bool
 var force_breaks: PackedStringArray
+## Pièces à retirer (débrancher) avant de pouvoir remplacer celle-ci, en plus de la retirer elle-même.
+var replace_requires: PackedStringArray
 ## Vrai si le composant peut être visible tout en étant retenu, donc forcé.
 var forceable: bool
 ## Données d'affichage, ignorées par core/.
@@ -37,6 +39,7 @@ static func from_dict(data: Dictionary) -> ComponentDefinition:
 	component.role = data.get("role", "")
 	component.replaceable = data.get("replaceable", false)
 	component.force_breaks = resolve_force_breaks(component.id, PackedStringArray(data.get("force_breaks", [])))
+	component.replace_requires = PackedStringArray(data.get("replace_requires", []))
 	component.forceable = is_forceable(component.requires, component.covered_by)
 	component.visual = data.get("visual", {})
 	return component

@@ -171,6 +171,45 @@ func test_replacing_healthy_part_is_recorded() -> void:
 	assert_eq(_events, ["replaced:battery(healthy)", "replaced:battery(healthy)"] as Array[String])
 
 
+## Écran qui s'ouvre comme un livre : il cache sa propre nappe, qu'on ne peut débrancher
+## qu'une fois l'écran ouvert, et qu'il faut débrancher avant de le remplacer.
+func _book_opening_device() -> DeviceDefinition:
+	var data: Dictionary = {
+		"schema_version": 1, "id": "book", "name": "Book", "tier": 1, "faces": ["front"],
+		"software_tests": [{"id": "display", "roles": ["screen"], "after": []}],
+		"components": [
+			{"id": "display", "kind": "module", "face": "front", "gesture": "pry", "role": "screen",
+				"requires": [], "covered_by": [], "replaceable": true, "replace_requires": ["display_cable"]},
+			{"id": "display_cable", "kind": "connector", "face": "front", "gesture": "pull",
+				"requires": ["display"], "covered_by": ["display"]},
+		],
+	}
+	assert_no_errors(DeviceValidator.validate_device(data), "préparation")
+	return DeviceDefinition.from_dict(data)
+
+
+func test_replace_waits_for_listed_parts_to_be_detached() -> void:
+	var state: DisassemblyState = DisassemblyState.new(_book_opening_device())
+	state.commit_remove("display")
+	var result: DisassemblyResult = state.replace("display")
+	assert_eq(result.outcome, Outcome.NOT_DETACHED)
+	assert_eq(result.blockers, PackedStringArray(["display_cable"]))
+	assert_false(result.is_success())
+	assert_eq(state.replaced_ids(), PackedStringArray())
+	state.commit_remove("display_cable")
+	assert_eq(state.replace("display").outcome, Outcome.REPLACED)
+
+
+func test_detached_part_must_be_reconnected_before_closing() -> void:
+	var state: DisassemblyState = DisassemblyState.new(_book_opening_device())
+	state.commit_remove("display")
+	state.commit_remove("display_cable")
+	state.replace("display")
+	assert_eq(state.commit_install("display").outcome, Outcome.INSTALL_BLOCKED, "rebrancher la nappe d'abord")
+	assert_eq(state.commit_install("display_cable").outcome, Outcome.INSTALLED)
+	assert_eq(state.commit_install("display").outcome, Outcome.INSTALLED)
+
+
 # --- Propriétés ---
 
 func test_full_teardown_then_reassembly() -> void:

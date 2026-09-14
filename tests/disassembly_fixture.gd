@@ -50,6 +50,8 @@ static func repair_faults(state: DisassemblyState, faults: Array[FaultDefinition
 	for fault: FaultDefinition in faults:
 		var component_id: String = state.device.component_for_role(fault.target_role).id
 		remove_with_prerequisites(state, component_id)
+		for attached: String in state.device.get_component(component_id).replace_requires:
+			remove_with_prerequisites(state, attached)
 		state.replace(component_id)
 	reassemble(state)
 

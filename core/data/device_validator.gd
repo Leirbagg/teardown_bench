@@ -86,11 +86,15 @@ static func _check_components(raw_components: Array, faces: PackedStringArray, e
 		var requires: PackedStringArray = _check_string_array(raw, "requires", path, errors)
 		var covered_by: PackedStringArray = _check_string_array(raw, "covered_by", path, errors)
 		var force_breaks: PackedStringArray = _check_string_array(raw, "force_breaks", path, errors, false)
+		var replace_requires: PackedStringArray = _check_string_array(raw, "replace_requires", path, errors, false)
+		if id in replace_requires:
+			errors.append("[bad_value] %s.replace_requires : un composant ne peut pas se requérir lui-même" % path)
 		components[id] = {
 			"path": path,
 			"requires": requires,
 			"covered_by": covered_by,
 			"force_breaks": ComponentDefinition.resolve_force_breaks(id, force_breaks),
+			"replace_requires": replace_requires,
 			"role": _check_string(raw, "role", path, errors, false),
 			"replaceable": _check_bool(raw, "replaceable", path, errors),
 		}
@@ -111,11 +115,11 @@ static func _check_graph(components: Dictionary[String, Dictionary], errors: Arr
 		edges[id] = requires
 		has_root = has_root or requires.is_empty()
 
-		for field: String in ["requires", "covered_by", "force_breaks"]:
+		for field: String in ["requires", "covered_by", "force_breaks", "replace_requires"]:
 			for target: String in component[field]:
 				if not components.has(target):
 					errors.append("[unknown_ref] %s.%s : '%s' n'existe pas" % [path, field, target])
-		for target: String in requires:
+		for target: String in requires + (component["replace_requires"] as PackedStringArray):
 			required_ids[target] = true
 		for target: String in covered_by:
 			if target not in requires:
@@ -125,6 +129,9 @@ static func _check_graph(components: Dictionary[String, Dictionary], errors: Arr
 			for target: String in component["force_breaks"]:
 				if components.has(target) and not components[target]["replaceable"]:
 					errors.append("[breaks_irreplaceable] %s : le forcer casserait '%s', qui n'est pas replaceable" % [path, target])
+
+		if not (component["replace_requires"] as PackedStringArray).is_empty() and not component["replaceable"]:
+			errors.append("[replace_requires_irreplaceable] %s : replace_requires sur un composant non replaceable" % path)
 
 		var role: String = component["role"]
 		if role.is_empty():

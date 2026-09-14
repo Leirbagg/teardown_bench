@@ -32,6 +32,9 @@ Tout fichier doit passer `DeviceValidator` (`core/data/device_validator.gd`).
    est en panne ou cassé (détail dans [Règles du diagnostic](#règles-du-diagnostic-corediagnosisdiagnosisgd)).
    Les pannes partielles demanderont un champ supplémentaire plus tard.
 5. **Les plaintes sont en anglais directement dans le JSON** au MVP (pas de clés de traduction).
+6. **`replace_requires` pour les pièces qui cachent leurs propres attaches.** Un écran qui s'ouvre
+   comme un livre cache ses nappes : elles ne peuvent pas figurer dans ses `requires` (cycle).
+   Ouvrir l'écran = le retirer ; le remplacer exige en plus d'avoir débranché ses nappes.
 
 ## Appareil
 
@@ -77,6 +80,7 @@ Tout fichier doit passer `DeviceValidator` (`core/data/device_validator.gd`).
 | `components[].role` | non | core | Lien avec pannes et tests. Unique par appareil |
 | `components[].replaceable` | non (`false`) | core | Seules ces pièces peuvent être remplacées ou cassées |
 | `components[].force_breaks` | non (`[id]`) | core | Pièces cassées quand on force ce composant |
+| `components[].replace_requires` | non (`[]`) | core | Pièces à retirer avant de remplacer ce composant, ex. les nappes d'un écran qui s'ouvre comme un livre |
 | `components[].visual` | non | game | Ignoré par `core/`. Sprites à lister dans `data/preload_manifest.json` |
 
 ### Règles du validateur
@@ -87,8 +91,10 @@ Tout fichier doit passer `DeviceValidator` (`core/data/device_validator.gd`).
 - `covered_by` ⊆ `requires`.
 - Un composant qu'on peut forcer (`requires` non inclus dans `covered_by`) ne casse que des
   pièces `replaceable`.
-- **Orphelin** : composant que rien ne requiert, non `replaceable` et sans rôle. Le retirer ne
-  sert à rien, c'est une erreur.
+- `replace_requires` : références existantes, jamais le composant lui-même, et seulement sur un
+  composant `replaceable`.
+- **Orphelin** : composant que rien ne requiert (ni `requires` ni `replace_requires`), non
+  `replaceable` et sans rôle. Le retirer ne sert à rien, c'est une erreur.
 
 ## Panne
 

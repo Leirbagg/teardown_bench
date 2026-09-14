@@ -128,6 +128,9 @@ func replace(component_id: String) -> DisassemblyResult:
 		return DisassemblyResult.new(Outcome.NOT_REPLACEABLE, component_id)
 	if not is_removed(component_id):
 		return DisassemblyResult.new(Outcome.NOT_REMOVED, component_id)
+	var attached: PackedStringArray = graph.attached_for_replacement(component_id, _removed)
+	if not attached.is_empty():
+		return DisassemblyResult.new(Outcome.NOT_DETACHED, component_id, attached)
 	var was_broken: bool = _broken.erase(component_id)
 	_replaced.append(component_id)
 	component_replaced.emit(component_id, was_broken)

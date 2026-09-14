@@ -216,7 +216,10 @@ func _on_reinstall_pressed() -> void:
 
 func _on_replace_pressed() -> void:
 	var component_id: String = _selected_tray_id
-	if session.state.replace(component_id).is_success():
+	var result: DisassemblyResult = session.state.replace(component_id)
+	if result.outcome == Outcome.NOT_DETACHED:
+		_set_status("Disconnect first: %s." % UiFormat.labels(result.blockers))
+	elif result.is_success():
 		_set_status("Swapped %s for a new part." % UiFormat.label(component_id))
 		_feedback.pulse(&"click", VIBRATE_CLICK_MS)
 

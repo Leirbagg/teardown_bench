@@ -32,6 +32,11 @@ func removal_blockers(component_id: String, removed: Dictionary[String, bool]) -
 	return _in_place(device.get_component(component_id).requires, removed)
 
 
+## Pièces de replace_requires encore en place : le remplacement attend qu'elles soient retirées.
+func attached_for_replacement(component_id: String, removed: Dictionary[String, bool]) -> PackedStringArray:
+	return _in_place(device.get_component(component_id).replace_requires, removed)
+
+
 ## Composants qui requièrent celui-ci, dans l'ordre du fichier.
 func dependents(component_id: String) -> PackedStringArray:
 	return _dependents[component_id]

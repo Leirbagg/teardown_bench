@@ -171,6 +171,21 @@ func test_hidden_only_component_may_be_irreplaceable() -> void:
 	assert_no_errors(DeviceValidator.validate_device(device))
 
 
+func test_replace_requires_must_reference_existing_other_parts_of_a_replaceable_part() -> void:
+	var unknown: Dictionary = _valid_device()
+	_component(unknown, "battery")["replace_requires"] = ["ghost"]
+	assert_has_code(DeviceValidator.validate_device(unknown), "unknown_ref")
+	var itself: Dictionary = _valid_device()
+	_component(itself, "battery")["replace_requires"] = ["battery"]
+	assert_has_code(DeviceValidator.validate_device(itself), "bad_value")
+	var irreplaceable: Dictionary = _valid_device()
+	_component(irreplaceable, "screw")["replace_requires"] = ["cover"]
+	assert_has_code(DeviceValidator.validate_device(irreplaceable), "replace_requires_irreplaceable")
+	var valid: Dictionary = _valid_device()
+	_component(valid, "battery")["replace_requires"] = ["screw"]
+	assert_no_errors(DeviceValidator.validate_device(valid))
+
+
 func test_rejects_duplicate_role() -> void:
 	var device: Dictionary = _valid_device()
 	_component(device, "cover")["role"] = "battery"

@@ -16,6 +16,8 @@ enum Outcome {
 	ALREADY_INSTALLED,
 	## Remplacement d'une pièce encore en place.
 	NOT_REMOVED,
+	## Remplacement refusé : des pièces de replace_requires sont encore en place (dans `blockers`).
+	NOT_DETACHED,
 	NOT_REPLACEABLE,
 	UNKNOWN_COMPONENT,
 }
