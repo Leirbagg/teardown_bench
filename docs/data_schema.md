@@ -83,6 +83,21 @@ Tout fichier doit passer `DeviceValidator` (`core/data/device_validator.gd`).
 | `components[].replace_requires` | non (`[]`) | core | Pièces à retirer avant de remplacer ce composant, ex. les nappes d'un écran qui s'ouvre comme un livre |
 | `components[].visual` | non | game | Ignoré par `core/`. Sprites à lister dans `data/preload_manifest.json` |
 
+### Décor (`decorations`, facultatif)
+
+Éléments purement visuels, ignorés par les règles : carte mère, bloc caméra, verre arrière…
+Dessinés sous les composants dans l'ordre du fichier, ou juste après leur composant s'ils y
+sont rattachés.
+
+| Champ | Obligatoire | Valeurs / rôle |
+|---|---|---|
+| `id` | oui | Unique parmi les décors |
+| `face` | oui | Une valeur de `faces` |
+| `kind` | oui | `frame`, `board`, `chip`, `camera`, `lens`, `glass`, `notch` |
+| `rect` | oui | `[x, y, largeur, hauteur]`, dimensions > 0 |
+| `attached_to` | non | Composant dont le décor fait partie : affiché seulement avec lui |
+| `label` | non | Texte discret, en anglais |
+
 ### Règles du validateur
 
 - Ids uniques ; toute référence (`requires`, `covered_by`, `force_breaks`, rôles, `after`) existe.

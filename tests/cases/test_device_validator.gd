@@ -122,6 +122,44 @@ func test_visual_rect_must_have_four_numbers_and_positive_size() -> void:
 	assert_no_errors(DeviceValidator.validate_device(valid))
 
 
+func test_decorations_are_validated() -> void:
+	var valid: Dictionary = _valid_device()
+	valid["decorations"] = [
+		{"id": "board", "face": "front", "kind": "board", "rect": [0, 0, 50, 80], "label": "Logic board"},
+		{"id": "notch", "face": "front", "kind": "notch", "rect": [10, 0, 30, 8], "attached_to": "cover"},
+	]
+	assert_no_errors(DeviceValidator.validate_device(valid))
+	var cases: Dictionary = {
+		"unknown_kind": [{"id": "x", "face": "front", "kind": "sticker", "rect": [0, 0, 1, 1]}],
+		"bad_face": [{"id": "x", "face": "side", "kind": "board", "rect": [0, 0, 1, 1]}],
+		"bad_rect": [{"id": "x", "face": "front", "kind": "board", "rect": [0, 0, 0, 1]}],
+		"duplicate": [{"id": "x", "face": "front", "kind": "board", "rect": [0, 0, 1, 1]}, {"id": "x", "face": "front", "kind": "chip", "rect": [0, 0, 1, 1]}],
+	}
+	var expected_codes: Dictionary = {"unknown_kind": "bad_value", "bad_face": "bad_value", "bad_rect": "bad_value", "duplicate": "duplicate_id"}
+	for case: String in cases:
+		var device: Dictionary = _valid_device()
+		device["decorations"] = cases[case]
+		assert_has_code(DeviceValidator.validate_device(device), expected_codes[case], case)
+	var unknown_attach: Dictionary = _valid_device()
+	unknown_attach["decorations"] = [{"id": "x", "face": "front", "kind": "notch", "rect": [0, 0, 1, 1], "attached_to": "ghost"}]
+	assert_has_code(DeviceValidator.validate_device(unknown_attach), "unknown_ref")
+
+
+func test_decorations_are_parsed_in_order() -> void:
+	var data: Dictionary = _valid_device()
+	data["decorations"] = [
+		{"id": "board", "face": "back", "kind": "board", "rect": [1, 2, 3, 4], "label": "Logic board"},
+		{"id": "lens", "face": "back", "kind": "lens", "rect": [5, 6, 7, 8], "attached_to": "cover"},
+	]
+	var device: DeviceDefinition = DeviceDefinition.from_dict(data)
+	assert_eq(device.decorations.size(), 2)
+	assert_eq(device.decorations[0].label, "Logic board")
+	assert_eq(device.decorations[0].rect, PackedFloat32Array([1, 2, 3, 4]))
+	assert_eq(device.decorations[1].attached_to, "cover")
+	assert_eq(device.decorations[1].label, "")
+	assert_eq(DeviceDefinition.from_dict(_valid_device()).decorations.size(), 0, "facultatif")
+
+
 # --- Appareil : graphe ---
 
 func test_rejects_unknown_requires() -> void:

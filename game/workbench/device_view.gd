@@ -44,7 +44,24 @@ const KIND_CORNER_RADIUS: Dictionary[String, int] = {
 	"module": 6,
 	"connector": 3,
 	"adhesive": 2,
+	"body": 24,
+	"frame": 20,
+	"glass": 22,
+	"board": 4,
+	"chip": 2,
+	"camera": 14,
+	"notch": 8,
 }
+const DECORATION_COLORS: Dictionary[String, Color] = {
+	"frame": Color("2b3139"),
+	"board": Color("1d4a3a"),
+	"chip": Color("15191d"),
+	"camera": Color("1a1e23"),
+	"lens": Color("07090b"),
+	"glass": Color("39424d"),
+	"notch": Color("050607"),
+}
+const DECORATION_LABEL_COLOR: Color = Color(1, 1, 1, 0.35)
 
 const FLY_OUT_S: float = 0.35
 const DROP_IN_S: float = 0.2
@@ -113,6 +130,8 @@ func setup(state: DisassemblyState) -> void:
 	_device_bounds = _device_rect(state.device.components[0])
 	for component: ComponentDefinition in state.device.components:
 		_device_bounds = _device_bounds.merge(_device_rect(component))
+	for decoration: DeviceDefinition.Decoration in state.device.decorations:
+		_device_bounds = _device_bounds.merge(_decoration_rect(decoration))
 	state.component_removed.connect(_on_component_removed)
 	state.component_installed.connect(_on_component_installed)
 	state.component_replaced.connect(_on_state_changed.unbind(1))
@@ -212,10 +231,16 @@ func _draw() -> void:
 	if _shake_s > 0.0:
 		var strength: float = SHAKE_PX * _shake_s / SHAKE_S
 		draw_set_transform(Vector2(randf_range(-strength, strength), randf_range(-strength, strength)))
-	draw_rect(_to_view(_device_bounds).grow(6.0), BODY_COLOR)
+	draw_style_box(_style("body", BODY_COLOR), _to_view(_device_bounds).grow(6.0))
+	for decoration: DeviceDefinition.Decoration in _state.device.decorations:
+		if decoration.face == face and decoration.attached_to.is_empty():
+			_draw_decoration(decoration)
 	for component: ComponentDefinition in _draw_order:
 		if _is_drawn(component):
 			_draw_component(component)
+			for decoration: DeviceDefinition.Decoration in _state.device.decorations:
+				if decoration.attached_to == component.id:
+					_draw_decoration(decoration)
 	for effect: Effect in _effects:
 		_draw_effect(effect)
 	draw_set_transform(Vector2.ZERO)
@@ -254,6 +279,21 @@ func _draw_component(component: ComponentDefinition) -> void:
 	if loupe_mode and component.id in clue_component_ids:
 		var pulse: float = 18.0 + 3.0 * sin(_time_s * 6.0)
 		draw_arc(rect.get_center(), pulse, 0.0, TAU, 32, CLUE_COLOR, 3.0)
+
+
+func _draw_decoration(decoration: DeviceDefinition.Decoration) -> void:
+	var rect: Rect2 = _to_view(_decoration_rect(decoration))
+	var color: Color = DECORATION_COLORS.get(decoration.kind, Color.MAGENTA)
+	if decoration.kind == "lens":
+		var radius: float = minf(rect.size.x, rect.size.y) / 2.0
+		draw_circle(rect.get_center(), radius, color)
+		draw_arc(rect.get_center(), radius, 0.0, TAU, 32, Color(1, 1, 1, 0.15), 2.0)
+		draw_circle(rect.get_center() - Vector2(radius, radius) * 0.3, radius * 0.18, Color(1, 1, 1, 0.12))
+	else:
+		draw_style_box(_style(decoration.kind, color), rect)
+	if not decoration.label.is_empty() and rect.size.y >= LABEL_FONT_SIZE + 6:
+		draw_string(get_theme_default_font(), Vector2(rect.position.x, rect.position.y + LABEL_FONT_SIZE + 4),
+			decoration.label, HORIZONTAL_ALIGNMENT_CENTER, rect.size.x, LABEL_FONT_SIZE, DECORATION_LABEL_COLOR)
 
 
 func _draw_screw(rect: Rect2, color: Color, angle: float, lift: float) -> void:
@@ -353,7 +393,7 @@ func _style(key: String, color: Color) -> StyleBoxFlat:
 		var style: StyleBoxFlat = StyleBoxFlat.new()
 		style.set_corner_radius_all(KIND_CORNER_RADIUS.get(key, 8))
 		style.border_color = OUTLINE_COLOR
-		style.set_border_width_all(0 if key == "bubble" else 1)
+		style.set_border_width_all(0 if key in ["bubble", "body"] or DECORATION_COLORS.has(key) else 1)
 		style.anti_aliasing = true
 		_styles[key] = style
 	var cached: StyleBoxFlat = _styles[key]
@@ -436,6 +476,10 @@ func _on_state_changed(_component_id: String) -> void:
 static func _device_rect(component: ComponentDefinition) -> Rect2:
 	var rect: Array = component.visual.get("rect", [0, 0, 0, 0])
 	return Rect2(float(rect[0]), float(rect[1]), float(rect[2]), float(rect[3]))
+
+
+static func _decoration_rect(decoration: DeviceDefinition.Decoration) -> Rect2:
+	return Rect2(decoration.rect[0], decoration.rect[1], decoration.rect[2], decoration.rect[3])
 
 
 ## Agrandit un rectangle trop petit pour le doigt, autour de son centre.

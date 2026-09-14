@@ -28,6 +28,7 @@ static func validate_device(data: Dictionary) -> Array[String]:
 	var components: Dictionary[String, Dictionary] = _check_components(data["components"], faces, errors)
 	_check_graph(components, errors)
 	_check_software_tests(data, components, errors)
+	_check_decorations(data, faces, components, errors)
 	return errors
 
 
@@ -205,13 +206,49 @@ static func _check_visual(component: Dictionary, path: String, errors: Array[Str
 	_check_dictionary(component, "visual", path, errors)
 	if typeof(component.get("visual")) != TYPE_DICTIONARY or not (component["visual"] as Dictionary).has("rect"):
 		return
-	var rect: Variant = component["visual"]["rect"]
+	_check_rect(component["visual"]["rect"], _field(path, "visual.rect"), errors)
+
+
+static func _check_rect(rect: Variant, field: String, errors: Array[String]) -> void:
 	var valid: bool = typeof(rect) == TYPE_ARRAY and (rect as Array).size() == 4
 	if valid:
 		for value: Variant in rect:
 			valid = valid and _is_number(value)
 	if not valid or float(rect[2]) <= 0.0 or float(rect[3]) <= 0.0:
-		errors.append("[bad_value] %s : doit valoir [x, y, largeur, hauteur], dimensions > 0" % _field(path, "visual.rect"))
+		errors.append("[bad_value] %s : doit valoir [x, y, largeur, hauteur], dimensions > 0" % field)
+
+
+## Facultatif. Éléments visuels : id unique, face et kind connus, rect valide, attached_to existant.
+static func _check_decorations(data: Dictionary, faces: PackedStringArray, components: Dictionary[String, Dictionary], errors: Array[String]) -> void:
+	if not data.has("decorations"):
+		return
+	if typeof(data["decorations"]) != TYPE_ARRAY:
+		errors.append("[bad_type] decorations doit être un tableau")
+		return
+	var ids: Dictionary = {}
+	var decorations: Array = data["decorations"]
+	for i: int in decorations.size():
+		var path: String = "decorations[%d]" % i
+		if typeof(decorations[i]) != TYPE_DICTIONARY:
+			errors.append("[bad_type] %s doit être un objet" % path)
+			continue
+		var raw: Dictionary = decorations[i]
+		var id: String = _check_string(raw, "id", path, errors)
+		if not id.is_empty():
+			path = "decorations[%d](%s)" % [i, id]
+			if ids.has(id):
+				errors.append("[duplicate_id] %s : id déjà utilisé" % path)
+			ids[id] = true
+		_check_enum(raw, "face", faces, path, errors)
+		_check_enum(raw, "kind", DeviceDefinition.DECORATION_KINDS, path, errors)
+		if not raw.has("rect"):
+			errors.append("[missing_field] %s" % _field(path, "rect"))
+		else:
+			_check_rect(raw["rect"], _field(path, "rect"), errors)
+		var attached_to: String = _check_string(raw, "attached_to", path, errors, false)
+		if not attached_to.is_empty() and not components.has(attached_to):
+			errors.append("[unknown_ref] %s.attached_to : '%s' n'existe pas" % [path, attached_to])
+		_check_string(raw, "label", path, errors, false)
 
 
 # --- Champs ---

@@ -3,6 +3,7 @@ extends RefCounted
 ## Appareil réparable. Lecture seule après from_dict(). Voir docs/data_schema.md.
 
 const FACES: PackedStringArray = ["front", "back"]
+const DECORATION_KINDS: PackedStringArray = ["frame", "board", "chip", "camera", "lens", "glass", "notch"]
 
 
 class SoftwareTest:
@@ -13,6 +14,19 @@ class SoftwareTest:
 	var after: PackedStringArray
 
 
+## Élément purement visuel (carte mère, caméra…), ignoré par les règles.
+class Decoration:
+	extends RefCounted
+	var id: String
+	var face: String
+	var kind: String
+	## [x, y, largeur, hauteur] dans le repère de l'appareil.
+	var rect: PackedFloat32Array
+	## Composant dont l'élément fait partie ("" si aucun) : affiché seulement avec lui.
+	var attached_to: String
+	var label: String
+
+
 var id: String
 var name: String
 var tier: int
@@ -20,6 +34,8 @@ var faces: PackedStringArray
 ## Dans l'ordre du fichier.
 var components: Array[ComponentDefinition] = []
 var software_tests: Array[SoftwareTest] = []
+## Dans l'ordre du fichier, qui est l'ordre de dessin.
+var decorations: Array[Decoration] = []
 
 var _components_by_id: Dictionary[String, ComponentDefinition] = {}
 var _components_by_role: Dictionary[String, ComponentDefinition] = {}
@@ -44,6 +60,15 @@ static func from_dict(data: Dictionary) -> DeviceDefinition:
 		test.roles = PackedStringArray(raw["roles"])
 		test.after = PackedStringArray(raw["after"])
 		device.software_tests.append(test)
+	for raw: Dictionary in data.get("decorations", []):
+		var decoration: Decoration = Decoration.new()
+		decoration.id = raw["id"]
+		decoration.face = raw["face"]
+		decoration.kind = raw["kind"]
+		decoration.rect = PackedFloat32Array(raw["rect"])
+		decoration.attached_to = raw.get("attached_to", "")
+		decoration.label = raw.get("label", "")
+		device.decorations.append(decoration)
 	return device
 
 
