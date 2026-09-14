@@ -133,7 +133,7 @@ func _draw() -> void:
 		if _state.is_broken(component.id):
 			draw_line(rect.position, rect.end, BROKEN_COLOR, 3.0)
 			draw_line(Vector2(rect.end.x, rect.position.y), Vector2(rect.position.x, rect.end.y), BROKEN_COLOR, 3.0)
-		if rect.size.x >= LABEL_MIN_WIDTH:
+		if rect.size.x >= LABEL_MIN_WIDTH and rect.size.y >= LABEL_FONT_SIZE + 6:
 			draw_string(font, Vector2(rect.position.x, rect.get_center().y + LABEL_FONT_SIZE / 2.0),
 				component.id.capitalize(), HORIZONTAL_ALIGNMENT_CENTER, rect.size.x, LABEL_FONT_SIZE, LABEL_COLOR)
 		if loupe_mode and component.id in clue_component_ids:
@@ -147,16 +147,19 @@ func _draw() -> void:
 
 # --- Toucher ---
 
-func _unhandled_input(event: InputEvent) -> void:
-	if _state == null or not input_enabled or not is_visible_in_tree():
+## L'interface route les touchers vers le contrôle sous le doigt, puis garde ce contrôle pour le
+## glissement et le relâchement : ils arrivent ici en coordonnées locales, même hors de la vue.
+func _gui_input(event: InputEvent) -> void:
+	if _state == null or not input_enabled:
 		return
 	if event is InputEventScreenTouch:
-		_on_touch(make_input_local(event) as InputEventScreenTouch)
+		_on_touch(event as InputEventScreenTouch)
+		accept_event()
 	elif event is InputEventScreenDrag and (event as InputEventScreenDrag).index == _touch_index:
 		if _active_id != "":
-			_recognizer.drag((make_input_local(event) as InputEventScreenDrag).position)
+			_recognizer.drag((event as InputEventScreenDrag).position)
 			_check_completion()
-		get_viewport().set_input_as_handled()
+		accept_event()
 
 
 func _process(delta: float) -> void:
@@ -172,7 +175,6 @@ func _on_touch(touch: InputEventScreenTouch) -> void:
 		var component_id: String = component_at(touch.position)
 		if component_id == "":
 			return
-		get_viewport().set_input_as_handled()
 		if loupe_mode:
 			component_inspected.emit(component_id)
 			return
@@ -184,7 +186,6 @@ func _on_touch(touch: InputEventScreenTouch) -> void:
 		gesture_started.emit(component_id)
 		queue_redraw()
 	elif touch.index == _touch_index:
-		get_viewport().set_input_as_handled()
 		var cancelled_id: String = _active_id
 		_cancel_touch()
 		if cancelled_id != "":

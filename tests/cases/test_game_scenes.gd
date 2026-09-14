@@ -52,6 +52,33 @@ func test_device_view_hits_topmost_visible_part() -> void:
 	view.free()
 
 
+## Régression : en mouse_filter IGNORE, l'interface ne transmet jamais les touchers à la vue.
+func test_device_view_receives_touches_through_gui_input() -> void:
+	var state: DisassemblyState = _starter_phone_state()
+	var view: DeviceView = _device_view(state)
+	assert_eq(view.mouse_filter, Control.MOUSE_FILTER_STOP, "la vue doit capter les touchers")
+	var completed: Array[String] = []
+	view.gesture_completed.connect(func(id: String) -> void: completed.append(id))
+	DisassemblyFixture.remove_with_prerequisites(state, "back_cover")
+	view.face = "back"
+	var start: Vector2 = _center_of(view, "battery_connector")
+	view._gui_input(_touch(start, true))
+	for step: int in range(1, 11):
+		var drag: InputEventScreenDrag = InputEventScreenDrag.new()
+		drag.position = start + Vector2(0, -10.0 * step)
+		view._gui_input(drag)
+	view._gui_input(_touch(start + Vector2(0, -100), false))
+	assert_eq(completed, ["battery_connector"] as Array[String], "tirer vers le haut retire le connecteur")
+	view.free()
+
+
+func _touch(position: Vector2, pressed: bool) -> InputEventScreenTouch:
+	var touch: InputEventScreenTouch = InputEventScreenTouch.new()
+	touch.position = position
+	touch.pressed = pressed
+	return touch
+
+
 func test_small_parts_get_a_48dp_touch_target() -> void:
 	var state: DisassemblyState = _starter_phone_state()
 	var view: DeviceView = _device_view(state)
