@@ -9,11 +9,12 @@ remplace la pièce, on remonte et on lance le test final.
 > Nom de travail. Les appareils sont des analogues fictifs : aucun nom de marque ni de modèle réel.
 
 <p align="center">
-  <img src="docs/images/customer.png" width="19%" alt="Accueil d'un client">
-  <img src="docs/images/workbench_closed.png" width="19%" alt="Appareil fermé">
-  <img src="docs/images/workbench_resisting.png" width="19%" alt="Batterie encore collée qui résiste">
-  <img src="docs/images/workbench_back.png" width="19%" alt="Dos scellé">
-  <img src="docs/images/day_report.png" width="19%" alt="Bilan de fin de journée">
+  <img src="docs/images/customer.png" width="16%" alt="Accueil d'un client">
+  <img src="docs/images/workbench_closed.png" width="16%" alt="Appareil fermé">
+  <img src="docs/images/workbench_resisting.png" width="16%" alt="Écran rabattu tenu par ses nappes, batterie encore collée qui résiste">
+  <img src="docs/images/workbench_mat.png" width="16%" alt="Tapis magnétique : vis rangées à leur emplacement d'origine">
+  <img src="docs/images/workbench_back.png" width="16%" alt="Dos scellé">
+  <img src="docs/images/day_report.png" width="16%" alt="Bilan de fin de journée">
 </p>
 
 ## Le jeu
@@ -28,6 +29,11 @@ remplace la pièce, on remonte et on lance le test final.
   en premier, languettes adhésives, haut-parleur, vibreur, port de charge collé.
 - **Diagnostic.** Plainte du client, loupe, tests logiciels, test final ; les remplacements
   inutiles comptent comme erreurs au bilan.
+- **Tapis magnétique.** Chaque vis et chaque pièce retirée reste posée à sa place d'origine, avec sa
+  tête et sa longueur. Un écran ouvert reste rabattu à côté de l'appareil tant que ses nappes
+  sont branchées.
+- **Mode solution.** Un doigt fantôme montre chaque geste, étape par étape et commenté, depuis
+  l'état où l'on en est. La réparation compte alors comme assistée.
 
 Détails : [GDD](GDD.md) · [schéma des données et règles](docs/data_schema.md).
 
