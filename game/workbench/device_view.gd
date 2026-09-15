@@ -18,51 +18,15 @@ signal component_inspected(component_id: String)
 const MIN_TOUCH_TARGET: float = 48.0
 const VIEW_MARGIN: float = 16.0
 const LABEL_MIN_WIDTH: float = 56.0
-const LABEL_FONT_SIZE: int = 11
 const BUBBLE_FONT_SIZE: int = 14
 const BUBBLE_OFFSET: float = 64.0
 
 const BODY_COLOR: Color = Color("20252b")
-const OUTLINE_COLOR: Color = Color("0d1014")
-const LABEL_COLOR: Color = Color(1, 1, 1, 0.85)
-const SHADOW_COLOR: Color = Color(0, 0, 0, 0.35)
-const BROKEN_COLOR: Color = Color("e5484d")
 const RESIST_COLOR: Color = Color("f5a524")
 const HEAT_COLOR: Color = Color("ff6a2b")
 const PROGRESS_COLOR: Color = Color("46a758")
 const CLUE_COLOR: Color = Color("ffd60a")
 const BUBBLE_COLOR: Color = Color(0.05, 0.06, 0.08, 0.9)
-const KIND_COLORS: Dictionary[String, Color] = {
-	"screw": Color("9aa4ad"),
-	"cover": Color("3b4754"),
-	"connector": Color("d4a72c"),
-	"adhesive": Color("e8dcc0"),
-	"module": Color("2f7f86"),
-}
-const KIND_CORNER_RADIUS: Dictionary[String, int] = {
-	"cover": 12,
-	"module": 6,
-	"connector": 3,
-	"adhesive": 2,
-	"body": 24,
-	"frame": 20,
-	"glass": 22,
-	"board": 4,
-	"chip": 2,
-	"camera": 14,
-	"notch": 8,
-}
-const DECORATION_COLORS: Dictionary[String, Color] = {
-	"frame": Color("2b3139"),
-	"board": Color("1d4a3a"),
-	"chip": Color("15191d"),
-	"camera": Color("1a1e23"),
-	"lens": Color("07090b"),
-	"glass": Color("39424d"),
-	"notch": Color("050607"),
-}
-const DECORATION_LABEL_COLOR: Color = Color(1, 1, 1, 0.35)
-
 const FLY_OUT_S: float = 0.35
 const DROP_IN_S: float = 0.2
 const BREAK_FLASH_S: float = 0.3
@@ -129,7 +93,7 @@ var _resisting: bool = false
 var _effects: Array[Effect] = []
 var _shake_s: float = 0.0
 var _time_s: float = 0.0
-var _styles: Dictionary[String, StyleBoxFlat] = {}
+var _painter: PartPainter = PartPainter.new()
 var _ghost_active: bool = false
 var _ghost_time_s: float = 0.0
 var _ghost_duration_s: float = 1.0
@@ -239,7 +203,7 @@ func _spawn(kind: String, component_id: String, duration_s: float) -> void:
 	var effect: Effect = Effect.new()
 	effect.kind = kind
 	effect.rect = view_rect(component)
-	effect.color = KIND_COLORS.get(component.kind, Color.MAGENTA)
+	effect.color = PartPainter.kind_color(component.kind)
 	effect.duration_s = duration_s
 	effect.seed_value = hash(component_id)
 	_effects.append(effect)
@@ -362,16 +326,17 @@ func _draw() -> void:
 	if _shake_s > 0.0:
 		var strength: float = SHAKE_PX * _shake_s / SHAKE_S
 		draw_set_transform(Vector2(randf_range(-strength, strength), randf_range(-strength, strength)))
-	draw_style_box(_style("body", BODY_COLOR), _to_view(_device_bounds).grow(6.0))
+	var font: Font = get_theme_default_font()
+	draw_style_box(_painter.style("body", BODY_COLOR), _to_view(_device_bounds).grow(6.0))
 	for decoration: DeviceDefinition.Decoration in _state.device.decorations:
 		if decoration.face == face and decoration.attached_to.is_empty():
-			_draw_decoration(decoration)
+			_painter.draw_decoration(self, font, decoration, _to_view(_decoration_rect(decoration)))
 	for component: ComponentDefinition in _draw_order:
 		if _is_drawn(component):
 			_draw_component(component)
 			for decoration: DeviceDefinition.Decoration in _state.device.decorations:
 				if decoration.attached_to == component.id:
-					_draw_decoration(decoration)
+					_painter.draw_decoration(self, font, decoration, _to_view(_decoration_rect(decoration)))
 	for effect: Effect in _effects:
 		_draw_effect(effect)
 	draw_set_transform(Vector2.ZERO)
@@ -381,7 +346,7 @@ func _draw() -> void:
 
 func _draw_component(component: ComponentDefinition) -> void:
 	var rect: Rect2 = view_rect(component)
-	var color: Color = KIND_COLORS.get(component.kind, Color.MAGENTA)
+	var color: Color = PartPainter.kind_color(component.kind)
 	var active: bool = component.id == _active_id
 	var progress: float = _recognizer.progress if active else 0.0
 
@@ -391,57 +356,20 @@ func _draw_component(component: ComponentDefinition) -> void:
 			var jitter: float = RESIST_JITTER_PX * (0.4 + progress)
 			offset += Vector2(randf_range(-jitter, jitter), randf_range(-jitter, jitter))
 		if component.gesture == "pry":
-			draw_style_box(_style(component.kind, SHADOW_COLOR), rect)
+			draw_style_box(_painter.style(component.kind, PartPainter.SHADOW_COLOR), rect)
 			offset += Vector2(-1.0, -1.0) * PRY_LIFT_PX * progress
 		if component.gesture == "hold":
 			color = color.lerp(HEAT_COLOR, progress)
 		rect.position += offset
 
-	if component.kind == "screw":
-		_draw_screw(rect, color, _recognizer.rotation_angle() if active else 0.0, 1.0 + SCREW_LIFT_RATIO * progress)
-	else:
-		draw_style_box(_style(component.kind, color), rect)
-
+	_painter.draw_part(self, component, rect, color, _recognizer.rotation_angle() if active else 0.0,
+		1.0 + SCREW_LIFT_RATIO * progress)
 	if _state.is_broken(component.id):
-		_draw_cross(rect, BROKEN_COLOR)
-	if rect.size.x >= LABEL_MIN_WIDTH and rect.size.y >= LABEL_FONT_SIZE + 6:
-		draw_string(get_theme_default_font(), Vector2(rect.position.x, rect.get_center().y + LABEL_FONT_SIZE / 2.0),
-			UiFormat.label(component.id), HORIZONTAL_ALIGNMENT_CENTER, rect.size.x, LABEL_FONT_SIZE, LABEL_COLOR)
+		_painter.draw_broken(self, rect)
+	_painter.draw_label(self, get_theme_default_font(), UiFormat.label(component.id), rect, LABEL_MIN_WIDTH)
 	if loupe_mode and component.id in clue_component_ids:
 		var pulse: float = 18.0 + 3.0 * sin(_time_s * 6.0)
 		draw_arc(rect.get_center(), pulse, 0.0, TAU, 32, CLUE_COLOR, 3.0)
-
-
-func _draw_decoration(decoration: DeviceDefinition.Decoration) -> void:
-	var rect: Rect2 = _to_view(_decoration_rect(decoration))
-	var color: Color = DECORATION_COLORS.get(decoration.kind, Color.MAGENTA)
-	if decoration.kind == "lens":
-		var radius: float = minf(rect.size.x, rect.size.y) / 2.0
-		draw_circle(rect.get_center(), radius, color)
-		draw_arc(rect.get_center(), radius, 0.0, TAU, 32, Color(1, 1, 1, 0.15), 2.0)
-		draw_circle(rect.get_center() - Vector2(radius, radius) * 0.3, radius * 0.18, Color(1, 1, 1, 0.12))
-	else:
-		draw_style_box(_style(decoration.kind, color), rect)
-	if not decoration.label.is_empty() and rect.size.y >= LABEL_FONT_SIZE + 6:
-		# En bas du décor : le haut d'une carte mère est souvent couvert de caches.
-		draw_string(get_theme_default_font(), Vector2(rect.position.x, rect.end.y - 6),
-			decoration.label, HORIZONTAL_ALIGNMENT_CENTER, rect.size.x, LABEL_FONT_SIZE, DECORATION_LABEL_COLOR)
-
-
-func _draw_screw(rect: Rect2, color: Color, angle: float, lift: float) -> void:
-	var center: Vector2 = rect.get_center()
-	var radius: float = minf(rect.size.x, rect.size.y) / 2.0 * lift
-	draw_circle(center + Vector2(1.5, 1.5) * lift, radius, SHADOW_COLOR)
-	draw_circle(center, radius, color)
-	draw_arc(center, radius, 0.0, TAU, 24, OUTLINE_COLOR, 1.0)
-	var slot: Vector2 = Vector2.from_angle(angle) * radius * 0.7
-	draw_line(center - slot, center + slot, OUTLINE_COLOR, 2.0)
-	draw_line(center - slot.orthogonal(), center + slot.orthogonal(), OUTLINE_COLOR, 2.0)
-
-
-func _draw_cross(rect: Rect2, color: Color) -> void:
-	draw_line(rect.position, rect.end, color, 3.0)
-	draw_line(Vector2(rect.end.x, rect.position.y), Vector2(rect.position.x, rect.end.y), color, 3.0)
 
 
 func _draw_effect(effect: Effect) -> void:
@@ -458,7 +386,7 @@ func _draw_effect(effect: Effect) -> void:
 			var grow: float = 8.0 * (1.0 - t)
 			draw_rect(effect.rect.grow(grow), Color(1, 1, 1, 0.25 * (1.0 - t)), false, 2.0)
 		"flash":
-			draw_rect(effect.rect.grow(4.0), Color(BROKEN_COLOR, 0.6 * (1.0 - t)))
+			draw_rect(effect.rect.grow(4.0), Color(PartPainter.BROKEN_COLOR, 0.6 * (1.0 - t)))
 		"shards":
 			var rng: RandomNumberGenerator = RandomNumberGenerator.new()
 			rng.seed = effect.seed_value
@@ -466,7 +394,7 @@ func _draw_effect(effect: Effect) -> void:
 			for i: int in 8:
 				var direction: Vector2 = Vector2.from_angle(rng.randf() * TAU)
 				var start: Vector2 = center + direction * (6.0 + 60.0 * t)
-				draw_line(start, start + direction * 8.0, Color(BROKEN_COLOR, 1.0 - t), 2.0)
+				draw_line(start, start + direction * 8.0, Color(PartPainter.BROKEN_COLOR, 1.0 - t), 2.0)
 
 
 ## Anneau de progression, contour de résistance et nom de la pièce au-dessus du doigt.
@@ -490,7 +418,7 @@ func _draw_gesture_overlay(component: ComponentDefinition) -> void:
 		# Trop près du haut : sous le doigt plutôt que plaquée sur la pièce.
 		bubble.position.y = _recognizer.finger_position().y + BUBBLE_OFFSET - bubble.size.y
 	bubble.position = bubble.position.clamp(Vector2.ZERO, (size - bubble.size).max(Vector2.ZERO))
-	draw_style_box(_style("bubble", BUBBLE_COLOR), bubble)
+	draw_style_box(_painter.style("bubble", BUBBLE_COLOR), bubble)
 	draw_string(font, bubble.position + Vector2(10.0, 6.0 + text_size.y * 0.78), text,
 		HORIZONTAL_ALIGNMENT_LEFT, -1, BUBBLE_FONT_SIZE, _resisting_color())
 
@@ -521,19 +449,6 @@ func _draw_pry_edge(rect: Rect2) -> void:
 
 func _resisting_color() -> Color:
 	return RESIST_COLOR if _resisting else Color.WHITE
-
-
-func _style(key: String, color: Color) -> StyleBoxFlat:
-	if not _styles.has(key):
-		var style: StyleBoxFlat = StyleBoxFlat.new()
-		style.set_corner_radius_all(KIND_CORNER_RADIUS.get(key, 8))
-		style.border_color = OUTLINE_COLOR
-		style.set_border_width_all(0 if key in ["bubble", "body"] or DECORATION_COLORS.has(key) else 1)
-		style.anti_aliasing = true
-		_styles[key] = style
-	var cached: StyleBoxFlat = _styles[key]
-	cached.bg_color = color
-	return cached
 
 
 # --- Toucher ---
