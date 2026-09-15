@@ -74,6 +74,17 @@ func test_final_test_after_completion_does_not_complete_twice() -> void:
 	assert_eq(_events, ["completed:job_1"] as Array[String])
 
 
+# --- Mode solution ---
+
+func test_assisted_flag_is_sticky_and_reported() -> void:
+	var session: RepairSession = _session()
+	assert_false(session.is_assisted())
+	session.mark_assisted()
+	session.mark_assisted()
+	assert_true(session.is_assisted())
+	assert_true(session.report().assisted)
+
+
 # --- Rapport ---
 
 func test_report_of_clean_repair_on_time() -> void:

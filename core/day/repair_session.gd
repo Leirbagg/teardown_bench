@@ -14,6 +14,7 @@ var elapsed_s: float = 0.0
 
 var _paused: bool = false
 var _completed: bool = false
+var _assisted: bool = false
 var _deadline_signaled: bool = false
 var _broken_parts: PackedStringArray = PackedStringArray()
 
@@ -75,6 +76,15 @@ func run_final_test() -> FinalTestResult:
 	return result
 
 
+## Le mode solution a été utilisé : définitif pour cette réparation.
+func mark_assisted() -> void:
+	_assisted = true
+
+
+func is_assisted() -> bool:
+	return _assisted
+
+
 func report() -> RepairReport:
 	var repair_report: RepairReport = RepairReport.new()
 	repair_report.job_id = job.id
@@ -82,6 +92,7 @@ func report() -> RepairReport:
 	for fault: FaultDefinition in job.faults:
 		repair_report.fault_ids.append(fault.id)
 	repair_report.completed = _completed
+	repair_report.assisted = _assisted
 	repair_report.elapsed_s = elapsed_s
 	repair_report.deadline_s = job.deadline_s
 	repair_report.deadline_met = not is_deadline_exceeded()

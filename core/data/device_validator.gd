@@ -84,6 +84,7 @@ static func _check_components(raw_components: Array, faces: PackedStringArray, e
 		_check_enum(raw, "gesture", ComponentDefinition.GESTURES, path, errors)
 		_check_dictionary(raw, "gesture_params", path, errors)
 		_check_visual(raw, path, errors)
+		_check_string(raw, "hint", path, errors, false)
 		var requires: PackedStringArray = _check_string_array(raw, "requires", path, errors)
 		var covered_by: PackedStringArray = _check_string_array(raw, "covered_by", path, errors)
 		var force_breaks: PackedStringArray = _check_string_array(raw, "force_breaks", path, errors, false)

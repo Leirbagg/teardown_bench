@@ -114,6 +114,26 @@ func test_day_report_totals() -> void:
 	assert_false(report.jobs[2].completed)
 
 
+func test_assisted_jobs_are_listed_but_excluded_from_performance_totals() -> void:
+	var day: WorkDay = _day(["screen", "battery"])
+	day.start_next_job()
+	_finish_current(day, 30.0)
+	var assisted: RepairSession = day.start_next_job()
+	assisted.state.commit_remove("back_cover")
+	assisted.mark_assisted()
+	assisted.run_final_test()
+	DisassemblyFixture.remove_with_prerequisites(assisted.state, "back_cover")
+	assisted.state.replace("back_cover")
+	_finish_current(day, 10.0)
+	var report: DayReport = day.report()
+	assert_eq(report.completed_jobs(), 2)
+	assert_eq(report.assisted_jobs(), 1)
+	assert_eq(report.deadlines_met(), 1, "le client assisté ne compte pas à temps")
+	assert_eq(report.broken_parts_count(), 0, "ni ses casses")
+	assert_eq(report.diagnosis_errors(), 0, "ni ses erreurs")
+	assert_eq(report.total_time_s(), 40.0, "le temps passé reste compté")
+
+
 func test_empty_day_is_over_immediately() -> void:
 	var day: WorkDay = WorkDay.new([] as Array[RepairJob])
 	assert_true(day.is_over())

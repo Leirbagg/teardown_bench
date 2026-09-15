@@ -81,6 +81,7 @@ Tout fichier doit passer `DeviceValidator` (`core/data/device_validator.gd`).
 | `components[].replaceable` | non (`false`) | core | Seules ces pièces peuvent être remplacées ou cassées |
 | `components[].force_breaks` | non (`[id]`) | core | Pièces cassées quand on force ce composant |
 | `components[].replace_requires` | non (`[]`) | core | Pièces à retirer avant de remplacer ce composant, ex. les nappes d'un écran qui s'ouvre comme un livre |
+| `components[].hint` | non | game | Explication affichée par le mode solution, en anglais |
 | `components[].visual` | non | game | Ignoré par `core/`. Sprites à lister dans `data/preload_manifest.json` |
 
 ### Décor (`decorations`, facultatif)
@@ -180,3 +181,19 @@ Elles découlent des données ci-dessus, sans champ supplémentaire.
   entrée par casse), erreurs de diagnostic (remplacements inutiles + tests finaux ratés).
 - **Bilan de la journée** : les lignes des clients commencés et leurs totaux. Les délais
   respectés ne comptent que les clients terminés.
+- **Réparation assistée** : dès que le mode solution est lancé, la réparation est marquée
+  assistée, définitivement. Elle figure au bilan, son temps compte, mais elle est exclue des
+  délais respectés, des casses et des erreurs de diagnostic.
+
+## Mode solution (`core/solution/repair_planner.gd`)
+
+Le plan est recalculé depuis l'état actuel, quel qu'il soit (pièces retirées, cassées, remplacées) :
+
+1. Lancer les tests logiciels.
+2. Pièces à remplacer : celles des pannes non résolues, puis toutes les pièces cassées.
+3. Retirer, dans l'ordre des pièces libres, uniquement leurs prérequis et leurs `replace_requires`.
+   Un indice est regardé à la loupe dès qu'il devient visible.
+4. Remplacer, remonter tout ce qui est retiré, lancer le test final.
+
+Garanties testées : aucune étape ne force une pièce, aucun remplacement inutile, et le test final
+réussit depuis n'importe quel état atteignable.

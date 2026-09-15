@@ -224,6 +224,17 @@ func test_replace_requires_must_reference_existing_other_parts_of_a_replaceable_
 	assert_no_errors(DeviceValidator.validate_device(valid))
 
 
+func test_hint_is_an_optional_string() -> void:
+	var valid: Dictionary = _valid_device()
+	_component(valid, "battery")["hint"] = "Disconnect the battery first."
+	assert_no_errors(DeviceValidator.validate_device(valid))
+	assert_eq(DeviceDefinition.from_dict(valid).get_component("battery").hint, "Disconnect the battery first.")
+	assert_eq(DeviceDefinition.from_dict(_valid_device()).get_component("battery").hint, "")
+	var invalid: Dictionary = _valid_device()
+	_component(invalid, "battery")["hint"] = 3
+	assert_has_code(DeviceValidator.validate_device(invalid), "bad_type")
+
+
 func test_rejects_duplicate_role() -> void:
 	var device: Dictionary = _valid_device()
 	_component(device, "cover")["role"] = "battery"

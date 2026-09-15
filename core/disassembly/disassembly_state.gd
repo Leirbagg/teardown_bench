@@ -59,6 +59,15 @@ func replaced_ids() -> PackedStringArray:
 	return _replaced.duplicate()
 
 
+## Copie indépendante (sans signaux connectés), pour simuler des actions sans toucher à l'état.
+func snapshot() -> DisassemblyState:
+	var copy: DisassemblyState = DisassemblyState.new(device)
+	copy._removed = _removed.duplicate()
+	copy._broken = _broken.duplicate()
+	copy._replaced = _replaced.duplicate()
+	return copy
+
+
 # --- Retrait ---
 
 ## Prévoit l'issue d'un retrait sans rien modifier.

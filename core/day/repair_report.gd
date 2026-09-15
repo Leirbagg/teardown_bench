@@ -6,6 +6,8 @@ var job_id: String
 var device_id: String
 var fault_ids: PackedStringArray
 var completed: bool
+## Terminée avec le mode solution : exclue des totaux de performance du bilan.
+var assisted: bool
 var elapsed_s: float
 var deadline_s: float
 ## Temps écoulé ≤ délai. Pour un client en cours, reflète la situation à cet instant.

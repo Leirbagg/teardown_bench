@@ -22,6 +22,8 @@ var force_breaks: PackedStringArray
 var replace_requires: PackedStringArray
 ## Vrai si le composant peut être visible tout en étant retenu, donc forcé.
 var forceable: bool
+## Explication affichée par le mode solution ("" si aucune).
+var hint: String
 ## Données d'affichage, ignorées par core/.
 var visual: Dictionary
 
@@ -41,6 +43,7 @@ static func from_dict(data: Dictionary) -> ComponentDefinition:
 	component.force_breaks = resolve_force_breaks(component.id, PackedStringArray(data.get("force_breaks", [])))
 	component.replace_requires = PackedStringArray(data.get("replace_requires", []))
 	component.forceable = is_forceable(component.requires, component.covered_by)
+	component.hint = data.get("hint", "")
 	component.visual = data.get("visual", {})
 	return component
 

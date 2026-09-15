@@ -132,14 +132,18 @@ func visible_clues() -> Array[FaultDefinition.Clue]:
 	var clues: Array[FaultDefinition.Clue] = []
 	for fault: FaultDefinition in unresolved_faults():
 		for clue: FaultDefinition.Clue in fault.clues:
-			if clue.visibility == "always" or _is_role_visible(clue.role):
+			if is_clue_visible(clue, state):
 				clues.append(clue)
 	return clues
 
 
-func _is_role_visible(role: String) -> bool:
-	var component: ComponentDefinition = device.component_for_role(role)
-	return component != null and not state.is_removed(component.id) and state.is_visible(component.id)
+## Visibilité d'un indice sur un état donné (réel ou simulé) : "always", ou "exposed" quand le
+## composant du rôle est en place et visible.
+static func is_clue_visible(clue: FaultDefinition.Clue, disassembly_state: DisassemblyState) -> bool:
+	if clue.visibility == "always":
+		return true
+	var component: ComponentDefinition = disassembly_state.device.component_for_role(clue.role)
+	return component != null and not disassembly_state.is_removed(component.id) and disassembly_state.is_visible(component.id)
 
 
 # --- Remplacements ---

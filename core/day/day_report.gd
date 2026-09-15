@@ -18,20 +18,28 @@ func total_time_s() -> float:
 	return total
 
 
-## Parmi les clients terminés.
+func assisted_jobs() -> int:
+	return jobs.filter(func(job: RepairReport) -> bool: return job.assisted).size()
+
+
+## Parmi les clients terminés sans le mode solution.
 func deadlines_met() -> int:
-	return jobs.filter(func(job: RepairReport) -> bool: return job.completed and job.deadline_met).size()
+	return jobs.filter(func(job: RepairReport) -> bool: return job.completed and job.deadline_met and not job.assisted).size()
 
 
+## Hors réparations assistées.
 func broken_parts_count() -> int:
 	var total: int = 0
 	for job: RepairReport in jobs:
-		total += job.broken_parts.size()
+		if not job.assisted:
+			total += job.broken_parts.size()
 	return total
 
 
+## Hors réparations assistées.
 func diagnosis_errors() -> int:
 	var total: int = 0
 	for job: RepairReport in jobs:
-		total += job.diagnosis_errors()
+		if not job.assisted:
+			total += job.diagnosis_errors()
 	return total
