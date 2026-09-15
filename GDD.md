@@ -97,12 +97,15 @@ Plainte client → Inspection → Mesure / test → Démontage → Remplacement
 - Ce n'est pas un contournement du geste (§5) : on regarde le geste pour l'apprendre, sans rien
   gagner.
 
-### 3.8 Vis et petites pièces
+### 3.8 Vis, petites pièces et tapis magnétique
 
-- **MVP** : les vis sont collectées automatiquement au démontage et remises automatiquement
-  au remontage.
-- **Plus tard** : gestion fine (tapis magnétique, bonne vis dans le bon trou) introduite comme
-  mécanique de progression.
+- **Tapis magnétique (fait)** : chaque pièce retirée est posée à son emplacement d'origine sur une
+  silhouette de l'appareil, avec sa tête de vis réelle et sa longueur. Il se déplie par-dessus
+  l'établi ; on y choisit une pièce pour la remonter ou la remplacer.
+- **Pièce ouverte mais attachée (fait)** : un écran qui s'ouvre comme un livre reste rabattu à côté
+  de l'appareil, tenu par ses nappes, tant qu'elles sont branchées ; on le referme en le ramenant.
+- **Plus tard** : remonter chaque vis dans son trou ; une vis trop longue au mauvais endroit abîme
+  la carte mère (erreur de décision, compatible avec le pilier 2). Mécanique de progression.
 
 ## 4. Scope minimal jouable (MVP)
 

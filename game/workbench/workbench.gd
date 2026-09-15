@@ -28,14 +28,12 @@ var _resisting_id: String = ""
 @onready var _loupe_button: Button = %LoupeButton
 @onready var _tests_button: Button = %TestsButton
 @onready var _final_test_button: Button = %FinalTestButton
-@onready var _tray: HBoxContainer = %Tray
-@onready var _reinstall_button: Button = %ReinstallButton
-@onready var _replace_button: Button = %ReplaceButton
 @onready var _status: Label = %Status
 @onready var _info_panel: PanelContainer = %InfoPanel
 @onready var _info_text: Label = %InfoText
 @onready var _info_close_button: Button = %InfoCloseButton
-@onready var _tray_actions: Control = %ReinstallButton.get_parent()
+@onready var _mat_button: Button = %MatButton
+@onready var parts_mat: PartsMat = %PartsMat
 @onready var _solution_button: Button = %SolutionButton
 @onready var _solution_bar: HBoxContainer = %SolutionBar
 @onready var _solution_pause_button: Button = %SolutionPauseButton
@@ -50,8 +48,10 @@ func _ready() -> void:
 	_loupe_button.toggled.connect(_on_loupe_toggled)
 	_tests_button.pressed.connect(_on_tests_pressed)
 	_final_test_button.pressed.connect(_on_final_test_pressed)
-	_reinstall_button.pressed.connect(_on_reinstall_pressed)
-	_replace_button.pressed.connect(_on_replace_pressed)
+	_mat_button.pressed.connect(_open_mat)
+	parts_mat.reinstall_requested.connect(_on_mat_reinstall_requested)
+	parts_mat.replace_requested.connect(_on_mat_replace_requested)
+	parts_mat.closed.connect(_on_mat_closed)
 	_info_close_button.pressed.connect(_close_info)
 	_device_view.gesture_started.connect(_on_gesture_started)
 	_device_view.gesture_step.connect(_on_gesture_step)
@@ -75,13 +75,14 @@ func setup(repair_session: RepairSession, feedback: Feedback) -> void:
 	_feedback = feedback
 	_complaint.text = "\"%s\"" % session.job.complaint
 	_device_view.setup(session.state)
-	session.state.component_removed.connect(_refresh_tray.unbind(1))
-	session.state.component_installed.connect(_refresh_tray.unbind(1))
-	session.state.component_replaced.connect(_refresh_tray.unbind(2))
-	session.state.component_broken.connect(_refresh_tray.unbind(2))
+	parts_mat.setup(session.state)
+	session.state.component_removed.connect(_refresh_mat_button.unbind(1))
+	session.state.component_installed.connect(_refresh_mat_button.unbind(1))
+	session.state.component_replaced.connect(_refresh_mat_button.unbind(2))
+	session.state.component_broken.connect(_refresh_mat_button.unbind(2))
 	session.deadline_exceeded.connect(_update_timer)
 	_update_flip_label()
-	_refresh_tray()
+	_refresh_mat_button()
 	_update_timer()
 	_set_status("Find the fault. Flip the device, use the loupe, run the tests.")
 
@@ -241,14 +242,16 @@ func _end_solution(message: String) -> void:
 
 func _set_solution_controls(running: bool) -> void:
 	_solution_bar.visible = running
-	_tray_actions.visible = not running
+	if running:
+		parts_mat.close()
+	_mat_button.disabled = running
 	_solution_button.disabled = running
 	for button: Button in [_flip_button, _loupe_button, _tests_button, _final_test_button]:
 		button.disabled = running
 	_device_view.input_enabled = not running
 	_solution_pause_button.text = "Pause"
 	solution_player.paused = false
-	_refresh_tray()
+	_refresh_mat_button()
 
 
 ## Explication d'une étape, en anglais comme le reste de l'interface.
@@ -323,36 +326,31 @@ func _clue_names(role: String) -> String:
 	return ", ".join(names)
 
 
-# --- Bac à pièces ---
+# --- Tapis magnétique ---
 
-func _refresh_tray() -> void:
-	for child: Node in _tray.get_children():
-		child.queue_free()
-	if not session.state.is_removed(_selected_part_id):
-		_selected_part_id = ""
-	for component_id: String in session.state.removed_ids():
-		var button: Button = Button.new()
-		button.custom_minimum_size = Vector2(48, 48)
-		button.toggle_mode = true
-		button.button_pressed = component_id == _selected_part_id
-		button.text = UiFormat.label(component_id) + (" (broken)" if session.state.is_broken(component_id) else "")
-		button.add_theme_font_size_override("font_size", 12)
-		button.disabled = solution_player.is_running()
-		button.pressed.connect(_on_tray_item_pressed.bind(component_id))
-		_tray.add_child(button)
-	_update_tray_actions()
+func _refresh_mat_button() -> void:
+	_mat_button.text = "Mat · %d part(s)" % parts_mat.item_count()
 	_update_clue_markers()
 
 
-func _on_tray_item_pressed(component_id: String) -> void:
-	_selected_part_id = "" if component_id == _selected_part_id else component_id
-	_refresh_tray()
+func _open_mat() -> void:
+	_close_info()
+	parts_mat.open()
+	_device_view.input_enabled = false
 
 
-func _update_tray_actions() -> void:
-	var selected: bool = _selected_part_id != ""
-	_reinstall_button.disabled = not selected
-	_replace_button.disabled = not selected or not session.state.device.get_component(_selected_part_id).replaceable
+func _on_mat_closed() -> void:
+	_device_view.input_enabled = not solution_player.is_running()
+
+
+func _on_mat_reinstall_requested(component_id: String) -> void:
+	_selected_part_id = component_id
+	_on_reinstall_pressed()
+
+
+func _on_mat_replace_requested(component_id: String) -> void:
+	_selected_part_id = component_id
+	_on_replace_pressed()
 
 
 func _on_reinstall_pressed() -> void:
@@ -410,6 +408,8 @@ func _close_info() -> void:
 func _set_status(text: String) -> void:
 	if not solution_player.is_running():
 		_status.text = text
+		if parts_mat.visible:
+			parts_mat.show_message(text)
 
 
 static func _gesture_hint(component: ComponentDefinition) -> String:

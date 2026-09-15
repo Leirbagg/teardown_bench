@@ -213,6 +213,28 @@ func test_workbench_closes_the_open_display_or_explains_what_to_reconnect() -> v
 	main.free()
 
 
+func test_workbench_mat_reinstalls_parts_and_hands_back_control() -> void:
+	var main: Main = MAIN_SCENE.instantiate() as Main
+	_root().add_child(main)
+	(main.current_screen as CustomerScreen).start_pressed.emit()
+	var workbench: Workbench = main.current_screen as Workbench
+	var state: DisassemblyState = workbench.session.state
+	var view: DeviceView = workbench.get_node("%DeviceView") as DeviceView
+	view.gesture_completed.emit("pentalobe_left")
+	var mat_button: Button = workbench.get_node("%MatButton") as Button
+	assert_true(mat_button.text.begins_with("Mat · 1"), "compteur du tapis : " + mat_button.text)
+	mat_button.pressed.emit()
+	assert_true(workbench.parts_mat.visible)
+	assert_false(view.input_enabled, "tapis ouvert : pas de geste sur l'appareil")
+	workbench.parts_mat.reinstall_requested.emit("pentalobe_left")
+	assert_false(state.is_removed("pentalobe_left"), "remontée depuis le tapis")
+	assert_true((workbench.parts_mat.get_node("%MatInfo") as Label).text.begins_with("Reinstalled"), "message visible sur le tapis")
+	(workbench.parts_mat.get_node("%MatCloseButton") as Button).pressed.emit()
+	assert_false(workbench.parts_mat.visible)
+	assert_true(view.input_enabled, "tapis fermé : on reprend les gestes")
+	main.free()
+
+
 func test_small_parts_get_a_48dp_touch_target() -> void:
 	var state: DisassemblyState = _starter_phone_state()
 	var view: DeviceView = _device_view(state)
@@ -314,8 +336,7 @@ func _play_repair(workbench: Workbench) -> void:
 	view.gesture_started.emit("pentalobe_left")
 	view.gesture_completed.emit("pentalobe_left")
 	assert_true(state.is_removed("pentalobe_left"), "geste terminé → vis retirée")
-	var tray: Container = workbench.get_node("%Tray") as Container
-	assert_true(tray.get_children().any(func(child: Node) -> bool: return not child.is_queued_for_deletion()), "vis dans le bac")
+	assert_true(workbench.parts_mat.item_count() > 0, "vis posée sur le tapis")
 	view.gesture_completed.emit("display")
 	assert_true(state.is_broken("display"), "écran forcé sans chauffer → cassé")
 	(workbench.get_node("%TestsButton") as Button).pressed.emit()

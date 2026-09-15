@@ -1,0 +1,77 @@
+[gd_scene load_steps=4 format=3]
+
+[ext_resource type="Script" path="res://game/workbench/parts_mat.gd" id="1_script"]
+[ext_resource type="Script" path="res://game/workbench/mat_map.gd" id="2_map"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_mat"]
+bg_color = Color(0.0862745, 0.14902, 0.168627, 1)
+corner_radius_top_left = 16
+corner_radius_top_right = 16
+content_margin_left = 12.0
+content_margin_top = 8.0
+content_margin_right = 12.0
+content_margin_bottom = 12.0
+
+[node name="PartsMat" type="PanelContainer"]
+visible = false
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_mat")
+script = ExtResource("1_script")
+
+[node name="Layout" type="VBoxContainer" parent="."]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="Header" type="HBoxContainer" parent="Layout"]
+layout_mode = 2
+
+[node name="MatTitle" type="Label" parent="Layout/Header"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 16
+text = "Magnetic mat"
+
+[node name="MatCloseButton" type="Button" parent="Layout/Header"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(96, 48)
+layout_mode = 2
+text = "Close"
+
+[node name="MatMap" type="Control" parent="Layout"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_vertical = 3
+script = ExtResource("2_map")
+
+[node name="MatInfo" type="Label" parent="Layout"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 42)
+layout_mode = 2
+theme_override_font_sizes/font_size = 14
+autowrap_mode = 3
+max_lines_visible = 2
+
+[node name="Actions" type="HBoxContainer" parent="Layout"]
+layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="MatReinstallButton" type="Button" parent="Layout/Actions"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 48)
+layout_mode = 2
+size_flags_horizontal = 3
+disabled = true
+text = "Reinstall"
+
+[node name="MatReplaceButton" type="Button" parent="Layout/Actions"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 48)
+layout_mode = 2
+size_flags_horizontal = 3
+disabled = true
+text = "Replace with new"
