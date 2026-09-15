@@ -1,5 +1,18 @@
+# Godot
 .godot/
 .import/
-build/
 export_presets.cfg
+export_credentials.cfg
+
+# Builds et signatures : jamais versionnés
+build/
+*.apk
+*.aab
+*.idsig
+*.keystore
+*.jks
+
+# Outils
+__pycache__/
 *.tmp
+.DS_Store
