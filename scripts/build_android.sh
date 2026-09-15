@@ -4,9 +4,17 @@
 # Prérequis : modèles d'export Android de Godot (même version que l'éditeur), JDK 17,
 # SDK Android avec build-tools, keystore de debug.
 #
+# Version : versionCode = nombre de commits (toujours croissant, Android refuse d'installer une
+# version plus ancienne par-dessus), versionName = git describe (ex. v0.2.0).
+#
+# Signature : tous les APK doivent être signés avec le même keystore, sinon une mise à jour
+# exige de désinstaller le jeu. Par défaut, le keystore de debug de Godot sur cette machine ;
+# la CI reçoit le même via un secret GitHub (voir README, « Publier une version »).
+#
 # Variables facultatives : GODOT (exécutable), ANDROID_HOME (SDK, utilisé quand le chemin
 # n'est pas réglé dans les paramètres de l'éditeur Godot), GODOT_ANDROID_KEYSTORE_DEBUG_PATH,
-# GODOT_ANDROID_KEYSTORE_DEBUG_USER, GODOT_ANDROID_KEYSTORE_DEBUG_PASSWORD.
+# GODOT_ANDROID_KEYSTORE_DEBUG_USER, GODOT_ANDROID_KEYSTORE_DEBUG_PASSWORD,
+# APP_VERSION_CODE, APP_VERSION_NAME.
 set -euo pipefail
 
 cd "$(dirname "$0")/.."
@@ -35,6 +43,15 @@ if [ ! -f export_presets.cfg ]; then
 	cp scripts/export_presets.android.cfg export_presets.cfg
 	echo "export_presets.cfg créé depuis scripts/export_presets.android.cfg"
 fi
+
+VERSION_CODE="${APP_VERSION_CODE:-$(git rev-list --count HEAD 2>/dev/null || echo 1)}"
+VERSION_NAME="${APP_VERSION_NAME:-$(git describe --tags --always --dirty 2>/dev/null || echo 0.0.0)}"
+if ! [[ "$VERSION_CODE" =~ ^[0-9]+$ ]]; then
+	echo "APP_VERSION_CODE doit être un entier : $VERSION_CODE" >&2
+	exit 1
+fi
+sed -i -E "s|^version/code=.*|version/code=${VERSION_CODE}|; s|^version/name=.*|version/name=\"${VERSION_NAME}\"|" export_presets.cfg
+echo "Version : ${VERSION_NAME} (code ${VERSION_CODE})"
 
 "$GODOT" --headless --path . --import
 if ! "$GODOT" --headless --path . --script res://tests/run_tests.gd; then

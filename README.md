@@ -58,8 +58,39 @@ build-tools, keystore de debug (`~/.local/share/godot/keystores/debug.keystore`)
 adb install -r build/repa_debug.apk
 ```
 
-Le SDK est lu dans `ANDROID_HOME` (par défaut `~/Android/Sdk`). L'APK peut aussi être construit
-par la CI : onglet **Actions → APK debug → Run workflow**, puis télécharger l'artefact.
+Le SDK est lu dans `ANDROID_HOME` (par défaut `~/Android/Sdk`). La version est calculée depuis git :
+`versionCode` = nombre de commits (toujours croissant), `versionName` = `git describe`.
+
+### Publier une version
+
+Pousser un tag `v*` construit l'APK sur GitHub Actions et publie une **Release** avec l'APK en
+pièce jointe :
+
+```bash
+git tag v0.2.0
+git push origin v0.2.0
+```
+
+Un tag avec un tiret (`v0.2.0-beta1`) publie une pré-release. Sans tag, **Actions → APK debug →
+Run workflow** construit l'APK et le dépose en artefact.
+
+**Signature stable.** Android n'installe une mise à jour que si elle est signée avec la même clé
+que la version installée. Tous les APK (locaux et CI) sont donc signés avec le même keystore de
+debug, fourni à la CI par des secrets du dépôt (**Settings → Secrets and variables → Actions**) :
+
+| Secret | Valeur |
+|---|---|
+| `DEBUG_KEYSTORE_BASE64` | Obligatoire. Le keystore encodé : `base64 -w0 ~/.local/share/godot/keystores/debug.keystore` |
+| `DEBUG_KEYSTORE_PASSWORD` | Facultatif, `android` par défaut |
+| `DEBUG_KEYSTORE_ALIAS` | Facultatif, `androiddebugkey` par défaut |
+
+Garder une copie du keystore en lieu sûr : le perdre oblige à désinstaller le jeu pour installer
+les versions suivantes. Ne jamais le versionner (`*.keystore` est exclu par `.gitignore`).
+
+**Sur le téléphone.** Télécharger l'APK depuis la page Releases, ou installer
+[Obtainium](https://github.com/ImranR98/Obtainium) et lui donner l'URL du dépôt : il propose chaque
+nouvelle Release comme mise à jour. Pour un dépôt privé, Obtainium demande un jeton GitHub en
+lecture seule.
 
 ## Organisation
 
