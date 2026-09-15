@@ -200,6 +200,15 @@ func test_replace_waits_for_listed_parts_to_be_detached() -> void:
 	assert_eq(state.replace("display").outcome, Outcome.REPLACED)
 
 
+func test_attached_parts_tell_an_open_but_tethered_part() -> void:
+	var state: DisassemblyState = DisassemblyState.new(_book_opening_device())
+	assert_eq(state.attached_parts("display"), PackedStringArray(["display_cable"]))
+	state.commit_remove("display")
+	assert_eq(state.attached_parts("display"), PackedStringArray(["display_cable"]), "ouvert, encore tenu par sa nappe")
+	state.commit_remove("display_cable")
+	assert_eq(state.attached_parts("display"), PackedStringArray(), "détaché")
+
+
 func test_detached_part_must_be_reconnected_before_closing() -> void:
 	var state: DisassemblyState = DisassemblyState.new(_book_opening_device())
 	state.commit_remove("display")

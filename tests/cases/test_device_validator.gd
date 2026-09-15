@@ -235,6 +235,37 @@ func test_hint_is_an_optional_string() -> void:
 	assert_has_code(DeviceValidator.validate_device(invalid), "bad_type")
 
 
+func test_screw_details_are_validated_and_parsed() -> void:
+	var valid: Dictionary = _valid_device()
+	_component(valid, "screw")["screw_type"] = "tri_point"
+	_component(valid, "screw")["length_mm"] = 1.8
+	assert_no_errors(DeviceValidator.validate_device(valid))
+	var screw: ComponentDefinition = DeviceDefinition.from_dict(valid).get_component("screw")
+	assert_eq(screw.screw_type, "tri_point")
+	assert_eq(screw.length_mm, 1.8)
+	assert_eq(DeviceDefinition.from_dict(_valid_device()).get_component("screw").length_mm, 0.0, "facultatif")
+	var cases: Dictionary = {
+		"screw_type": ["torx", "bad_value"],
+		"length_mm": [0, "bad_value"],
+	}
+	for field: String in cases:
+		var device: Dictionary = _valid_device()
+		_component(device, "screw")[field] = cases[field][0]
+		assert_has_code(DeviceValidator.validate_device(device), cases[field][1], field)
+	var not_a_screw: Dictionary = _valid_device()
+	_component(not_a_screw, "cover")["screw_type"] = "phillips"
+	assert_has_code(DeviceValidator.validate_device(not_a_screw), "bad_value")
+
+
+func test_visual_hinge_must_be_a_side() -> void:
+	var valid: Dictionary = _valid_device()
+	_component(valid, "battery")["visual"] = {"rect": [0, 0, 10, 10], "hinge": "left"}
+	assert_no_errors(DeviceValidator.validate_device(valid))
+	var invalid: Dictionary = _valid_device()
+	_component(invalid, "battery")["visual"] = {"rect": [0, 0, 10, 10], "hinge": "middle"}
+	assert_has_code(DeviceValidator.validate_device(invalid), "bad_value")
+
+
 func test_rejects_duplicate_role() -> void:
 	var device: Dictionary = _valid_device()
 	_component(device, "cover")["role"] = "battery"

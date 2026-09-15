@@ -59,6 +59,12 @@ func replaced_ids() -> PackedStringArray:
 	return _replaced.duplicate()
 
 
+## Pièces de replace_requires encore en place. Pour une pièce retirée, non vide signifie « ouverte
+## mais encore attachée » (un écran rabattu tenu par ses nappes).
+func attached_parts(component_id: String) -> PackedStringArray:
+	return graph.attached_for_replacement(component_id, _removed)
+
+
 ## Copie indépendante (sans signaux connectés), pour simuler des actions sans toucher à l'état.
 func snapshot() -> DisassemblyState:
 	var copy: DisassemblyState = DisassemblyState.new(device)

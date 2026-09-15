@@ -81,8 +81,10 @@ Tout fichier doit passer `DeviceValidator` (`core/data/device_validator.gd`).
 | `components[].replaceable` | non (`false`) | core | Seules ces pièces peuvent être remplacées ou cassées |
 | `components[].force_breaks` | non (`[id]`) | core | Pièces cassées quand on force ce composant |
 | `components[].replace_requires` | non (`[]`) | core | Pièces à retirer avant de remplacer ce composant, ex. les nappes d'un écran qui s'ouvre comme un livre |
+| `components[].screw_type` | non | game | Vis uniquement : `pentalobe`, `phillips`, `tri_point` (tête dessinée) |
+| `components[].length_mm` | non | game | Vis uniquement : longueur en mm, > 0 (affichée sur le tapis) |
 | `components[].hint` | non | game | Explication affichée par le mode solution, en anglais |
-| `components[].visual` | non | game | Ignoré par `core/`. Sprites à lister dans `data/preload_manifest.json` |
+| `components[].visual` | non | game | Ignoré par `core/`. `rect` ; `hinge` (`left`, `right`, `top`, `bottom`) pour une pièce qui s'ouvre comme un livre et reste attachée par ses `replace_requires` |
 
 ### Décor (`decorations`, facultatif)
 

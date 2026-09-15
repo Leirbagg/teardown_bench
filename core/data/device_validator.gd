@@ -85,6 +85,7 @@ static func _check_components(raw_components: Array, faces: PackedStringArray, e
 		_check_dictionary(raw, "gesture_params", path, errors)
 		_check_visual(raw, path, errors)
 		_check_string(raw, "hint", path, errors, false)
+		_check_screw_details(raw, path, errors)
 		var requires: PackedStringArray = _check_string_array(raw, "requires", path, errors)
 		var covered_by: PackedStringArray = _check_string_array(raw, "covered_by", path, errors)
 		var force_breaks: PackedStringArray = _check_string_array(raw, "force_breaks", path, errors, false)
@@ -208,6 +209,20 @@ static func _check_visual(component: Dictionary, path: String, errors: Array[Str
 	if typeof(component.get("visual")) != TYPE_DICTIONARY or not (component["visual"] as Dictionary).has("rect"):
 		return
 	_check_rect(component["visual"]["rect"], _field(path, "visual.rect"), errors)
+	var visual: Dictionary = component["visual"]
+	if visual.has("hinge"):
+		_check_enum(visual, "hinge", ComponentDefinition.HINGE_SIDES, _field(path, "visual"), errors)
+
+
+## Facultatifs, réservés aux vis : screw_type connu, length_mm > 0.
+static func _check_screw_details(component: Dictionary, path: String, errors: Array[String]) -> void:
+	for key: String in ["screw_type", "length_mm"]:
+		if component.has(key) and component.get("kind") != "screw":
+			errors.append("[bad_value] %s : réservé aux composants de kind screw" % _field(path, key))
+	if component.has("screw_type"):
+		_check_enum(component, "screw_type", ComponentDefinition.SCREW_TYPES, path, errors)
+	if component.has("length_mm"):
+		_check_positive_number(component, "length_mm", path, errors)
 
 
 static func _check_rect(rect: Variant, field: String, errors: Array[String]) -> void:

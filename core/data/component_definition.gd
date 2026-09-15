@@ -4,6 +4,8 @@ extends RefCounted
 
 const KINDS: PackedStringArray = ["screw", "cover", "connector", "adhesive", "module"]
 const GESTURES: PackedStringArray = ["rotate", "pull", "hold", "pry"]
+const SCREW_TYPES: PackedStringArray = ["pentalobe", "phillips", "tri_point"]
+const HINGE_SIDES: PackedStringArray = ["left", "right", "top", "bottom"]
 
 var id: String
 var kind: String
@@ -24,6 +26,9 @@ var replace_requires: PackedStringArray
 var forceable: bool
 ## Explication affichée par le mode solution ("" si aucune).
 var hint: String
+## Vis uniquement : tête ("" si non renseignée) et longueur en mm (0 si non renseignée).
+var screw_type: String
+var length_mm: float
 ## Données d'affichage, ignorées par core/.
 var visual: Dictionary
 
@@ -44,6 +49,8 @@ static func from_dict(data: Dictionary) -> ComponentDefinition:
 	component.replace_requires = PackedStringArray(data.get("replace_requires", []))
 	component.forceable = is_forceable(component.requires, component.covered_by)
 	component.hint = data.get("hint", "")
+	component.screw_type = data.get("screw_type", "")
+	component.length_mm = float(data.get("length_mm", 0.0))
 	component.visual = data.get("visual", {})
 	return component
 
