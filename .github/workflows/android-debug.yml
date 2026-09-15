@@ -1,0 +1,66 @@
+name: APK debug
+
+# Manuel (onglet Actions) ou à la publication d'un tag de version.
+on:
+  workflow_dispatch:
+  push:
+    tags: ["v*"]
+
+env:
+  GODOT_VERSION: "4.7.2"
+
+jobs:
+  apk:
+    name: Construire l'APK debug
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Cache de Godot et des modèles d'export
+        id: godot-cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/godot
+            ~/.local/share/godot/export_templates/${{ env.GODOT_VERSION }}.stable
+          key: godot-${{ env.GODOT_VERSION }}-linux-templates
+
+      - name: Installer Godot et les modèles d'export
+        if: steps.godot-cache.outputs.cache-hit != 'true'
+        run: |
+          base="https://github.com/godotengine/godot/releases/download/${GODOT_VERSION}-stable"
+          mkdir -p ~/godot
+          curl -fsSL -o /tmp/godot.zip "$base/Godot_v${GODOT_VERSION}-stable_linux.x86_64.zip"
+          unzip -q /tmp/godot.zip -d ~/godot
+          mv ~/godot/Godot_v${GODOT_VERSION}-stable_linux.x86_64 ~/godot/godot
+          curl -fsSL -o /tmp/templates.tpz "$base/Godot_v${GODOT_VERSION}-stable_export_templates.tpz"
+          unzip -q /tmp/templates.tpz -d /tmp/templates
+          mkdir -p ~/.local/share/godot/export_templates
+          mv /tmp/templates/templates ~/.local/share/godot/export_templates/${GODOT_VERSION}.stable
+
+      - name: Ajouter Godot au PATH
+        run: echo "$HOME/godot" >> "$GITHUB_PATH"
+
+      # Keystore jetable : l'APK debug n'a pas vocation à être distribué.
+      - name: Créer un keystore de debug
+        run: |
+          mkdir -p ~/.local/share/godot/keystores
+          keytool -genkeypair -v -keyalg RSA -keysize 2048 -validity 10000 \
+            -keystore ~/.local/share/godot/keystores/debug.keystore \
+            -alias androiddebugkey -storepass android -keypass android \
+            -dname "CN=Android Debug,O=Android,C=US"
+
+      - name: Construire l'APK (tests inclus)
+        run: ./scripts/build_android.sh
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: teardown-bench-debug-apk
+          path: build/repa_debug.apk
+          if-no-files-found: error
