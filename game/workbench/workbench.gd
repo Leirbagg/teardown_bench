@@ -17,7 +17,7 @@ const TIMER_LATE_COLOR: Color = Color("e5484d")
 var session: RepairSession
 
 var _feedback: Feedback
-var _selected_tray_id: String = ""
+var _selected_part_id: String = ""
 ## Pièce en cours de geste alors qu'elle est retenue : ses crans grincent.
 var _resisting_id: String = ""
 
@@ -94,6 +94,14 @@ func _process(_delta: float) -> void:
 # --- Gestes ---
 
 func _on_gesture_started(component_id: String) -> void:
+	if session.state.is_removed(component_id):
+		_resisting_id = ""
+		var install: DisassemblyResult = session.state.query_install(component_id)
+		if install.outcome == Outcome.INSTALL_BLOCKED:
+			_set_status("Reconnect first: %s." % UiFormat.labels_brief(install.blockers, 2))
+		else:
+			_set_status("Swing %s back into place…" % UiFormat.label(component_id))
+		return
 	var prediction: DisassemblyResult = session.state.query_remove(component_id)
 	if prediction.outcome == Outcome.FORCED:
 		_resisting_id = component_id
@@ -118,6 +126,11 @@ func _on_gesture_step(component_id: String, _step: int, _step_count: int) -> voi
 
 func _on_gesture_completed(component_id: String) -> void:
 	_resisting_id = ""
+	if session.state.is_removed(component_id):
+		# Geste sur une pièce ouverte mais attachée (écran rabattu) : on la referme.
+		_selected_part_id = component_id
+		_on_reinstall_pressed()
+		return
 	var result: DisassemblyResult = session.state.commit_remove(component_id)
 	match result.outcome:
 		Outcome.REMOVED:
@@ -280,11 +293,11 @@ func perform_solution_step(step: SolutionStep, speed: float) -> void:
 		SolutionStep.Kind.REMOVE:
 			_device_view.start_ghost(step.component_id, speed)
 		SolutionStep.Kind.REPLACE:
-			_selected_tray_id = step.component_id
+			_selected_part_id = step.component_id
 			_on_replace_pressed()
 		SolutionStep.Kind.INSTALL:
 			_device_view.face = session.state.device.get_component(step.component_id).face
-			_selected_tray_id = step.component_id
+			_selected_part_id = step.component_id
 			_on_reinstall_pressed()
 		SolutionStep.Kind.FINAL_TEST:
 			_on_final_test_pressed()
@@ -315,13 +328,13 @@ func _clue_names(role: String) -> String:
 func _refresh_tray() -> void:
 	for child: Node in _tray.get_children():
 		child.queue_free()
-	if not session.state.is_removed(_selected_tray_id):
-		_selected_tray_id = ""
+	if not session.state.is_removed(_selected_part_id):
+		_selected_part_id = ""
 	for component_id: String in session.state.removed_ids():
 		var button: Button = Button.new()
 		button.custom_minimum_size = Vector2(48, 48)
 		button.toggle_mode = true
-		button.button_pressed = component_id == _selected_tray_id
+		button.button_pressed = component_id == _selected_part_id
 		button.text = UiFormat.label(component_id) + (" (broken)" if session.state.is_broken(component_id) else "")
 		button.add_theme_font_size_override("font_size", 12)
 		button.disabled = solution_player.is_running()
@@ -332,18 +345,18 @@ func _refresh_tray() -> void:
 
 
 func _on_tray_item_pressed(component_id: String) -> void:
-	_selected_tray_id = "" if component_id == _selected_tray_id else component_id
+	_selected_part_id = "" if component_id == _selected_part_id else component_id
 	_refresh_tray()
 
 
 func _update_tray_actions() -> void:
-	var selected: bool = _selected_tray_id != ""
+	var selected: bool = _selected_part_id != ""
 	_reinstall_button.disabled = not selected
-	_replace_button.disabled = not selected or not session.state.device.get_component(_selected_tray_id).replaceable
+	_replace_button.disabled = not selected or not session.state.device.get_component(_selected_part_id).replaceable
 
 
 func _on_reinstall_pressed() -> void:
-	var component_id: String = _selected_tray_id
+	var component_id: String = _selected_part_id
 	var result: DisassemblyResult = session.state.commit_install(component_id)
 	if result.outcome == Outcome.INSTALL_BLOCKED:
 		_set_status("Reinstall first: %s." % UiFormat.labels_brief(result.blockers, 2))
@@ -353,7 +366,7 @@ func _on_reinstall_pressed() -> void:
 
 
 func _on_replace_pressed() -> void:
-	var component_id: String = _selected_tray_id
+	var component_id: String = _selected_part_id
 	var result: DisassemblyResult = session.state.replace(component_id)
 	if result.outcome == Outcome.NOT_DETACHED:
 		_set_status("Disconnect first: %s." % UiFormat.labels_brief(result.blockers, 2))

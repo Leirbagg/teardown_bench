@@ -48,6 +48,16 @@ const GHOST_ROTATION_RADIUS: float = 14.0
 const GHOST_OVERSHOOT: float = 1.15
 const GHOST_SUBSTEPS_PER_SECOND: float = 120.0
 
+## Pièce à charnière ouverte mais attachée (écran rabattu), vue de dos en perspective.
+const OPEN_PANEL_RATIO: float = 0.42
+const OPEN_PANEL_GAP: float = 6.0
+const OPEN_PANEL_PERSPECTIVE: float = 0.07
+const OPEN_ANIMATION_SPEED: float = 8.0
+const OPEN_PANEL_COLOR: Color = Color("15191e")
+const OPEN_PANEL_SHIELD_COLOR: Color = Color("5a6470")
+const CABLE_COLOR: Color = Color("b8892e")
+const CABLE_EDGE_COLOR: Color = Color("3d2f10")
+
 
 ## Animation ponctuelle dessinée par-dessus l'appareil.
 class Effect:
@@ -85,6 +95,9 @@ var _state: DisassemblyState
 ## Du dessous vers le dessus : une pièce est dessinée après celles qu'elle retient.
 var _draw_order: Array[ComponentDefinition] = []
 var _device_bounds: Rect2
+var _base_bounds: Rect2
+## Ouverture animée (0 à 1) des pièces à charnière, par id.
+var _open_amount: Dictionary[String, float] = {}
 var _recognizer: GestureRecognizer = GestureRecognizer.new()
 var _touch_index: int = -1
 var _active_id: String = ""
@@ -108,6 +121,7 @@ func setup(state: DisassemblyState) -> void:
 		_device_bounds = _device_bounds.merge(_device_rect(component))
 	for decoration: DeviceDefinition.Decoration in state.device.decorations:
 		_device_bounds = _device_bounds.merge(_decoration_rect(decoration))
+	_base_bounds = _device_bounds
 	state.component_removed.connect(_on_component_removed)
 	state.component_installed.connect(_on_component_installed)
 	state.component_replaced.connect(_on_state_changed.unbind(1))
@@ -133,6 +147,9 @@ func view_rect(component: ComponentDefinition) -> Rect2:
 func component_at(position: Vector2) -> String:
 	if _state == null or _scale() <= 0.0:
 		return ""
+	for component: ComponentDefinition in _state.device.components:
+		if is_open_tethered(component.id) and open_panel_rect(component.id).grow(8.0).has_point(position):
+			return component.id
 	var direct: ComponentDefinition = null
 	var direct_level: int = -1
 	var expanded: Array[int] = []
@@ -183,6 +200,7 @@ func _is_drawn(component: ComponentDefinition) -> bool:
 
 func _process(delta: float) -> void:
 	_time_s += delta
+	_animate_open_panels(delta)
 	if _ghost_active:
 		_advance_ghost(delta)
 	elif _active_id != "" and _recognizer.gesture == "hold":
@@ -192,7 +210,7 @@ func _process(delta: float) -> void:
 		effect.age_s += delta
 	_effects = _effects.filter(func(effect: Effect) -> bool: return effect.age_s < effect.duration_s)
 	_shake_s = maxf(_shake_s - delta, 0.0)
-	if _active_id != "" or not _effects.is_empty() or _shake_s > 0.0 or loupe_mode:
+	if _active_id != "" or not _effects.is_empty() or _shake_s > 0.0 or loupe_mode or _is_animating_panels():
 		queue_redraw()
 
 
@@ -211,7 +229,9 @@ func _spawn(kind: String, component_id: String, duration_s: float) -> void:
 
 
 func _on_component_removed(component_id: String) -> void:
-	_spawn("fly_out", component_id, FLY_OUT_S)
+	# Une pièce à charnière encore attachée s'ouvre à côté de l'appareil au lieu de s'envoler.
+	if not _is_hinged(_state.device.get_component(component_id)) or _state.attached_parts(component_id).is_empty():
+		_spawn("fly_out", component_id, FLY_OUT_S)
 
 
 func _on_component_installed(component_id: String) -> void:
@@ -222,6 +242,120 @@ func _on_component_broken(component_id: String) -> void:
 	_spawn("flash", component_id, BREAK_FLASH_S)
 	_spawn("shards", component_id, SHARDS_S)
 	_shake_s = SHAKE_S
+
+
+# --- Pièce ouverte à charnière (écran rabattu) ---
+
+## Retirée mais encore attachée par ses replace_requires, sur la face affichée.
+func is_open_tethered(component_id: String) -> bool:
+	if _state == null or not _state.device.has_component(component_id):
+		return false
+	var component: ComponentDefinition = _state.device.get_component(component_id)
+	return _is_hinged(component) and component.face == face and _state.is_removed(component_id) \
+		and not _state.attached_parts(component_id).is_empty()
+
+
+## Rectangle englobant le panneau ouvert, dans le repère de la vue.
+func open_panel_rect(component_id: String) -> Rect2:
+	var polygon: PackedVector2Array = _open_panel_polygon(_state.device.get_component(component_id), 1.0)
+	var bounds: Rect2 = Rect2(polygon[0], Vector2.ZERO)
+	for point: Vector2 in polygon:
+		bounds = bounds.expand(point)
+	return bounds
+
+
+static func _is_hinged(component: ComponentDefinition) -> bool:
+	return component.visual.has("hinge")
+
+
+func _animate_open_panels(delta: float) -> void:
+	if _state == null:
+		return
+	var expansion: Array[float] = [0.0, 0.0, 0.0, 0.0]
+	for component: ComponentDefinition in _state.device.components:
+		if not _is_hinged(component):
+			continue
+		var target: float = 1.0 if is_open_tethered(component.id) else 0.0
+		var amount: float = move_toward(_open_amount.get(component.id, 0.0), target, delta * OPEN_ANIMATION_SPEED)
+		_open_amount[component.id] = amount
+		var rect: Rect2 = _device_rect(component)
+		var side: int = ComponentDefinition.HINGE_SIDES.find(str(component.visual["hinge"]))
+		var depth: float = (rect.size.x if side < 2 else rect.size.y) * OPEN_PANEL_RATIO + OPEN_PANEL_GAP
+		expansion[side] = maxf(expansion[side], depth * amount)
+	_device_bounds = _base_bounds.grow_individual(expansion[0], expansion[2], expansion[1], expansion[3])
+
+
+func _is_animating_panels() -> bool:
+	for component_id: String in _open_amount:
+		var target: float = 1.0 if is_open_tethered(component_id) else 0.0
+		if not is_equal_approx(_open_amount[component_id], target):
+			return true
+	return false
+
+
+## Quadrilatère du panneau ouvert : bord de charnière contre l'appareil, bord libre raccourci
+## par la perspective. `amount` va de 0 (fermé) à 1 (ouvert).
+func _open_panel_polygon(component: ComponentDefinition, amount: float) -> PackedVector2Array:
+	var rect: Rect2 = view_rect(component)
+	var scale_factor: float = _scale()
+	var gap: float = OPEN_PANEL_GAP * scale_factor
+	match str(component.visual["hinge"]):
+		"left", "right":
+			var left: bool = component.visual["hinge"] == "left"
+			var hinge_x: float = rect.position.x - gap if left else rect.end.x + gap
+			var depth: float = rect.size.x * OPEN_PANEL_RATIO * amount * (-1.0 if left else 1.0)
+			var inset: float = rect.size.y * OPEN_PANEL_PERSPECTIVE * amount
+			return PackedVector2Array([Vector2(hinge_x, rect.position.y), Vector2(hinge_x + depth, rect.position.y + inset),
+				Vector2(hinge_x + depth, rect.end.y - inset), Vector2(hinge_x, rect.end.y)])
+		_:
+			var top: bool = component.visual["hinge"] == "top"
+			var hinge_y: float = rect.position.y - gap if top else rect.end.y + gap
+			var depth_y: float = rect.size.y * OPEN_PANEL_RATIO * amount * (-1.0 if top else 1.0)
+			var inset_x: float = rect.size.x * OPEN_PANEL_PERSPECTIVE * amount
+			return PackedVector2Array([Vector2(rect.position.x, hinge_y), Vector2(rect.position.x + inset_x, hinge_y + depth_y),
+				Vector2(rect.end.x - inset_x, hinge_y + depth_y), Vector2(rect.end.x, hinge_y)])
+
+
+## Nappes : du bord de charnière du panneau jusqu'à chaque connecteur encore branché.
+func _draw_open_panel_cables(component: ComponentDefinition) -> void:
+	var amount: float = _open_amount.get(component.id, 0.0)
+	if amount <= 0.01 or not _state.is_removed(component.id):
+		return
+	var polygon: PackedVector2Array = _open_panel_polygon(component, amount)
+	for attached_id: String in _state.attached_parts(component.id):
+		var target: Vector2 = view_rect(_state.device.get_component(attached_id)).get_center()
+		var anchor: Vector2 = Geometry2D.get_closest_point_to_segment(target, polygon[0], polygon[3])
+		var elbow: Vector2 = Vector2(lerpf(anchor.x, target.x, 0.5), target.y) if component.visual["hinge"] in ["left", "right"] \
+			else Vector2(target.x, lerpf(anchor.y, target.y, 0.5))
+		var path: PackedVector2Array = PackedVector2Array([anchor, elbow, target])
+		draw_polyline(path, CABLE_EDGE_COLOR, 7.0, true)
+		draw_polyline(path, CABLE_COLOR, 4.0, true)
+
+
+func _draw_open_panel(component: ComponentDefinition) -> void:
+	var amount: float = _open_amount.get(component.id, 0.0)
+	if amount <= 0.01:
+		return
+	var polygon: PackedVector2Array = _open_panel_polygon(component, amount)
+	draw_colored_polygon(polygon, OPEN_PANEL_COLOR)
+	var outline: PackedVector2Array = polygon.duplicate()
+	outline.append(polygon[0])
+	draw_polyline(outline, PartPainter.OUTLINE_COLOR, 2.0, true)
+	# Blindage métallique au dos de l'écran.
+	var center: Vector2 = (polygon[0] + polygon[1] + polygon[2] + polygon[3]) / 4.0
+	var shield: PackedVector2Array = PackedVector2Array()
+	for point: Vector2 in polygon:
+		shield.append(center.lerp(point, 0.7))
+	draw_colored_polygon(shield, Color(OPEN_PANEL_SHIELD_COLOR, 0.5 * amount))
+	if amount > 0.9:
+		var font: Font = get_theme_default_font()
+		var bounds: Rect2 = open_panel_rect(component.id)
+		draw_string(font, Vector2(bounds.position.x, center.y - 2.0), UiFormat.label(component.id),
+			HORIZONTAL_ALIGNMENT_CENTER, bounds.size.x, 11, PartPainter.LABEL_COLOR)
+		draw_string(font, Vector2(bounds.position.x, center.y + 12.0), "open",
+			HORIZONTAL_ALIGNMENT_CENTER, bounds.size.x, 10, PartPainter.DECORATION_LABEL_COLOR)
+	if _state.is_broken(component.id):
+		_painter.draw_broken(self, open_panel_rect(component.id))
 
 
 # --- Doigt fantôme (mode solution) ---
@@ -331,12 +465,18 @@ func _draw() -> void:
 	for decoration: DeviceDefinition.Decoration in _state.device.decorations:
 		if decoration.face == face and decoration.attached_to.is_empty():
 			_painter.draw_decoration(self, font, decoration, _to_view(_decoration_rect(decoration)))
+	for component: ComponentDefinition in _state.device.components:
+		if _is_hinged(component) and component.face == face:
+			_draw_open_panel_cables(component)
 	for component: ComponentDefinition in _draw_order:
 		if _is_drawn(component):
 			_draw_component(component)
 			for decoration: DeviceDefinition.Decoration in _state.device.decorations:
 				if decoration.attached_to == component.id:
 					_painter.draw_decoration(self, font, decoration, _to_view(_decoration_rect(decoration)))
+	for component: ComponentDefinition in _state.device.components:
+		if _is_hinged(component) and component.face == face and _state.is_removed(component.id):
+			_draw_open_panel(component)
 	for effect: Effect in _effects:
 		_draw_effect(effect)
 	draw_set_transform(Vector2.ZERO)
@@ -399,10 +539,10 @@ func _draw_effect(effect: Effect) -> void:
 
 ## Anneau de progression, contour de résistance et nom de la pièce au-dessus du doigt.
 func _draw_gesture_overlay(component: ComponentDefinition) -> void:
-	var rect: Rect2 = view_rect(component)
+	var rect: Rect2 = open_panel_rect(component.id) if is_open_tethered(component.id) else view_rect(component)
 	if _resisting:
 		draw_rect(rect.grow(3.0), RESIST_COLOR, false, 3.0)
-	if component.gesture == "pry":
+	if component.gesture == "pry" and not _state.is_removed(component.id):
 		_draw_pry_edge(rect)
 	draw_arc(rect.get_center(), 26.0, -PI / 2.0, -PI / 2.0 + TAU * _recognizer.progress, 48, PROGRESS_COLOR, 5.0)
 	if _ghost_active:
@@ -483,7 +623,10 @@ func _on_touch(touch: InputEventScreenTouch) -> void:
 		_active_id = component_id
 		_last_step = 0
 		_resisting = false
-		_recognizer.begin(component.gesture, component.gesture_params, view_rect(component), touch.position)
+		if is_open_tethered(component_id):
+			_recognizer.begin("pull", {"direction_deg": _closing_direction_deg(component)}, open_panel_rect(component_id), touch.position)
+		else:
+			_recognizer.begin(component.gesture, component.gesture_params, view_rect(component), touch.position)
 		gesture_started.emit(component_id)
 		queue_redraw()
 	elif touch.index == _touch_index:
@@ -507,6 +650,18 @@ func _check_progress() -> void:
 	_active_id = ""
 	_resisting = false
 	gesture_completed.emit(completed_id)
+
+
+## Pour refermer, on ramène le panneau vers l'appareil : à l'opposé de la charnière.
+static func _closing_direction_deg(component: ComponentDefinition) -> float:
+	match str(component.visual["hinge"]):
+		"left":
+			return 0.0
+		"right":
+			return 180.0
+		"top":
+			return 270.0
+	return 90.0
 
 
 ## Oublie le geste en cours (réel ou fantôme) sans émettre de signal.

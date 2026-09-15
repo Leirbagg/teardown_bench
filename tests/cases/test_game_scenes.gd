@@ -143,6 +143,76 @@ func test_ghost_can_be_finished_early_or_stopped() -> void:
 	view.free()
 
 
+## Laisse les animations (ouverture, décalage de l'appareil) aller au bout.
+func _settle(view: DeviceView) -> void:
+	for frame: int in 60:
+		view._process(1.0 / 60.0)
+
+
+func test_opened_display_is_shown_tethered_beside_the_device() -> void:
+	var state: DisassemblyState = _starter_phone_state()
+	var view: DeviceView = _device_view(state)
+	var battery_before: Rect2 = view.view_rect(state.device.get_component("battery"))
+	DisassemblyFixture.remove_with_prerequisites(state, "display")
+	_settle(view)
+	assert_true(view.is_open_tethered("display"), "ouvert, encore tenu par ses nappes")
+	var panel: Rect2 = view.open_panel_rect("display")
+	var body: Rect2 = view.view_rect(state.device.get_component("display"))
+	assert_true(panel.end.x <= body.position.x + 1.0, "rabattu à gauche, côté charnière")
+	assert_true(view.view_rect(state.device.get_component("battery")).get_center().x > battery_before.get_center().x,
+		"l'appareil se décale pour faire de la place")
+	assert_true(panel.position.x >= 0.0, "le panneau reste dans la vue")
+	assert_eq(view.component_at(panel.get_center()), "display", "on peut toucher l'écran ouvert")
+
+	DisassemblyFixture.remove_with_prerequisites(state, "display_connector")
+	assert_true(view.is_open_tethered("display"), "encore tenu par la nappe des capteurs")
+	DisassemblyFixture.remove_with_prerequisites(state, "sensor_connector")
+	_settle(view)
+	assert_false(view.is_open_tethered("display"), "détaché : il quitte la position ouverte")
+	assert_true(view.component_at(view.open_panel_rect("display").get_center()) != "display")
+	view.free()
+
+
+func test_pulling_the_open_display_toward_the_device_closes_it() -> void:
+	var state: DisassemblyState = _starter_phone_state()
+	var view: DeviceView = _device_view(state)
+	var completed: Array[String] = []
+	view.gesture_completed.connect(func(id: String) -> void: completed.append(id))
+	DisassemblyFixture.remove_with_prerequisites(state, "display")
+	_settle(view)
+	var start: Vector2 = view.open_panel_rect("display").get_center()
+	view._gui_input(_touch(start, true))
+	for step: int in range(1, 11):
+		var drag: InputEventScreenDrag = InputEventScreenDrag.new()
+		drag.position = start + Vector2(10.0 * step, 0)
+		view._gui_input(drag)
+	view._gui_input(_touch(start + Vector2(100, 0), false))
+	assert_eq(completed, ["display"] as Array[String], "tirer vers la charnière referme l'écran")
+	view.free()
+
+
+func test_workbench_closes_the_open_display_or_explains_what_to_reconnect() -> void:
+	var main: Main = MAIN_SCENE.instantiate() as Main
+	_root().add_child(main)
+	(main.current_screen as CustomerScreen).start_pressed.emit()
+	var workbench: Workbench = main.current_screen as Workbench
+	var state: DisassemblyState = workbench.session.state
+	var view: DeviceView = workbench.get_node("%DeviceView") as DeviceView
+	DisassemblyFixture.remove_with_prerequisites(state, "display_connector")
+	view.gesture_started.emit("display")
+	view.gesture_completed.emit("display")
+	assert_true(state.is_removed("display"), "nappe débranchée : on ne referme pas")
+	assert_true((workbench.get_node("%Status") as Label).text.begins_with("Reinstall first"), "le jeu dit quoi rebrancher")
+	assert_eq(state.broken_ids(), PackedStringArray(), "sans pénalité")
+	for id: String in ["display_connector", "battery_connector", "connector_cover"]:
+		assert_eq(state.commit_install(id).outcome, DisassemblyResult.Outcome.INSTALLED, "préparation : " + id)
+	for screw: String in ["cover_screw_1", "cover_screw_2", "cover_screw_3"]:
+		state.commit_install(screw)
+	view.gesture_completed.emit("display")
+	assert_false(state.is_removed("display"), "tout rebranché : l'écran se referme")
+	main.free()
+
+
 func test_small_parts_get_a_48dp_touch_target() -> void:
 	var state: DisassemblyState = _starter_phone_state()
 	var view: DeviceView = _device_view(state)
