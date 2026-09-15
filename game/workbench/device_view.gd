@@ -76,6 +76,14 @@ const RESIST_FOLLOW_RATIO: float = 0.15
 const SCREW_LIFT_RATIO: float = 0.25
 const PRY_LIFT_PX: float = 6.0
 
+## Doigt fantôme du mode solution.
+const GHOST_FINGER_COLOR: Color = Color(1, 1, 1, 0.45)
+const GHOST_FINGER_RADIUS: float = 15.0
+const GHOST_ROTATION_RADIUS: float = 14.0
+## Marge au-delà du minimum requis, pour que le geste simulé aboutisse toujours.
+const GHOST_OVERSHOOT: float = 1.15
+const GHOST_SUBSTEPS_PER_SECOND: float = 120.0
+
 
 ## Animation ponctuelle dessinée par-dessus l'appareil.
 class Effect:
@@ -122,6 +130,10 @@ var _effects: Array[Effect] = []
 var _shake_s: float = 0.0
 var _time_s: float = 0.0
 var _styles: Dictionary[String, StyleBoxFlat] = {}
+var _ghost_active: bool = false
+var _ghost_time_s: float = 0.0
+var _ghost_duration_s: float = 1.0
+var _ghost_speed: float = 1.0
 
 
 func setup(state: DisassemblyState) -> void:
@@ -207,7 +219,9 @@ func _is_drawn(component: ComponentDefinition) -> bool:
 
 func _process(delta: float) -> void:
 	_time_s += delta
-	if _active_id != "" and _recognizer.gesture == "hold":
+	if _ghost_active:
+		_advance_ghost(delta)
+	elif _active_id != "" and _recognizer.gesture == "hold":
 		_recognizer.tick(delta)
 		_check_progress()
 	for effect: Effect in _effects:
@@ -244,6 +258,100 @@ func _on_component_broken(component_id: String) -> void:
 	_spawn("flash", component_id, BREAK_FLASH_S)
 	_spawn("shards", component_id, SHARDS_S)
 	_shake_s = SHAKE_S
+
+
+# --- Doigt fantôme (mode solution) ---
+
+## Joue le geste d'un composant avec un doigt simulé. Passe par la même reconnaissance que le
+## vrai doigt : la pièce suit, les crans sont émis, et gesture_completed arrive à la fin.
+func start_ghost(component_id: String, speed: float = 1.0) -> void:
+	var component: ComponentDefinition = _state.device.get_component(component_id)
+	face = component.face
+	_active_id = component_id
+	_last_step = 0
+	_resisting = false
+	_ghost_time_s = 0.0
+	_ghost_speed = maxf(speed, 0.01)
+	_ghost_duration_s = ghost_duration(component) / _ghost_speed
+	_ghost_active = true
+	_recognizer.begin(component.gesture, component.gesture_params, view_rect(component), _ghost_position(component, 0.0))
+	queue_redraw()
+
+
+func is_ghost_running() -> bool:
+	return _ghost_active
+
+
+## Termine immédiatement le geste en cours, avec succès.
+func finish_ghost() -> void:
+	if _ghost_active:
+		_advance_ghost(_ghost_duration_s - _ghost_time_s)
+
+
+## Interrompt le geste sans retirer la pièce.
+func stop_ghost() -> void:
+	if _ghost_active:
+		_cancel_touch()
+
+
+## Durée d'un geste simulé à vitesse 1, lisible pour qui apprend.
+static func ghost_duration(component: ComponentDefinition) -> float:
+	match component.gesture:
+		"rotate":
+			return maxf(0.6, float(component.gesture_params.get("turns", GestureRecognizer.DEFAULT_TURNS)) * 0.8)
+		"pull":
+			return 0.8
+		"hold":
+			return float(component.gesture_params.get("duration_s", GestureRecognizer.DEFAULT_HOLD_S)) * GHOST_OVERSHOOT + 0.2
+		"pry":
+			return 1.8
+	return 1.0
+
+
+func _advance_ghost(delta: float) -> void:
+	var component: ComponentDefinition = _state.device.get_component(_active_id)
+	var target_time: float = minf(_ghost_time_s + maxf(delta, 0.0), _ghost_duration_s)
+	# Petits pas : la rotation cumule des angles, un saut de plus d'un demi-tour serait mal compté.
+	var substeps: int = maxi(1, ceili((target_time - _ghost_time_s) * GHOST_SUBSTEPS_PER_SECOND))
+	var step_s: float = (target_time - _ghost_time_s) / substeps
+	for i: int in substeps:
+		_ghost_time_s += step_s
+		_recognizer.drag(_ghost_position(component, _ghost_time_s / _ghost_duration_s))
+		# L'appui long mesure un temps : accéléré comme le reste de la démonstration.
+		_recognizer.tick(step_s * _ghost_speed)
+	# Filet de sécurité : les chemins simulés dépassent le minimum requis et n'en ont pas besoin
+	# (vérifié par les tests), mais un geste de démonstration ne doit jamais rester bloqué.
+	if _ghost_time_s >= _ghost_duration_s - 0.0001 and not _recognizer.is_complete():
+		_recognizer.progress = 1.0
+	var completing: bool = _recognizer.is_complete()
+	if completing:
+		_ghost_active = false
+	_check_progress()
+
+
+## Position du doigt simulé à l'avancement `ratio` (0 à 1) du geste.
+func _ghost_position(component: ComponentDefinition, ratio: float) -> Vector2:
+	var rect: Rect2 = view_rect(component)
+	var center: Vector2 = rect.get_center()
+	match component.gesture:
+		"rotate":
+			var turns: float = float(component.gesture_params.get("turns", GestureRecognizer.DEFAULT_TURNS))
+			return center + Vector2.from_angle(ratio * turns * TAU * GHOST_OVERSHOOT) * GHOST_ROTATION_RADIUS
+		"pull":
+			var direction: Vector2 = Vector2.from_angle(PI / 4.0)
+			if component.gesture_params.has("direction_deg"):
+				direction = Vector2.from_angle(-deg_to_rad(float(component.gesture_params["direction_deg"])))
+			return center + direction * GestureRecognizer.PULL_DISTANCE * GHOST_OVERSHOOT * ratio
+		"pry":
+			var inset: Rect2 = rect.grow(-minf(6.0, minf(rect.size.x, rect.size.y) / 4.0))
+			var corners: Array[Vector2] = [inset.position, Vector2(inset.position.x, inset.end.y), inset.end, Vector2(inset.end.x, inset.position.y)]
+			var legs: Array[float] = [inset.size.y, inset.size.x, inset.size.y]
+			var distance: float = ratio * (legs[0] + legs[1] + legs[2])
+			for leg: int in 3:
+				if distance <= legs[leg] or leg == 2:
+					return corners[leg].lerp(corners[leg + 1], clampf(distance / maxf(legs[leg], 0.001), 0.0, 1.0))
+				distance -= legs[leg]
+	return center
 
 
 # --- Dessin ---
@@ -369,6 +477,9 @@ func _draw_gesture_overlay(component: ComponentDefinition) -> void:
 	if component.gesture == "pry":
 		_draw_pry_edge(rect)
 	draw_arc(rect.get_center(), 26.0, -PI / 2.0, -PI / 2.0 + TAU * _recognizer.progress, 48, PROGRESS_COLOR, 5.0)
+	if _ghost_active:
+		draw_circle(_recognizer.finger_position(), GHOST_FINGER_RADIUS, GHOST_FINGER_COLOR)
+		draw_arc(_recognizer.finger_position(), GHOST_FINGER_RADIUS, 0.0, TAU, 32, Color(1, 1, 1, 0.8), 2.0)
 
 	var font: Font = get_theme_default_font()
 	var text: String = UiFormat.label(component.id)
@@ -430,7 +541,7 @@ func _style(key: String, color: Color) -> StyleBoxFlat:
 ## L'interface route les touchers vers le contrôle sous le doigt, puis garde ce contrôle pour le
 ## glissement et le relâchement : ils arrivent ici en coordonnées locales, même hors de la vue.
 func _gui_input(event: InputEvent) -> void:
-	if _state == null or not input_enabled:
+	if _state == null or not input_enabled or _ghost_active:
 		return
 	if event is InputEventScreenTouch:
 		_on_touch(event as InputEventScreenTouch)
@@ -483,8 +594,9 @@ func _check_progress() -> void:
 	gesture_completed.emit(completed_id)
 
 
-## Oublie le geste en cours sans émettre de signal.
+## Oublie le geste en cours (réel ou fantôme) sans émettre de signal.
 func _cancel_touch() -> void:
+	_ghost_active = false
 	_touch_index = -1
 	_active_id = ""
 	_resisting = false

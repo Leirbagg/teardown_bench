@@ -20,7 +20,7 @@ un test compte comme un échec.
 - `core/` : logique de jeu **pure GDScript**. Aucun `extends Node`, aucun appel au
   moteur, aucune référence à une scène ou à un asset. Testable en headless.
   Seule exception : lire les fichiers JSON de `data/` (`FileAccess`, `JSON`).
-  Contient : graphe de démontage, système de pannes, diagnostic, journée et bilan,
+  Contient : graphe de démontage, système de pannes, diagnostic, journée et bilan, plan du mode solution,
   économie, sauvegarde.
 - `game/` : scènes, nœuds, UI, input, animation. Consomme `core/`, jamais l'inverse.
 - `data/` : définitions d'appareils et de pannes en JSON. Aucune logique.

@@ -19,6 +19,8 @@ func setup(report: DayReport) -> void:
 		report.completed_jobs(), report.planned_jobs, report.deadlines_met(),
 		report.broken_parts_count(), report.diagnosis_errors(), UiFormat.time(report.total_time_s()),
 	]
+	if report.assisted_jobs() > 0:
+		_summary.text += "\n%d assisted repair(s), not counted in the totals" % report.assisted_jobs()
 	for i: int in report.jobs.size():
 		var job: RepairReport = report.jobs[i]
 		var line: Label = Label.new()
@@ -27,7 +29,7 @@ func setup(report: DayReport) -> void:
 		line.text = "#%d %s — %s\n%s / %s %s · broken: %d · diagnosis errors: %d" % [
 			i + 1, UiFormat.label(job.device_id), UiFormat.labels(job.fault_ids),
 			UiFormat.time(job.elapsed_s), UiFormat.time(job.deadline_s),
-			"on time" if job.deadline_met else "late",
+			"assisted" if job.assisted else ("on time" if job.deadline_met else "late"),
 			job.broken_parts.size(), job.diagnosis_errors(),
 		]
 		_jobs.add_child(line)

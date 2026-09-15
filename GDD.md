@@ -87,7 +87,17 @@ Plainte client → Inspection → Mesure / test → Démontage → Remplacement
 - Chaque client annonce un délai, exprimé en **temps réel de réparation** (chrono visible et discret).
 - Respecter le délai donne un bonus. Le dépasser n'entraîne pas d'échec dur.
 
-### 3.7 Vis et petites pièces
+### 3.7 Mode solution (apprentissage)
+
+- Un bouton « Solution » sur l'établi lance une démonstration **depuis l'état actuel** : un doigt
+  fantôme fait chaque geste sur la vraie pièce, avec une explication par étape (pourquoi, comment,
+  règles de sécurité). Pause, étape suivante, vitesse ×1/×2/×4 et Stop pour reprendre la main.
+- La réparation devient **assistée**, définitivement : elle apparaît au bilan mais ne compte ni
+  dans les délais respectés, ni dans les casses, ni dans les erreurs de diagnostic.
+- Ce n'est pas un contournement du geste (§5) : on regarde le geste pour l'apprendre, sans rien
+  gagner.
+
+### 3.8 Vis et petites pièces
 
 - **MVP** : les vis sont collectées automatiquement au démontage et remises automatiquement
   au remontage.

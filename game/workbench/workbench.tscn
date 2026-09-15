@@ -1,7 +1,8 @@
-[gd_scene load_steps=3 format=3]
+[gd_scene load_steps=4 format=3]
 
 [ext_resource type="Script" path="res://game/workbench/workbench.gd" id="1_script"]
 [ext_resource type="PackedScene" path="res://game/workbench/device_view.tscn" id="2_device_view"]
+[ext_resource type="Script" path="res://game/workbench/solution_player.gd" id="3_solution"]
 
 [node name="Workbench" type="Control"]
 layout_mode = 3
@@ -93,10 +94,20 @@ layout_mode = 2
 size_flags_horizontal = 3
 text = "Final test"
 
-[node name="TrayLabel" type="Label" parent="Margin/Layout"]
+[node name="TrayHeader" type="HBoxContainer" parent="Margin/Layout"]
 layout_mode = 2
+
+[node name="TrayLabel" type="Label" parent="Margin/Layout/TrayHeader"]
+layout_mode = 2
+size_flags_horizontal = 3
 theme_override_font_sizes/font_size = 13
 text = "Parts tray"
+
+[node name="SolutionButton" type="Button" parent="Margin/Layout/TrayHeader"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(112, 48)
+layout_mode = 2
+text = "Solution"
 
 [node name="TrayScroll" type="ScrollContainer" parent="Margin/Layout"]
 custom_minimum_size = Vector2(0, 56)
@@ -128,6 +139,40 @@ layout_mode = 2
 size_flags_horizontal = 3
 disabled = true
 text = "Replace with new"
+
+[node name="SolutionBar" type="HBoxContainer" parent="Margin/Layout"]
+unique_name_in_owner = true
+visible = false
+layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="SolutionPauseButton" type="Button" parent="Margin/Layout/SolutionBar"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 48)
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Pause"
+
+[node name="SolutionNextButton" type="Button" parent="Margin/Layout/SolutionBar"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 48)
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Next"
+
+[node name="SolutionSpeedButton" type="Button" parent="Margin/Layout/SolutionBar"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 48)
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Speed ×1"
+
+[node name="SolutionStopButton" type="Button" parent="Margin/Layout/SolutionBar"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 48)
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Stop"
 
 [node name="Status" type="Label" parent="Margin/Layout"]
 unique_name_in_owner = true
@@ -167,3 +212,7 @@ unique_name_in_owner = true
 custom_minimum_size = Vector2(0, 48)
 layout_mode = 2
 text = "OK"
+
+[node name="SolutionPlayer" type="Node" parent="."]
+unique_name_in_owner = true
+script = ExtResource("3_solution")

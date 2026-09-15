@@ -96,6 +96,53 @@ func test_touching_a_part_squarely_never_picks_its_overlapping_neighbour() -> vo
 	view.free()
 
 
+## Le doigt fantôme du mode solution doit mener chaque type de geste à son terme.
+func test_ghost_finger_completes_every_gesture_kind() -> void:
+	var state: DisassemblyState = _starter_phone_state()
+	var view: DeviceView = _device_view(state)
+	var completed: Array[String] = []
+	var steps: Array[int] = [0]
+	view.gesture_completed.connect(func(id: String) -> void:
+		completed.append(id)
+		state.commit_remove(id))
+	view.gesture_step.connect(func(_id: String, _step: int, _count: int) -> void: steps[0] += 1)
+	var ids: Array[String] = ["pentalobe_left", "pentalobe_right", "display_adhesive", "display", "cover_screw_1",
+		"cover_screw_2", "cover_screw_3", "connector_cover", "battery_connector"]
+	for i: int in ids.size():
+		var id: String = ids[i]
+		var gesture: String = state.device.get_component(id).gesture
+		view.start_ghost(id, 1.0 if i % 2 == 0 else 2.0)
+		assert_true(view.is_ghost_running(), id)
+		for frame: int in 400:
+			if not view.is_ghost_running():
+				break
+			view._process(1.0 / 60.0)
+		assert_false(view.is_ghost_running(), "%s (%s) : geste fantôme terminé" % [id, gesture])
+		assert_true(state.is_removed(id), "%s (%s) : pièce retirée" % [id, gesture])
+	assert_eq(completed.size(), 9)
+	assert_true(steps[0] > 9, "des crans pendant les gestes")
+	view.free()
+
+
+func test_ghost_can_be_finished_early_or_stopped() -> void:
+	var state: DisassemblyState = _starter_phone_state()
+	var view: DeviceView = _device_view(state)
+	var completed: Array[String] = []
+	view.gesture_completed.connect(func(id: String) -> void: completed.append(id))
+	view.start_ghost("display_adhesive", 2.0)
+	view._process(0.1)
+	view.finish_ghost()
+	assert_false(view.is_ghost_running())
+	assert_eq(completed, ["display_adhesive"] as Array[String], "fin immédiate, geste réussi")
+	view.start_ghost("pentalobe_left")
+	view._process(0.1)
+	view.stop_ghost()
+	for frame: int in 120:
+		view._process(1.0 / 60.0)
+	assert_eq(completed.size(), 1, "arrêté : pas de retrait")
+	view.free()
+
+
 func test_small_parts_get_a_48dp_touch_target() -> void:
 	var state: DisassemblyState = _starter_phone_state()
 	var view: DeviceView = _device_view(state)
@@ -104,6 +151,63 @@ func test_small_parts_get_a_48dp_touch_target() -> void:
 	var near_edge: Vector2 = screw.get_center() + Vector2(DeviceView.MIN_TOUCH_TARGET / 2.0 - 1.0, 0)
 	assert_eq(view.component_at(near_edge), "pentalobe_right")
 	view.free()
+
+
+# --- Mode solution ---
+
+## Fait tourner le lecteur et la vue comme des frames, jusqu'à l'arrêt du lecteur.
+func _run_solution(workbench: Workbench, max_frames: int = 20000) -> void:
+	var view: DeviceView = workbench.get_node("%DeviceView") as DeviceView
+	for frame: int in max_frames:
+		if not workbench.solution_player.is_running():
+			return
+		workbench.solution_player.advance(1.0 / 30.0)
+		view._process(1.0 / 30.0)
+
+
+func test_solution_mode_repairs_from_a_damaged_state_and_marks_the_job_assisted() -> void:
+	var main: Main = MAIN_SCENE.instantiate() as Main
+	_root().add_child(main)
+	(main.current_screen as CustomerScreen).start_pressed.emit()
+	var workbench: Workbench = main.current_screen as Workbench
+	var session: RepairSession = workbench.session
+	var view: DeviceView = workbench.get_node("%DeviceView") as DeviceView
+	view.gesture_completed.emit("display")
+	assert_true(session.state.is_broken("display"), "préparation : écran forcé et cassé par le joueur")
+
+	var captions: Array[String] = []
+	workbench.solution_player.step_started.connect(func(_i: int, _n: int, caption: String) -> void: captions.append(caption))
+	(workbench.get_node("%SolutionButton") as Button).pressed.emit()
+	assert_true(workbench.solution_player.is_running())
+	assert_true(session.is_assisted())
+	assert_false(view.input_enabled, "le joueur ne touche pas pendant la démo")
+	assert_true((workbench.get_node("%SolutionBar") as Control).visible)
+	workbench.solution_player.speed = 4.0
+	_run_solution(workbench)
+
+	assert_true(session.is_completed(), "test final réussi à la fin de la démo")
+	assert_eq(session.state.broken_ids(), PackedStringArray(), "l'écran cassé a été remplacé")
+	assert_true(captions.any(func(caption: String) -> bool: return caption.begins_with("Always disconnect the battery first")),
+		"les explications viennent des hints")
+	assert_true(captions.all(func(caption: String) -> bool: return not caption.is_empty()))
+	assert_true(main.day.report().jobs[0].assisted)
+	main.free()
+
+
+func test_solution_mode_can_be_stopped_to_take_over() -> void:
+	var main: Main = MAIN_SCENE.instantiate() as Main
+	_root().add_child(main)
+	(main.current_screen as CustomerScreen).start_pressed.emit()
+	var workbench: Workbench = main.current_screen as Workbench
+	(workbench.get_node("%SolutionButton") as Button).pressed.emit()
+	_run_solution(workbench, 90)
+	(workbench.get_node("%SolutionStopButton") as Button).pressed.emit()
+	assert_false(workbench.solution_player.is_running())
+	assert_true((workbench.get_node("%DeviceView") as DeviceView).input_enabled, "le joueur reprend la main")
+	assert_false((workbench.get_node("%SolutionBar") as Control).visible)
+	assert_true(workbench.session.is_assisted(), "reste assistée")
+	assert_false(workbench.session.is_completed())
+	main.free()
 
 
 # --- Enchaînement complet ---

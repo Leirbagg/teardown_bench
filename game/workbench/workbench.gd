@@ -10,6 +10,7 @@ const VIBRATE_STRAIN_MS: int = 25
 const VIBRATE_REMOVED_MS: int = 30
 const VIBRATE_BREAK_MS: int = 120
 const VIBRATE_CLICK_MS: int = 15
+const SOLUTION_SPEEDS: Array[float] = [1.0, 2.0, 4.0]
 const TIMER_COLOR: Color = Color(1, 1, 1, 0.8)
 const TIMER_LATE_COLOR: Color = Color("e5484d")
 
@@ -34,6 +35,14 @@ var _resisting_id: String = ""
 @onready var _info_panel: PanelContainer = %InfoPanel
 @onready var _info_text: Label = %InfoText
 @onready var _info_close_button: Button = %InfoCloseButton
+@onready var _tray_actions: Control = %ReinstallButton.get_parent()
+@onready var _solution_button: Button = %SolutionButton
+@onready var _solution_bar: HBoxContainer = %SolutionBar
+@onready var _solution_pause_button: Button = %SolutionPauseButton
+@onready var _solution_next_button: Button = %SolutionNextButton
+@onready var _solution_speed_button: Button = %SolutionSpeedButton
+@onready var _solution_stop_button: Button = %SolutionStopButton
+@onready var solution_player: SolutionPlayer = %SolutionPlayer
 
 
 func _ready() -> void:
@@ -49,6 +58,14 @@ func _ready() -> void:
 	_device_view.gesture_completed.connect(_on_gesture_completed)
 	_device_view.gesture_cancelled.connect(_on_gesture_cancelled)
 	_device_view.component_inspected.connect(_on_component_inspected)
+	_solution_button.pressed.connect(start_solution)
+	_solution_pause_button.pressed.connect(_on_solution_pause_pressed)
+	_solution_next_button.pressed.connect(solution_player.skip)
+	_solution_speed_button.pressed.connect(_on_solution_speed_pressed)
+	_solution_stop_button.pressed.connect(solution_player.stop)
+	solution_player.step_started.connect(_on_solution_step_started)
+	solution_player.stopped.connect(_end_solution.bind("Solution stopped: your turn."))
+	solution_player.finished.connect(_end_solution.bind(""))
 
 
 ## À appeler une fois la scène dans l'arbre. `feedback` doit survivre à l'écran : le son de
@@ -173,6 +190,126 @@ func _on_final_test_pressed() -> void:
 			_feedback.pulse(&"success", VIBRATE_REMOVED_MS)
 
 
+# --- Mode solution ---
+
+## Lance la démonstration depuis l'état actuel. La réparation devient assistée, définitivement.
+func start_solution() -> void:
+	if solution_player.is_running() or session.is_completed():
+		return
+	session.mark_assisted()
+	_close_info()
+	_loupe_button.button_pressed = false
+	_set_solution_controls(true)
+	solution_player.start(self)
+
+
+func _on_solution_step_started(index: int, count: int, caption: String) -> void:
+	_device_view.loupe_mode = false
+	_status.text = "%d/%d · %s" % [index + 1, count, caption]
+
+
+func _on_solution_pause_pressed() -> void:
+	solution_player.paused = not solution_player.paused
+	_solution_pause_button.text = "Resume" if solution_player.paused else "Pause"
+
+
+func _on_solution_speed_pressed() -> void:
+	var next: int = (SOLUTION_SPEEDS.find(solution_player.speed) + 1) % SOLUTION_SPEEDS.size()
+	solution_player.speed = SOLUTION_SPEEDS[next]
+	_solution_speed_button.text = "Speed ×%d" % int(solution_player.speed)
+
+
+func _end_solution(message: String) -> void:
+	_set_solution_controls(false)
+	_device_view.loupe_mode = false
+	if not message.is_empty():
+		_status.text = message
+
+
+func _set_solution_controls(running: bool) -> void:
+	_solution_bar.visible = running
+	_tray_actions.visible = not running
+	_solution_button.disabled = running
+	for button: Button in [_flip_button, _loupe_button, _tests_button, _final_test_button]:
+		button.disabled = running
+	_device_view.input_enabled = not running
+	_solution_pause_button.text = "Pause"
+	solution_player.paused = false
+	_refresh_tray()
+
+
+## Explication d'une étape, en anglais comme le reste de l'interface.
+func solution_caption(step: SolutionStep) -> String:
+	var component: ComponentDefinition = null if step.component_id.is_empty() else session.state.device.get_component(step.component_id)
+	match step.kind:
+		SolutionStep.Kind.RUN_TESTS:
+			var failing: PackedStringArray = PackedStringArray()
+			var blocked: int = 0
+			var results: Dictionary[String, TestStatus] = session.diagnosis.software_test_results()
+			for test_id: String in results:
+				if results[test_id] == TestStatus.FAIL or results[test_id] == TestStatus.DISCONNECTED:
+					failing.append(test_id)
+				elif results[test_id] == TestStatus.BLOCKED:
+					blocked += 1
+			if failing.is_empty():
+				return "Run the tests first: they all pass, look for visible damage."
+			return "Run the tests first: %s fails%s." % [UiFormat.labels_brief(failing, 2), " (%d can't run)" % blocked if blocked > 0 else ""]
+		SolutionStep.Kind.INSPECT:
+			return "Use the loupe on %s: %s." % [UiFormat.label(component.id), _clue_names(component.role)]
+		SolutionStep.Kind.REMOVE:
+			return component.hint if not component.hint.is_empty() else _gesture_hint(component) + "."
+		SolutionStep.Kind.REPLACE:
+			var reason: String = "it's broken" if session.state.is_broken(component.id) else "it's the faulty part"
+			return "Swap %s for a new part: %s." % [UiFormat.label(component.id), reason]
+		SolutionStep.Kind.INSTALL:
+			return "Reinstall %s." % UiFormat.label(component.id)
+		SolutionStep.Kind.FINAL_TEST:
+			return "Everything is back in place: run the final test."
+	return ""
+
+
+func perform_solution_step(step: SolutionStep, speed: float) -> void:
+	match step.kind:
+		SolutionStep.Kind.RUN_TESTS:
+			_feedback.pulse(&"click", VIBRATE_CLICK_MS)
+		SolutionStep.Kind.INSPECT:
+			var component: ComponentDefinition = session.state.device.get_component(step.component_id)
+			_device_view.face = component.face
+			_update_clue_markers()
+			_device_view.loupe_mode = true
+		SolutionStep.Kind.REMOVE:
+			_device_view.start_ghost(step.component_id, speed)
+		SolutionStep.Kind.REPLACE:
+			_selected_tray_id = step.component_id
+			_on_replace_pressed()
+		SolutionStep.Kind.INSTALL:
+			_device_view.face = session.state.device.get_component(step.component_id).face
+			_selected_tray_id = step.component_id
+			_on_reinstall_pressed()
+		SolutionStep.Kind.FINAL_TEST:
+			_on_final_test_pressed()
+
+
+func is_solution_step_running() -> bool:
+	return _device_view.is_ghost_running()
+
+
+func finish_solution_step() -> void:
+	_device_view.finish_ghost()
+
+
+func cancel_solution_step() -> void:
+	_device_view.stop_ghost()
+
+
+func _clue_names(role: String) -> String:
+	var names: PackedStringArray = PackedStringArray()
+	for clue: FaultDefinition.Clue in session.diagnosis.visible_clues():
+		if clue.role == role:
+			names.append(clue.clue_id.capitalize().to_lower())
+	return ", ".join(names)
+
+
 # --- Bac à pièces ---
 
 func _refresh_tray() -> void:
@@ -187,6 +324,7 @@ func _refresh_tray() -> void:
 		button.button_pressed = component_id == _selected_tray_id
 		button.text = UiFormat.label(component_id) + (" (broken)" if session.state.is_broken(component_id) else "")
 		button.add_theme_font_size_override("font_size", 12)
+		button.disabled = solution_player.is_running()
 		button.pressed.connect(_on_tray_item_pressed.bind(component_id))
 		_tray.add_child(button)
 	_update_tray_actions()
@@ -255,8 +393,10 @@ func _close_info() -> void:
 	_device_view.input_enabled = true
 
 
+## Pendant le mode solution, la ligne d'état est réservée aux explications.
 func _set_status(text: String) -> void:
-	_status.text = text
+	if not solution_player.is_running():
+		_status.text = text
 
 
 static func _gesture_hint(component: ComponentDefinition) -> String:
