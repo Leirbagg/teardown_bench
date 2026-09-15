@@ -81,7 +81,7 @@ func _on_gesture_started(component_id: String) -> void:
 	if prediction.outcome == Outcome.FORCED:
 		_resisting_id = component_id
 		_device_view.set_resisting(true)
-		_set_status("%s is held by: %s. Finish the gesture to force it." % [UiFormat.label(component_id), UiFormat.labels(prediction.blockers)])
+		_set_status("%s is held by %s. Finish the gesture to force it." % [UiFormat.label(component_id), UiFormat.labels_brief(prediction.blockers)])
 		_feedback.pulse(&"creak", VIBRATE_STRAIN_MS)
 	else:
 		_resisting_id = ""
@@ -108,10 +108,10 @@ func _on_gesture_completed(component_id: String) -> void:
 			_feedback.pulse(&"pop", VIBRATE_REMOVED_MS)
 		Outcome.FORCED:
 			if result.broken.is_empty():
-				_set_status("Still held by: %s." % UiFormat.labels(result.blockers))
+				_set_status("Still held by %s." % UiFormat.labels_brief(result.blockers, 2))
 				_feedback.pulse(&"creak", VIBRATE_STRAIN_MS)
 			else:
-				_set_status("Forced it! Broke: %s." % UiFormat.labels(result.broken))
+				_set_status("Forced it! Broke %s." % UiFormat.labels_brief(result.broken, 2))
 				_feedback.pulse(&"crack", VIBRATE_BREAK_MS)
 
 
@@ -208,7 +208,7 @@ func _on_reinstall_pressed() -> void:
 	var component_id: String = _selected_tray_id
 	var result: DisassemblyResult = session.state.commit_install(component_id)
 	if result.outcome == Outcome.INSTALL_BLOCKED:
-		_set_status("Reinstall first: %s." % UiFormat.labels(result.blockers))
+		_set_status("Reinstall first: %s." % UiFormat.labels_brief(result.blockers, 2))
 	elif result.outcome == Outcome.INSTALLED:
 		_set_status("Reinstalled %s." % UiFormat.label(component_id))
 		_feedback.pulse(&"click", VIBRATE_CLICK_MS)
@@ -218,7 +218,7 @@ func _on_replace_pressed() -> void:
 	var component_id: String = _selected_tray_id
 	var result: DisassemblyResult = session.state.replace(component_id)
 	if result.outcome == Outcome.NOT_DETACHED:
-		_set_status("Disconnect first: %s." % UiFormat.labels(result.blockers))
+		_set_status("Disconnect first: %s." % UiFormat.labels_brief(result.blockers, 2))
 	elif result.is_success():
 		_set_status("Swapped %s for a new part." % UiFormat.label(component_id))
 		_feedback.pulse(&"click", VIBRATE_CLICK_MS)

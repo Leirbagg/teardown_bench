@@ -19,3 +19,11 @@ static func labels(ids: PackedStringArray) -> String:
 	for id: String in ids:
 		names.append(label(id))
 	return ", ".join(names)
+
+
+## Pour une ligne d'état courte : nomme jusqu'à `max_names` pièces, résume le reste.
+## ["battery_tab_top_right", …×4] → "Battery Tab Top Right and 3 more"
+static func labels_brief(ids: PackedStringArray, max_names: int = 1) -> String:
+	if ids.size() <= max_names:
+		return labels(ids)
+	return "%s and %d more" % [labels(ids.slice(0, max_names)), ids.size() - max_names]
