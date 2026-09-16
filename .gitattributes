@@ -8,6 +8,7 @@
 *.wav binary
 *.ogg binary
 *.ttf binary
+*.otf binary
 *.apk binary
 *.aab binary
 *.keystore binary
