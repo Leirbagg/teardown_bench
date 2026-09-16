@@ -76,7 +76,7 @@ func test_plan_inspects_clues_when_they_become_visible() -> void:
 	var clue: Dictionary = {"tool": "loupe", "role": "charge_port", "clue": "corrosion", "visible": "exposed"}
 	var data: Dictionary = {
 		"schema_version": 1, "id": "charge_port_faulty", "tier": 1, "target_role": "charge_port",
-		"complaints": ["No charge."], "clues": [clue], "target_time_s": 100,
+		"complaints": ["No charge."], "clues": [clue], "target_time_s": 100, "price": 100,
 	}
 	var faults: Array[FaultDefinition] = [FaultDefinition.from_dict(data)]
 	var plan: Array[SolutionStep] = RepairPlanner.plan(_diagnosis(faults))

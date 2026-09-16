@@ -21,6 +21,8 @@ var target_role: String
 var complaints: PackedStringArray
 var clues: Array[Clue] = []
 var target_time_s: float
+## Ce que paie le client pour cette réparation.
+var price: int
 
 
 ## Vrai si l'appareil possède le rôle ciblé.
@@ -36,6 +38,7 @@ static func from_dict(data: Dictionary) -> FaultDefinition:
 	fault.target_role = data["target_role"]
 	fault.complaints = PackedStringArray(data["complaints"])
 	fault.target_time_s = float(data["target_time_s"])
+	fault.price = int(data["price"])
 	for raw: Dictionary in data["clues"]:
 		var clue: Clue = Clue.new()
 		clue.tool_id = raw["tool"]

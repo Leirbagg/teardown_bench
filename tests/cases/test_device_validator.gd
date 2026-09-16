@@ -34,6 +34,7 @@ func _valid_fault() -> Dictionary:
 		"complaints": ["It won't turn on."],
 		"clues": [{"tool": "loupe", "role": "battery", "clue": "swelling", "visible": "exposed"}],
 		"target_time_s": 120,
+		"price": 89,
 	}
 
 
@@ -318,6 +319,31 @@ func test_fault_rejects_unknown_clue_visibility_and_tool() -> void:
 		var fault: Dictionary = _valid_fault()
 		fault["clues"][0][field] = "unknown"
 		assert_has_code(DeviceValidator.validate_fault(fault), "bad_value", field)
+
+
+func test_fault_requires_a_positive_price() -> void:
+	var fault: Dictionary = _valid_fault()
+	fault.erase("price")
+	assert_has_code(DeviceValidator.validate_fault(fault), "missing_field")
+	fault["price"] = 0
+	assert_has_code(DeviceValidator.validate_fault(fault), "bad_value")
+	fault["price"] = 89
+	assert_no_errors(DeviceValidator.validate_fault(fault))
+	assert_eq(FaultDefinition.from_dict(fault).price, 89)
+
+
+func test_part_price_is_reserved_for_replaceable_parts() -> void:
+	var valid: Dictionary = _valid_device()
+	_component(valid, "battery")["part_price"] = 35
+	assert_no_errors(DeviceValidator.validate_device(valid))
+	assert_eq(DeviceDefinition.from_dict(valid).get_component("battery").part_price, 35)
+	assert_eq(DeviceDefinition.from_dict(_valid_device()).get_component("battery").part_price, 0, "facultatif")
+	var on_screw: Dictionary = _valid_device()
+	_component(on_screw, "screw")["part_price"] = 2
+	assert_has_code(DeviceValidator.validate_device(on_screw), "bad_value")
+	var negative: Dictionary = _valid_device()
+	_component(negative, "battery")["part_price"] = -5
+	assert_has_code(DeviceValidator.validate_device(negative), "bad_value")
 
 
 func test_fault_rejects_non_positive_target_time() -> void:

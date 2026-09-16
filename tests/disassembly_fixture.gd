@@ -18,7 +18,7 @@ static func make_fault(id: String, role: String, tier: int = 1, target_time_s: f
 		complaints: Array = ["Test complaint."]) -> FaultDefinition:
 	var data: Dictionary = {
 		"schema_version": 1, "id": id, "tier": tier, "target_role": role,
-		"complaints": complaints, "clues": [], "target_time_s": target_time_s,
+		"complaints": complaints, "clues": [], "target_time_s": target_time_s, "price": 100,
 	}
 	var errors: Array[String] = DeviceValidator.validate_fault(data)
 	if not errors.is_empty():

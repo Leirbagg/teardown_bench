@@ -81,6 +81,7 @@ Tout fichier doit passer `DeviceValidator` (`core/data/device_validator.gd`).
 | `components[].replaceable` | non (`false`) | core | Seules ces pièces peuvent être remplacées ou cassées |
 | `components[].force_breaks` | non (`[id]`) | core | Pièces cassées quand on force ce composant |
 | `components[].replace_requires` | non (`[]`) | core | Pièces à retirer avant de remplacer ce composant, ex. les nappes d'un écran qui s'ouvre comme un livre |
+| `components[].part_price` | non | core | Pièces `replaceable` uniquement : prix d'une pièce de rechange, > 0 |
 | `components[].screw_type` | non | game | Vis uniquement : `pentalobe`, `phillips`, `tri_point` (tête dessinée) |
 | `components[].length_mm` | non | game | Vis uniquement : longueur en mm, > 0 (affichée sur le tapis) |
 | `components[].hint` | non | game | Explication affichée par le mode solution, en anglais |
@@ -139,6 +140,7 @@ sont rattachés.
 | `clues[].tool` | oui | `loupe` au MVP |
 | `clues[].visible` | oui | `always` ou `exposed` (quand le composant du rôle est visible) |
 | `target_time_s` | oui | Base du délai client, > 0 |
+| `price` | oui | Ce que paie le client pour cette réparation, entier > 0 |
 
 Une panne s'applique à tout appareil qui possède son `target_role`.
 

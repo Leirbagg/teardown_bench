@@ -40,6 +40,7 @@ static func validate_fault(data: Dictionary) -> Array[String]:
 	_check_string(data, "target_role", "", errors)
 	_check_string_array(data, "complaints", "", errors, true, false)
 	_check_positive_number(data, "target_time_s", "", errors)
+	_check_positive_int(data, "price", "", errors)
 
 	if not data.has("clues"):
 		errors.append("[missing_field] clues")
@@ -86,6 +87,10 @@ static func _check_components(raw_components: Array, faces: PackedStringArray, e
 		_check_visual(raw, path, errors)
 		_check_string(raw, "hint", path, errors, false)
 		_check_screw_details(raw, path, errors)
+		if raw.has("part_price"):
+			if raw.get("replaceable") != true:
+				errors.append("[bad_value] %s : réservé aux pièces replaceable" % _field(path, "part_price"))
+			_check_positive_int(raw, "part_price", path, errors)
 		var requires: PackedStringArray = _check_string_array(raw, "requires", path, errors)
 		var covered_by: PackedStringArray = _check_string_array(raw, "covered_by", path, errors)
 		var force_breaks: PackedStringArray = _check_string_array(raw, "force_breaks", path, errors, false)

@@ -10,7 +10,7 @@ var _device: DeviceDefinition = DisassemblyFixture.load_test_phone()
 func _fault(id: String, role: String, clues: Array = []) -> FaultDefinition:
 	var data: Dictionary = {
 		"schema_version": 1, "id": id, "tier": 1, "target_role": role,
-		"complaints": ["Test complaint."], "clues": clues, "target_time_s": 100,
+		"complaints": ["Test complaint."], "clues": clues, "target_time_s": 100, "price": 100,
 	}
 	assert_no_errors(DeviceValidator.validate_fault(data), "panne de test %s" % id)
 	return FaultDefinition.from_dict(data)

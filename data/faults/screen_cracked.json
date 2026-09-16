@@ -14,5 +14,6 @@
       "visible": "always"
     }
   ],
-  "target_time_s": 240
+  "target_time_s": 240,
+  "price": 149
 }

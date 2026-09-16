@@ -14,5 +14,6 @@
       "visible": "exposed"
     }
   ],
-  "target_time_s": 420
+  "target_time_s": 420,
+  "price": 99
 }

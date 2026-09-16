@@ -26,6 +26,8 @@ var replace_requires: PackedStringArray
 var forceable: bool
 ## Explication affichée par le mode solution ("" si aucune).
 var hint: String
+## Prix d'une pièce de rechange (0 si gratuite ou non renseignée).
+var part_price: int
 ## Vis uniquement : tête ("" si non renseignée) et longueur en mm (0 si non renseignée).
 var screw_type: String
 var length_mm: float
@@ -49,6 +51,7 @@ static func from_dict(data: Dictionary) -> ComponentDefinition:
 	component.replace_requires = PackedStringArray(data.get("replace_requires", []))
 	component.forceable = is_forceable(component.requires, component.covered_by)
 	component.hint = data.get("hint", "")
+	component.part_price = int(data.get("part_price", 0))
 	component.screw_type = data.get("screw_type", "")
 	component.length_mm = float(data.get("length_mm", 0.0))
 	component.visual = data.get("visual", {})
