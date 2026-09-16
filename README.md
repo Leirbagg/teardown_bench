@@ -34,14 +34,18 @@ remplace la pièce, on remonte et on lance le test final.
   sont branchées.
 - **Mode solution.** Un doigt fantôme montre chaque geste, étape par étape et commenté, depuis
   l'état où l'on en est. La réparation compte alors comme assistée.
+- **Atelier.** Chaque réparation paie le prix de la panne, moins les pièces posées ; casser ou
+  remplacer à tort mange la marge. Les étoiles font monter la réputation, qui débloque du contenu.
+  La progression est sauvegardée après chaque client.
 
 Détails : [GDD](GDD.md) · [schéma des données et règles](docs/data_schema.md).
 
 ## État
 
 MVP jouable sur téléphone : 1 appareil (35 pièces), 3 pannes (écran, batterie, port de charge),
-journées de 2 à 3 clients avec bilan. Pas encore d'économie, de sauvegarde de progression ni de
-monétisation (voir la section « Hors périmètre » du GDD).
+journées de 2 à 3 clients, économie (prix des pannes, coût des pièces, note en étoiles,
+réputation) et sauvegarde après chaque client. Pas encore de stock à acheter, d'upgrades d'outils
+ni de monétisation (voir « Hors périmètre » dans le GDD).
 
 ## Démarrer
 
@@ -102,7 +106,7 @@ lecture seule.
 
 | Dossier | Contenu |
 |---|---|
-| `core/` | Règles du jeu en GDScript pur, testables sans écran : graphe de démontage, diagnostic, journée et bilan, chargement et validation des données |
+| `core/` | Règles du jeu en GDScript pur, testables sans écran : graphe de démontage, diagnostic, journée et bilan, économie, sauvegarde, plan du mode solution, chargement et validation des données |
 | `game/` | Scènes, interface, reconnaissance des gestes, rendu, sons et vibrations. Consomme `core/`, n'ajoute aucune règle |
 | `data/` | Appareils et pannes en JSON, listés dans `data/preload_manifest.json` |
 | `assets/audio/` | Effets sonores générés par `scripts/generate_sfx.py` |
