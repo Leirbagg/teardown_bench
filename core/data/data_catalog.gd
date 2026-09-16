@@ -28,6 +28,22 @@ static func load_manifest(path: String, errors: Array[String]) -> DataCatalog:
 	return catalog if errors.size() == errors_before else null
 
 
+## null si l'identifiant est inconnu.
+func find_device(device_id: String) -> DeviceDefinition:
+	for device: DeviceDefinition in devices:
+		if device.id == device_id:
+			return device
+	return null
+
+
+## null si l'identifiant est inconnu.
+func find_fault(fault_id: String) -> FaultDefinition:
+	for fault: FaultDefinition in faults:
+		if fault.id == fault_id:
+			return fault
+	return null
+
+
 ## Tous les chemins listés, appareils puis pannes.
 static func listed_paths(manifest: Dictionary) -> PackedStringArray:
 	var paths: PackedStringArray = PackedStringArray()

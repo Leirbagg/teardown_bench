@@ -7,9 +7,10 @@ const CUSTOMER_SCREEN: PackedScene = preload("res://game/ui/customer_screen.tscn
 const WORKBENCH: PackedScene = preload("res://game/workbench/workbench.tscn")
 const DAY_REPORT_SCREEN: PackedScene = preload("res://game/ui/day_report_screen.tscn")
 const PAUSE_OVERLAY: PackedScene = preload("res://game/ui/pause_overlay.tscn")
-## MVP : uniquement des pannes évidentes (GDD §3.4).
-const MAX_TIER: int = 1
 
+## Chemin de sauvegarde, remplaçable par les tests.
+var save_path: String = SaveGame.PATH
+var workshop: Workshop = Workshop.new()
 var day: WorkDay
 var current_screen: Control
 
@@ -26,18 +27,31 @@ func _ready() -> void:
 	if _catalog == null:
 		_show_error(errors)
 		return
-	start_new_day()
+	var save_errors: Array[String] = []
+	var saved: Dictionary = SaveGame.load_from(save_path, save_errors)
+	if not save_errors.is_empty():
+		push_warning("Sauvegarde ignorée : %s" % "\n".join(PackedStringArray(save_errors)))
+	workshop = Workshop.from_dict(saved.get("workshop", {}))
+	var resumed: WorkDay = SaveGame.restore_day(saved, _catalog, save_errors) if not saved.is_empty() else null
+	if resumed != null:
+		_begin_day(resumed)
+	else:
+		start_new_day()
 
 
 func start_new_day() -> void:
 	var rng: RandomNumberGenerator = RandomNumberGenerator.new()
 	rng.randomize()
 	var errors: Array[String] = []
-	var jobs: Array[RepairJob] = DayGenerator.generate(_catalog.devices, _catalog.faults, MAX_TIER, rng, errors)
+	var jobs: Array[RepairJob] = DayGenerator.generate(_catalog.devices, _catalog.faults, workshop.max_tier(), rng, errors)
 	if not errors.is_empty():
 		_show_error(errors)
 		return
-	day = WorkDay.new(jobs)
+	_begin_day(WorkDay.new(jobs))
+
+
+func _begin_day(new_day: WorkDay) -> void:
+	day = new_day
 	day.job_completed.connect(_on_job_completed)
 	day.day_completed.connect(_on_day_completed)
 	_show_next_customer()
@@ -57,7 +71,7 @@ func _notification(what: int) -> void:
 
 func _show_next_customer() -> void:
 	var screen: CustomerScreen = _set_screen(CUSTOMER_SCREEN) as CustomerScreen
-	screen.setup(day.next_job(), day.next_job_number(), day.jobs.size())
+	screen.setup(day.next_job(), day.next_job_number(), day.jobs.size(), workshop)
 	screen.start_pressed.connect(_on_start_pressed)
 
 
@@ -69,14 +83,18 @@ func _on_start_pressed() -> void:
 	workbench.setup(session, feedback)
 
 
-func _on_job_completed(_report: RepairReport) -> void:
+func _on_job_completed(report: RepairReport) -> void:
+	workshop.record_job(report)
+	_save()
 	if day.has_next_job():
 		_show_next_customer()
 
 
 func _on_day_completed(report: DayReport) -> void:
+	workshop.finish_day()
+	_save()
 	var screen: DayReportScreen = _set_screen(DAY_REPORT_SCREEN) as DayReportScreen
-	screen.setup(report)
+	screen.setup(report, workshop)
 	screen.new_day_pressed.connect(start_new_day)
 
 
@@ -107,6 +125,12 @@ func _resume() -> void:
 	day.resume()
 	_pause_overlay.queue_free()
 	_pause_overlay = null
+
+
+func _save() -> void:
+	var error: Error = SaveGame.save(save_path, workshop, day)
+	if error != OK:
+		push_warning("Sauvegarde impossible (%s) : %d" % [save_path, error])
 
 
 func _show_error(errors: Array[String]) -> void:

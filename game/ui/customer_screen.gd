@@ -16,8 +16,11 @@ func _ready() -> void:
 
 
 ## À appeler une fois la scène dans l'arbre.
-func setup(job: RepairJob, number: int, total: int) -> void:
-	_counter.text = "Customer %d of %d" % [number, total]
+func setup(job: RepairJob, number: int, total: int, workshop: Workshop) -> void:
+	_counter.text = "Day %d · Customer %d of %d · $%d" % [workshop.day, number, total, workshop.money]
 	_device.text = job.device.name
 	_complaint.text = "\"%s\"" % job.complaint
-	_deadline.text = "Promised in %s" % UiFormat.time(job.deadline_s)
+	var price: int = 0
+	for fault: FaultDefinition in job.faults:
+		price += fault.price
+	_deadline.text = "Pays $%d · promised in %s" % [price, UiFormat.time(job.deadline_s)]

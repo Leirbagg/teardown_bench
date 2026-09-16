@@ -6,6 +6,19 @@ const MAIN_SCENE: PackedScene = preload("res://game/main.tscn")
 const DEVICE_VIEW_SCENE: PackedScene = preload("res://game/workbench/device_view.tscn")
 
 
+const TEST_SAVE_PATH: String = "user://test_scenes_save.json"
+
+
+## Scène principale isolée : sa propre sauvegarde, effacée avant chaque test.
+func _fresh_main() -> Main:
+	if FileAccess.file_exists(TEST_SAVE_PATH):
+		DirAccess.remove_absolute(TEST_SAVE_PATH)
+	var main: Main = MAIN_SCENE.instantiate() as Main
+	main.save_path = TEST_SAVE_PATH
+	_root().add_child(main)
+	return main
+
+
 func _root() -> Window:
 	return (Engine.get_main_loop() as SceneTree).root
 
@@ -192,8 +205,7 @@ func test_pulling_the_open_display_toward_the_device_closes_it() -> void:
 
 
 func test_workbench_closes_the_open_display_or_explains_what_to_reconnect() -> void:
-	var main: Main = MAIN_SCENE.instantiate() as Main
-	_root().add_child(main)
+	var main: Main = _fresh_main()
 	(main.current_screen as CustomerScreen).start_pressed.emit()
 	var workbench: Workbench = main.current_screen as Workbench
 	var state: DisassemblyState = workbench.session.state
@@ -214,8 +226,7 @@ func test_workbench_closes_the_open_display_or_explains_what_to_reconnect() -> v
 
 
 func test_workbench_mat_reinstalls_parts_and_hands_back_control() -> void:
-	var main: Main = MAIN_SCENE.instantiate() as Main
-	_root().add_child(main)
+	var main: Main = _fresh_main()
 	(main.current_screen as CustomerScreen).start_pressed.emit()
 	var workbench: Workbench = main.current_screen as Workbench
 	var state: DisassemblyState = workbench.session.state
@@ -258,8 +269,7 @@ func _run_solution(workbench: Workbench, max_frames: int = 20000) -> void:
 
 
 func test_solution_mode_repairs_from_a_damaged_state_and_marks_the_job_assisted() -> void:
-	var main: Main = MAIN_SCENE.instantiate() as Main
-	_root().add_child(main)
+	var main: Main = _fresh_main()
 	(main.current_screen as CustomerScreen).start_pressed.emit()
 	var workbench: Workbench = main.current_screen as Workbench
 	var session: RepairSession = workbench.session
@@ -287,8 +297,7 @@ func test_solution_mode_repairs_from_a_damaged_state_and_marks_the_job_assisted(
 
 
 func test_solution_mode_can_be_stopped_to_take_over() -> void:
-	var main: Main = MAIN_SCENE.instantiate() as Main
-	_root().add_child(main)
+	var main: Main = _fresh_main()
 	(main.current_screen as CustomerScreen).start_pressed.emit()
 	var workbench: Workbench = main.current_screen as Workbench
 	(workbench.get_node("%SolutionButton") as Button).pressed.emit()
@@ -302,11 +311,61 @@ func test_solution_mode_can_be_stopped_to_take_over() -> void:
 	main.free()
 
 
+# --- Progression et sauvegarde ---
+
+## Répare le client en cours par les mêmes appels que le joueur, puis lance le test final.
+func _finish_current_job(main: Main, seconds: float) -> void:
+	(main.current_screen as CustomerScreen).start_pressed.emit()
+	var workbench: Workbench = main.current_screen as Workbench
+	workbench.session.advance(seconds)
+	DisassemblyFixture.repair_faults(workbench.session.state, workbench.session.job.faults)
+	assert_true(workbench.session.run_final_test().is_passed(), "préparation : réparation réussie")
+
+
+func test_a_finished_client_pays_and_the_day_is_saved_then_resumed() -> void:
+	var main: Main = _fresh_main()
+	var job_count: int = main.day.jobs.size()
+	var money_before: int = main.workshop.money
+	_finish_current_job(main, 60.0)
+	assert_true(main.workshop.money > money_before, "le client paie plus que la pièce")
+	assert_eq(main.workshop.jobs_done(), 1)
+	assert_true(main.workshop.reputation() > 0.0)
+	assert_true(FileAccess.file_exists(TEST_SAVE_PATH), "sauvegardé après le client")
+	var saved_money: int = main.workshop.money
+	main.free()
+
+	var resumed: Main = MAIN_SCENE.instantiate() as Main
+	resumed.save_path = TEST_SAVE_PATH
+	_root().add_child(resumed)
+	assert_eq(resumed.workshop.money, saved_money, "argent retrouvé")
+	assert_eq(resumed.workshop.jobs_done(), 1)
+	assert_eq(resumed.day.jobs.size(), job_count - 1, "la journée reprend où elle s'était arrêtée")
+	assert_eq(resumed.day.report().jobs.size(), 1, "le client servi reste au bilan")
+	assert_true((resumed.current_screen as CustomerScreen) != null)
+	resumed.free()
+
+
+func test_a_new_day_starts_after_the_last_client() -> void:
+	var main: Main = _fresh_main()
+	var day_before: int = main.workshop.day
+	while not main.day.is_over():
+		_finish_current_job(main, 30.0)
+	assert_true((main.current_screen as DayReportScreen) != null, "bilan de fin de journée")
+	assert_eq(main.workshop.day, day_before + 1)
+	main.free()
+
+	var next_launch: Main = MAIN_SCENE.instantiate() as Main
+	next_launch.save_path = TEST_SAVE_PATH
+	_root().add_child(next_launch)
+	assert_eq(next_launch.workshop.day, day_before + 1, "on reprend au jour suivant")
+	assert_true(next_launch.day.jobs.size() >= DayGenerator.MIN_CUSTOMERS, "une nouvelle journée est générée")
+	next_launch.free()
+
+
 # --- Enchaînement complet ---
 
 func test_main_plays_a_full_day_through_screen_signals() -> void:
-	var main: Main = MAIN_SCENE.instantiate() as Main
-	_root().add_child(main)
+	var main: Main = _fresh_main()
 	assert_true(main.day != null, "journée générée depuis data/")
 	if main.day == null:
 		main.free()

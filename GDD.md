@@ -76,11 +76,17 @@ Plainte client → Inspection → Mesure / test → Démontage → Remplacement
   deviennent ambigus (plusieurs causes possibles pour une même plainte).
 - Outils prévus : loupe (inspection), test logiciel de l'appareil, multimètre (post-MVP).
 
-### 3.5 Erreurs et casse
+### 3.5 Erreurs, casse et économie
 
 - Une casse vient toujours d'une mauvaise décision (pilier 2).
-- **Jeu complet** : une casse coûte de **l'argent** (pièce à racheter) et de la **réputation**.
-- **Réputation** : débloque de nouveaux clients et des appareils plus complexes.
+- **Facture** : le client paie le prix de sa panne, plus 20 % si le délai est tenu. L'atelier paie
+  chaque pièce posée, donc une casse ou un remplacement inutile mange la marge.
+- **Note** : 5 étoiles, moins une par casse, par erreur de diagnostic et en cas de retard.
+- **Réputation** : moyenne des 10 dernières notes. Avec de l'expérience, elle débloque les pannes
+  et appareils de tier supérieur.
+- **Jamais bloqué** : l'argent ne descend pas sous zéro, il n'y a pas de dette ni de faillite.
+- **Mode solution** : une réparation assistée ne paie rien, ne coûte rien et n'est pas notée.
+- **Sauvegarde** : après chaque client. Une réparation interrompue reprend à son début.
 
 ### 3.6 Délai client
 
@@ -185,8 +191,7 @@ Aucun SDK de pub ni d'achat intégré dans le MVP. On l'ajoute seulement une foi
 
 - Port iOS.
 - Localisation (le MVP est en anglais seulement).
-- Économie : argent, réputation, stock, upgrades d'outils.
-- Sauvegarde persistante.
+- Stock de pièces à acheter d'avance, upgrades d'outils.
 - Multimètre.
 - Gestion fine des vis.
 - Appareils et pannes supplémentaires.

@@ -198,8 +198,8 @@ Elles découlent des données ci-dessus, sans champ supplémentaire.
   jamais moins de 1.
 - **Réparation assistée** (mode solution) : ne paie rien, ne coûte rien, pas de note.
 - **Atelier** : l'argent ne descend jamais sous zéro et il n'y a pas de dette (pilier 3). La
-  réputation est la moyenne des notes des 10 dernières réparations ; elle débloque le tier 2 à
-  3,5 étoiles et le tier 3 à 4,5.
+  réputation est la moyenne des notes des 10 dernières réparations. Un tier se débloque avec des
+  étoiles **et** de l'expérience : tier 2 à 3,5 étoiles et 5 réparations, tier 3 à 4,5 et 12.
 
 ## Mode solution (`core/solution/repair_planner.gd`)
 

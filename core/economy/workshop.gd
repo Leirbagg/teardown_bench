@@ -9,8 +9,12 @@ signal reputation_changed(reputation: float)
 const STARTING_MONEY: int = 120
 ## Moyenne des notes des dernières réparations.
 const RATING_WINDOW: int = 10
-## Réputation minimale pour débloquer le tier 2, puis le tier 3.
-const TIER_THRESHOLDS: Array[float] = [3.5, 4.5]
+## Pour débloquer le tier 2, puis le tier 3 : réputation minimale et expérience minimale.
+## Sans le nombre de réparations, deux clients parfaits suffiraient à tout ouvrir.
+const TIER_REQUIREMENTS: Array[Dictionary] = [
+	{"reputation": 3.5, "jobs": 5},
+	{"reputation": 4.5, "jobs": 12},
+]
 
 var money: int = STARTING_MONEY
 var day: int = 1
@@ -51,8 +55,8 @@ func jobs_done() -> int:
 ## Tier de pannes et d'appareils accessible, à partir de 1.
 func max_tier() -> int:
 	var tier: int = 1
-	for threshold: float in TIER_THRESHOLDS:
-		if reputation() >= threshold:
+	for requirement: Dictionary in TIER_REQUIREMENTS:
+		if reputation() >= float(requirement["reputation"]) and _jobs_done >= int(requirement["jobs"]):
 			tier += 1
 	return tier
 

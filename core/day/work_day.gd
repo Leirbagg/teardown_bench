@@ -29,6 +29,18 @@ func next_job() -> RepairJob:
 	return jobs[_next_job_index] if has_next_job() else null
 
 
+## Clients qui restent à servir, en comptant celui en cours : une réparation interrompue
+## recommence depuis le début (GDD §4).
+func remaining_jobs() -> Array[RepairJob]:
+	var first: int = _next_job_index - (1 if current_session != null else 0)
+	return jobs.slice(first)
+
+
+## Réinjecte les clients déjà servis, au chargement d'une sauvegarde.
+func restore_completed(reports: Array[RepairReport]) -> void:
+	_completed_reports = reports.duplicate()
+
+
 ## Rang du prochain client, à partir de 1.
 func next_job_number() -> int:
 	return _next_job_index + 1

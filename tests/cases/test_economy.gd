@@ -102,13 +102,20 @@ func test_money_never_goes_below_zero() -> void:
 	assert_eq(workshop.money, 0, "jamais bloqué, jamais de dette")
 
 
-func test_reputation_unlocks_the_next_tier() -> void:
+func test_unlocking_a_tier_needs_both_stars_and_experience() -> void:
 	var workshop: Workshop = Workshop.new()
 	assert_eq(workshop.max_tier(), 1)
+	var perfect: RepairReport = _priced(_fault(149), PackedStringArray(["screen"]))
 	for i: int in 3:
-		workshop.record_job(_priced(_fault(149), PackedStringArray(["screen"])))
+		workshop.record_job(perfect)
 	assert_eq(workshop.reputation(), 5.0)
-	assert_eq(workshop.max_tier(), Workshop.TIER_THRESHOLDS.size() + 1, "5 étoiles : tout est débloqué")
+	assert_eq(workshop.max_tier(), 1, "5 étoiles mais trop peu de réparations")
+	while workshop.jobs_done() < int(Workshop.TIER_REQUIREMENTS[0]["jobs"]):
+		workshop.record_job(perfect)
+	assert_eq(workshop.max_tier(), 2)
+	while workshop.jobs_done() < int(Workshop.TIER_REQUIREMENTS[1]["jobs"]):
+		workshop.record_job(perfect)
+	assert_eq(workshop.max_tier(), Workshop.TIER_REQUIREMENTS.size() + 1, "expérience et étoiles : tout est débloqué")
 	var messy: RepairReport = _priced(_fault(149), PackedStringArray(),
 		{"deadline_met": false, "broken_parts": PackedStringArray(["a", "b"]), "unnecessary_replacements": 2})
 	for i: int in 6:
