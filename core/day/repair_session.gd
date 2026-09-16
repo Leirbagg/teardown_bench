@@ -99,4 +99,6 @@ func report() -> RepairReport:
 	repair_report.broken_parts = _broken_parts.duplicate()
 	repair_report.unnecessary_replacements = diagnosis.unnecessary_replacement_count()
 	repair_report.failed_final_tests = diagnosis.failed_final_test_count()
+	repair_report.replaced_parts = state.replaced_ids()
+	RepairPricing.bill(repair_report, job.device, job.faults, repair_report.replaced_parts)
 	return repair_report

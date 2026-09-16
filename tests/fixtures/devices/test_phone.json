@@ -16,7 +16,7 @@
     { "id": "back_screw_r", "kind": "screw", "face": "back", "gesture": "rotate",
       "gesture_params": { "turns": 2 }, "requires": [], "covered_by": [] },
     { "id": "back_cover", "kind": "cover", "face": "back", "gesture": "pry",
-      "requires": ["back_screw_l", "back_screw_r"], "covered_by": [], "replaceable": true },
+      "requires": ["back_screw_l", "back_screw_r"], "covered_by": [], "replaceable": true, "part_price": 10 },
     { "id": "battery_connector", "kind": "connector", "face": "back", "gesture": "pull",
       "gesture_params": { "direction_deg": 90 },
       "requires": ["back_cover"], "covered_by": ["back_cover"] },
@@ -25,18 +25,18 @@
       "requires": ["back_cover"], "covered_by": ["back_cover"] },
     { "id": "battery", "kind": "module", "role": "battery", "face": "back", "gesture": "pull",
       "requires": ["back_cover", "battery_connector", "battery_adhesive"], "covered_by": ["back_cover"],
-      "replaceable": true },
+      "replaceable": true, "part_price": 35 },
     { "id": "port_screw", "kind": "screw", "face": "back", "gesture": "rotate",
       "requires": ["back_cover"], "covered_by": ["back_cover"] },
     { "id": "charge_port", "kind": "module", "role": "charge_port", "face": "back", "gesture": "pull",
       "requires": ["back_cover", "port_screw", "battery_connector"], "covered_by": ["back_cover"],
-      "replaceable": true },
+      "replaceable": true, "part_price": 25 },
     { "id": "screen_flex", "kind": "connector", "face": "back", "gesture": "pull",
       "requires": ["back_cover", "battery_connector"], "covered_by": ["back_cover"],
       "force_breaks": ["screen"] },
     { "id": "screen_adhesive", "kind": "adhesive", "face": "front", "gesture": "hold",
       "requires": [], "covered_by": [] },
     { "id": "screen", "kind": "module", "role": "screen", "face": "front", "gesture": "pry",
-      "requires": ["screen_adhesive", "screen_flex"], "covered_by": [], "replaceable": true }
+      "requires": ["screen_adhesive", "screen_flex"], "covered_by": [], "replaceable": true, "part_price": 85 }
   ]
 }

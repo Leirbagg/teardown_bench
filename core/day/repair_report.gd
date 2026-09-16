@@ -16,8 +16,21 @@ var deadline_met: bool
 var broken_parts: PackedStringArray
 var unnecessary_replacements: int
 var failed_final_tests: int
+## Pièces posées, dans l'ordre (doublons compris) : ce que l'atelier a payé.
+var replaced_parts: PackedStringArray
+## Rempli par RepairPricing : 0 pour une réparation assistée.
+var payout: int
+var parts_cost: int
+var deadline_bonus: int
+## Note de 1 à 5, 0 si la réparation ne compte pas.
+var stars: int
 
 
 ## Erreurs de diagnostic : remplacements inutiles et tests finaux ratés.
 func diagnosis_errors() -> int:
 	return unnecessary_replacements + failed_final_tests
+
+
+## Gain net de la réparation : prix client et bonus, moins les pièces posées.
+func earnings() -> int:
+	return payout + deadline_bonus - parts_cost

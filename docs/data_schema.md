@@ -189,6 +189,18 @@ Elles découlent des données ci-dessus, sans champ supplémentaire.
   assistée, définitivement. Elle figure au bilan, son temps compte, mais elle est exclue des
   délais respectés, des casses et des erreurs de diagnostic.
 
+## Économie (`core/economy/`)
+
+- **Facture d'une réparation** : le client paie le `price` de chaque panne, plus 20 % si le délai
+  est tenu ; l'atelier paie le `part_price` de chaque pièce posée, y compris celles cassées ou
+  remplacées pour rien.
+- **Note** : 5 étoiles, moins une par casse, une par erreur de diagnostic et une en cas de retard,
+  jamais moins de 1.
+- **Réparation assistée** (mode solution) : ne paie rien, ne coûte rien, pas de note.
+- **Atelier** : l'argent ne descend jamais sous zéro et il n'y a pas de dette (pilier 3). La
+  réputation est la moyenne des notes des 10 dernières réparations ; elle débloque le tier 2 à
+  3,5 étoiles et le tier 3 à 4,5.
+
 ## Mode solution (`core/solution/repair_planner.gd`)
 
 Le plan est recalculé depuis l'état actuel, quel qu'il soit (pièces retirées, cassées, remplacées) :
