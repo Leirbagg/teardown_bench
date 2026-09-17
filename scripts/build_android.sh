@@ -51,6 +51,13 @@ if ! [[ "$VERSION_CODE" =~ ^[0-9]+$ ]]; then
 	exit 1
 fi
 sed -i -E "s|^version/code=.*|version/code=${VERSION_CODE}|; s|^version/name=.*|version/name=\"${VERSION_NAME}\"|" export_presets.cfg
+# La même version dans le jeu : l'écran de diagnostic l'affiche, un testeur peut la lire.
+# project.godot est versionné : on le remet en l'état en sortant, sinon le build suivant se
+# croirait « dirty » et l'arbre de travail resterait modifié.
+PROJECT_BACKUP="$(mktemp)"
+cp project.godot "$PROJECT_BACKUP"
+trap 'mv -f "$PROJECT_BACKUP" project.godot' EXIT
+sed -i -E "s|^config/version=.*|config/version=\"${VERSION_NAME}\"|" project.godot
 echo "Version : ${VERSION_NAME} (code ${VERSION_CODE})"
 
 "$GODOT" --headless --path . --import

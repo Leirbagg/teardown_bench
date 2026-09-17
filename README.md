@@ -42,9 +42,9 @@ Détails : [GDD](GDD.md) · [schéma des données et règles](docs/data_schema.m
 
 ## État
 
-MVP jouable sur téléphone : 1 appareil (35 pièces), 3 pannes (écran, batterie, port de charge),
-journées de 2 à 3 clients, économie (prix des pannes, coût des pièces, note en étoiles,
-réputation) et sauvegarde après chaque client. Pas encore de stock à acheter, d'upgrades d'outils
+MVP jouable sur téléphone : 1 appareil (36 pièces), 4 pannes (écran, batterie, port de charge,
+capteurs frontaux), journées de 2 à 3 clients, économie (prix des pannes, coût des pièces, note en
+étoiles, réputation) et sauvegarde après chaque client. Pas encore de stock à acheter, d'upgrades d'outils
 ni de monétisation (voir « Hors périmètre » dans le GDD).
 
 ## Démarrer
@@ -56,6 +56,7 @@ godot --path .                                        # lancer le jeu (la souris
 godot -e --path .                                     # ouvrir l'éditeur
 godot --headless --import --path .                    # importer le projet
 godot --headless --path . --script res://tests/run_tests.gd   # suite de tests
+godot --headless --path . --script res://tests/run_tests.gd -- scoring   # une suite (fragment de nom)
 ```
 
 Un appui long sur le compteur de clients (accueil) ou sur le chrono (établi) ouvre l'écran de

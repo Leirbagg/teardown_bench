@@ -7,6 +7,7 @@ avec une plainte client, diagnostique la panne, démonte, remplace, remonte, tes
 
 ```bash
 godot --headless --script res://tests/run_tests.gd   # suite de tests
+godot --headless --script res://tests/run_tests.gd -- scoring   # une seule suite (~1 s)
 godot --headless --import --path .                   # vérifie que le projet importe
 ./scripts/build_android.sh                           # tests puis APK debug → build/
 ```

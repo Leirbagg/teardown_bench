@@ -436,6 +436,9 @@ func test_a_long_press_opens_the_diagnostics_from_any_screen() -> void:
 		Rect2i(0, 90, 1080, 2010), Vector4i(8, 30, 8, 20), TEST_SAVE_PATH)
 	assert_true(report.contains("360 × 720"), "taille de la vue")
 	assert_true(report.contains("left 8, top 30"), "marges appliquées")
+	# Un testeur doit pouvoir dire quelle version il a en main : elle est gravée à la construction.
+	assert_true(report.contains(DiagnosticsOverlay.app_version()), "version du jeu : %s" % report)
+	assert_false(DiagnosticsOverlay.app_version().is_empty(), "jamais vide, même hors build")
 
 	overlay._close_button.pressed.emit()
 	assert_true(main._diagnostics == null, "refermé")

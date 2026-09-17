@@ -10,9 +10,12 @@ config_version=5
 
 [application]
 
-config/name="repa"
+config/name="Teardown Bench"
 run/main_scene="res://game/main.tscn"
 config/features=PackedStringArray("4.7", "Mobile")
+; Renseignée à la construction par scripts/build_android.sh (git describe) : l'écran de
+; diagnostic l'affiche, pour qu'un testeur puisse dire quelle version il a en main.
+config/version="dev"
 config/icon="res://icon.svg"
 
 [display]
