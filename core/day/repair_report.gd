@@ -4,6 +4,8 @@ extends RefCounted
 
 var job_id: String
 var device_id: String
+## Nom du modèle tel que le joueur le lit ("Wren A6"), vide pour une sauvegarde d'avant.
+var device_name: String
 var fault_ids: PackedStringArray
 var completed: bool
 ## Terminée avec le mode solution : exclue des totaux de performance du bilan.
@@ -24,6 +26,11 @@ var parts_cost: int
 var deadline_bonus: int
 ## Note de 1 à 5, 0 si la réparation ne compte pas.
 var stars: int
+
+
+## Modèle affiché au joueur. Les vieilles sauvegardes n'ont que l'identifiant : on s'en contente.
+func model() -> String:
+	return device_name if not device_name.is_empty() else device_id.capitalize()
 
 
 ## Vrai si cette réparation pèse dans les totaux et la réputation. Une réparation assistée

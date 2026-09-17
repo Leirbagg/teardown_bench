@@ -115,3 +115,89 @@ func test_every_device_can_be_torn_down_and_reassembled_cleanly() -> void:
 		for id: String in order:
 			state.commit_install(id)
 		assert_true(state.is_fully_assembled(), "%s : remontage complet" % device.id)
+
+
+## Deux appareils, deux façons d'ouvrir : le joueur doit pouvoir les distinguer et les nommer.
+func test_each_device_is_a_recognisable_model() -> void:
+	var names: PackedStringArray = PackedStringArray()
+	for device: DeviceDefinition in _load_devices():
+		assert_false(device.name.is_empty(), "%s : un nom de modèle" % device.id)
+		assert_true(device.name not in names, "%s : nom déjà porté par un autre appareil" % device.name)
+		names.append(device.name)
+		var badges: Array = device.decorations.filter(
+			func(d: DeviceDefinition.Decoration) -> bool: return d.id == "model_badge")
+		assert_eq(badges.size(), 1, "%s : une plaque de modèle gravée au dos" % device.id)
+		assert_true(device.name.to_upper() in (badges[0] as DeviceDefinition.Decoration).label,
+			"%s : la plaque porte le nom du modèle" % device.id)
+
+
+## Le deuxième appareil s'ouvre par le dos : c'est ce qui le distingue en jeu, pas sa fiche.
+func test_the_second_device_opens_from_the_back() -> void:
+	var device: DeviceDefinition = null
+	for candidate: DeviceDefinition in _load_devices():
+		if candidate.id == "corvid_g2":
+			device = candidate
+	assert_true(device != null, "corvid_g2 présent")
+	if device == null:
+		return
+	assert_eq(device.tier, 2, "modèle plus exigeant : débloqué à la réputation")
+	var back: int = 0
+	for component: ComponentDefinition in device.components:
+		if component.face == "back":
+			back += 1
+	assert_true(back > device.components.size() / 2, "l'essentiel du démontage se fait au dos : %d pièces" % back)
+	# L'écran ne se décolle qu'une fois la nappe débranchée, et elle est sous le capot arrière.
+	assert_true("display_connector" in device.get_component("display").requires,
+		"on débranche l'écran par le dos avant de le décoller")
+	for role: String in ["screen", "battery", "charge_port", "front_sensors"]:
+		assert_true(device.component_for_role(role) != null, "rôle '%s' présent" % role)
+
+
+func test_tier_two_day_can_be_generated_and_played_to_the_report() -> void:
+	var rng: RandomNumberGenerator = RandomNumberGenerator.new()
+	var seen: PackedStringArray = PackedStringArray()
+	for seed_value: int in 40:
+		rng.seed = seed_value
+		var errors: Array[String] = []
+		var jobs: Array[RepairJob] = DayGenerator.generate(_load_devices(), _load_faults(), 2, rng, errors)
+		assert_no_errors(errors)
+		for job: RepairJob in jobs:
+			if job.device.id not in seen:
+				seen.append(job.device.id)
+			var session: RepairSession = RepairSession.new(job)
+			session.advance(60.0)
+			DisassemblyFixture.repair_faults(session.state, job.faults)
+			assert_true(session.run_final_test().is_passed(),
+				"%s sur %s : réparable" % [job.faults[0].id, job.device.id])
+			assert_eq(session.report().broken_parts, PackedStringArray(),
+				"%s sur %s : réparation propre, sans casse" % [job.faults[0].id, job.device.id])
+	assert_true("corvid_g2" in seen, "le deuxième appareil arrive en tier 2 : %s" % ", ".join(seen))
+
+
+## Le mode solution sert surtout face à un modèle qu'on ne connaît pas : il doit mener chaque
+## panne du catalogue au test final, sur chaque appareil, sans jamais forcer une pièce.
+func test_solution_mode_repairs_every_fault_of_every_device() -> void:
+	for device: DeviceDefinition in _load_devices():
+		for fault: FaultDefinition in _load_faults():
+			if not fault.applies_to(device):
+				continue
+			var errors: Array[String] = []
+			var state: DisassemblyState = DisassemblyState.new(device)
+			var diagnosis: Diagnosis = Diagnosis.create(state, [fault], errors)
+			assert_no_errors(errors)
+			var where: String = "%s sur %s" % [fault.id, device.id]
+			for step: SolutionStep in RepairPlanner.plan(diagnosis):
+				match step.kind:
+					SolutionStep.Kind.REMOVE:
+						assert_eq(state.commit_remove(step.component_id).outcome,
+							DisassemblyResult.Outcome.REMOVED, "%s : retrait de %s" % [where, step.component_id])
+					SolutionStep.Kind.REPLACE:
+						assert_eq(state.replace(step.component_id).outcome,
+							DisassemblyResult.Outcome.REPLACED, "%s : pose de %s" % [where, step.component_id])
+					SolutionStep.Kind.INSTALL:
+						assert_eq(state.commit_install(step.component_id).outcome,
+							DisassemblyResult.Outcome.INSTALLED, "%s : remontage de %s" % [where, step.component_id])
+					SolutionStep.Kind.FINAL_TEST:
+						assert_true(diagnosis.run_final_test().is_passed(), "%s : test final réussi" % where)
+			assert_eq(state.broken_ids(), PackedStringArray(), "%s : rien de cassé en chemin" % where)
+			assert_true(state.is_fully_assembled(), "%s : appareil refermé" % where)

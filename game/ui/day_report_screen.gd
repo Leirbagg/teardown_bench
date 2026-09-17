@@ -33,7 +33,7 @@ func setup(report: DayReport, workshop: Workshop) -> void:
 		line.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 		line.add_theme_font_size_override("font_size", 14)
 		line.text = "#%d %s — %s\n%s / %s %s · broken: %d · diagnosis errors: %d" % [
-			i + 1, UiFormat.label(job.device_id), UiFormat.labels(job.fault_ids),
+			i + 1, job.model(), UiFormat.labels(job.fault_ids),
 			UiFormat.time(job.elapsed_s), UiFormat.time(job.deadline_s),
 			"assisted" if job.assisted else ("on time" if job.deadline_met else "late"),
 			job.broken_parts.size(), job.diagnosis_errors(),

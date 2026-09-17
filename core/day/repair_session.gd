@@ -89,6 +89,7 @@ func report() -> RepairReport:
 	var repair_report: RepairReport = RepairReport.new()
 	repair_report.job_id = job.id
 	repair_report.device_id = job.device.id
+	repair_report.device_name = job.device.name
 	for fault: FaultDefinition in job.faults:
 		repair_report.fault_ids.append(fault.id)
 	repair_report.completed = _completed

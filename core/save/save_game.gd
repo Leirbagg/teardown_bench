@@ -88,7 +88,8 @@ static func _job_from_dict(raw: Variant, catalog: DataCatalog, errors: Array[Str
 
 static func _report_to_dict(report: RepairReport) -> Dictionary:
 	return {
-		"job_id": report.job_id, "device_id": report.device_id, "fault_ids": report.fault_ids,
+		"job_id": report.job_id, "device_id": report.device_id, "device_name": report.device_name,
+		"fault_ids": report.fault_ids,
 		"completed": report.completed, "assisted": report.assisted, "elapsed_s": report.elapsed_s,
 		"deadline_s": report.deadline_s, "deadline_met": report.deadline_met,
 		"broken_parts": report.broken_parts, "replaced_parts": report.replaced_parts,
@@ -103,6 +104,7 @@ static func _report_from_dict(raw: Variant) -> RepairReport:
 	var report: RepairReport = RepairReport.new()
 	report.job_id = str(data.get("job_id", ""))
 	report.device_id = str(data.get("device_id", ""))
+	report.device_name = str(data.get("device_name", ""))
 	report.fault_ids = PackedStringArray(data.get("fault_ids", []))
 	report.completed = bool(data.get("completed", false))
 	report.assisted = bool(data.get("assisted", false))

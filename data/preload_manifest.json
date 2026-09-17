@@ -1,7 +1,8 @@
 {
   "schema_version": 1,
   "devices": [
-    "res://data/devices/starter_phone.json"
+    "res://data/devices/starter_phone.json",
+    "res://data/devices/corvid_g2.json"
   ],
   "faults": [
     "res://data/faults/screen_cracked.json",

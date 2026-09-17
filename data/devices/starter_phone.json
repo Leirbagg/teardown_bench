@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "id": "starter_phone",
-  "name": "Starter Phone",
+  "name": "Wren A6",
   "tier": 1,
   "faces": [
     "front",
@@ -1140,6 +1140,18 @@
         10,
         10
       ]
+    },
+    {
+      "id": "model_badge",
+      "face": "back",
+      "kind": "chip",
+      "rect": [
+        55,
+        300,
+        70,
+        22
+      ],
+      "label": "WREN A6"
     }
   ]
 }
