@@ -739,7 +739,7 @@
       }
     },
     {
-      "id": "taptic_screw_1",
+      "id": "haptic_screw_1",
       "kind": "screw",
       "face": "front",
       "gesture": "rotate",
@@ -765,7 +765,7 @@
       }
     },
     {
-      "id": "taptic_screw_2",
+      "id": "haptic_screw_2",
       "kind": "screw",
       "face": "front",
       "gesture": "rotate",
@@ -791,7 +791,7 @@
       }
     },
     {
-      "id": "taptic_screw_3",
+      "id": "haptic_screw_3",
       "kind": "screw",
       "face": "front",
       "gesture": "rotate",
@@ -817,7 +817,7 @@
       }
     },
     {
-      "id": "taptic_connector",
+      "id": "haptic_connector",
       "kind": "connector",
       "face": "front",
       "gesture": "pull",
@@ -832,7 +832,7 @@
         "display"
       ],
       "force_breaks": [
-        "taptic_engine"
+        "haptic_motor"
       ],
       "hint": "Unplug the vibration motor cable.",
       "visual": {
@@ -842,20 +842,20 @@
           18,
           12
         ],
-        "cable_to": "taptic_engine"
+        "cable_to": "haptic_motor"
       }
     },
     {
-      "id": "taptic_engine",
+      "id": "haptic_motor",
       "kind": "module",
       "face": "front",
       "gesture": "pull",
       "requires": [
         "display",
-        "taptic_screw_1",
-        "taptic_screw_2",
-        "taptic_screw_3",
-        "taptic_connector"
+        "haptic_screw_1",
+        "haptic_screw_2",
+        "haptic_screw_3",
+        "haptic_connector"
       ],
       "covered_by": [
         "display"
@@ -935,12 +935,12 @@
       "requires": [
         "display",
         "loudspeaker",
-        "taptic_engine"
+        "haptic_motor"
       ],
       "covered_by": [
         "display",
         "loudspeaker",
-        "taptic_engine"
+        "haptic_motor"
       ],
       "hint": "The charging flex is glued down: heat it before lifting.",
       "visual": {
@@ -992,7 +992,7 @@
       "requires": [
         "display",
         "loudspeaker",
-        "taptic_engine",
+        "haptic_motor",
         "port_screw_left",
         "port_screw_right",
         "port_adhesive",
