@@ -378,13 +378,11 @@ func _draw_open_panel_cables(component: ComponentDefinition) -> void:
 		draw_polyline(path, CABLE_COLOR, 4.0, true)
 
 
-## Nappe débranchée : du socle vers son extrémité, en pointillés quand sa pièce est sur le tapis.
-func _draw_loose_cable(component: ComponentDefinition, away: bool) -> void:
+## Nappe débranchée : du socle jusqu'à son extrémité. Une nappe reste une nappe, que sa pièce soit
+## encore là ou posée sur le tapis : seule sa position dit où elle est partie.
+func _draw_loose_cable(component: ComponentDefinition) -> void:
 	var from: Vector2 = view_rect(component).get_center()
 	var to: Vector2 = unplugged_rect(component.id).get_center()
-	if away:
-		draw_dashed_line(from, to, Color(CABLE_COLOR, 0.45), 3.0, 6.0)
-		return
 	draw_line(from, to, CABLE_EDGE_COLOR, 7.0)
 	draw_line(from, to, CABLE_COLOR, 4.0)
 
@@ -612,11 +610,9 @@ func _draw() -> void:
 					_draw_component(part)
 		elif is_unplugged(component.id):
 			# Le socle ne bouge pas : c'est la nappe qui se débranche et s'écarte.
-			var away: bool = is_cable_away(component.id)
 			_painter.draw_socket(self, view_rect(component), PartPainter.kind_color(component.kind))
-			_draw_loose_cable(component, away)
-			_painter.draw_part(self, component, unplugged_rect(component.id),
-				Color(PartPainter.kind_color(component.kind), 0.5 if away else 1.0))
+			_draw_loose_cable(component)
+			_painter.draw_part(self, component, unplugged_rect(component.id), PartPainter.kind_color(component.kind))
 	for effect: Effect in _effects:
 		_draw_effect(effect)
 	draw_set_transform(Vector2.ZERO)
