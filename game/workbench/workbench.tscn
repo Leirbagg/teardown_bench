@@ -1,8 +1,9 @@
-[gd_scene load_steps=15 format=3]
+[gd_scene load_steps=16 format=3]
 
 [ext_resource type="Script" path="res://game/workbench/workbench.gd" id="1_script"]
 [ext_resource type="PackedScene" path="res://game/workbench/device_view.tscn" id="2_device_view"]
 [ext_resource type="Script" path="res://game/workbench/solution_player.gd" id="3_solution"]
+[ext_resource type="Script" path="res://game/ui/long_press_label.gd" id="5_long_press"]
 [ext_resource type="PackedScene" path="res://game/workbench/parts_mat.tscn" id="4_parts_mat"]
 [ext_resource type="Texture2D" path="res://assets/third_party/lucide/icons/circle-check.svg" id="icon_0_circle_check"]
 [ext_resource type="Texture2D" path="res://assets/third_party/lucide/icons/gauge.svg" id="icon_1_gauge"]
@@ -66,6 +67,7 @@ layout_mode = 2
 size_flags_vertical = 0
 theme_override_font_sizes/font_size = 14
 text = "0:00 / 0:00"
+script = ExtResource("5_long_press")
 
 [node name="DeviceView" parent="Margin/Layout" instance=ExtResource("2_device_view")]
 unique_name_in_owner = true

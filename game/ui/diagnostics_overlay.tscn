@@ -1,0 +1,40 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://game/ui/diagnostics_overlay.gd" id="1_script"]
+[ext_resource type="Texture2D" path="res://assets/third_party/lucide/icons/x.svg" id="2_close"]
+
+[node name="DiagnosticsOverlay" type="PanelContainer"]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 16.0
+offset_top = 16.0
+offset_right = -16.0
+offset_bottom = -16.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_script")
+
+[node name="Layout" type="VBoxContainer" parent="."]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="Title" type="Label" parent="Layout"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 16
+text = "Diagnostics"
+
+[node name="DiagnosticsText" type="Label" parent="Layout"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_font_sizes/font_size = 13
+autowrap_mode = 3
+
+[node name="DiagnosticsCloseButton" type="Button" parent="Layout"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 48)
+layout_mode = 2
+clip_text = true
+text = "Close"
+icon = ExtResource("2_close")

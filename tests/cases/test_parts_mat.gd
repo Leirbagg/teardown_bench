@@ -161,6 +161,37 @@ func test_a_part_put_back_forgets_its_place_on_the_mat() -> void:
 	mat.free()
 
 
+func test_tidy_spreads_the_parts_without_overlap() -> void:
+	var state: DisassemblyState = _starter_phone_state()
+	var mat: PartsMat = _mat(state)
+	DisassemblyFixture.remove_with_prerequisites(state, "connector_cover")
+	var map: MatMap = _map(mat)
+	var before: Array[Rect2] = []
+	for id: String in map.item_ids():
+		before.append(map.item_rect(id))
+	assert_true(_overlaps(before) > 0, "préparation : des pièces se chevauchent à leur place d'origine")
+
+	(mat.get_node("%MatTidyButton") as Button).pressed.emit()
+	var after: Array[Rect2] = []
+	for id: String in map.item_ids():
+		var rect: Rect2 = map.item_rect(id)
+		assert_true(Rect2(Vector2.ZERO, map.size).grow(1.0).encloses(rect), "%s reste sur le tapis" % id)
+		if not map._is_large(rect):
+			after.append(rect)
+	assert_true(after.size() >= 5, "préparation : plusieurs petites pièces")
+	assert_eq(_overlaps(after), 0, "rangées, les petites pièces ne se chevauchent plus")
+	mat.free()
+
+
+func _overlaps(rects: Array[Rect2]) -> int:
+	var count: int = 0
+	for i: int in rects.size():
+		for j: int in range(i + 1, rects.size()):
+			if rects[i].intersects(rects[j]):
+				count += 1
+	return count
+
+
 func test_actions_follow_the_selected_part() -> void:
 	var state: DisassemblyState = _starter_phone_state()
 	var mat: PartsMat = _mat(state)

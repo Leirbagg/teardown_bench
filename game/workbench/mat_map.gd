@@ -17,6 +17,8 @@ const NEW_COLOR: Color = Color("46a758")
 const LENGTH_FONT_SIZE: int = 9
 ## En deçà, le doigt a tapé ; au-delà, il a déplacé la pièce.
 const TAP_TOLERANCE: float = 6.0
+## Espace entre deux pièces rangées.
+const TIDY_GAP: float = 8.0
 ## Une pièce plus grande que ce ratio de l'appareil (un écran) est dessinée en transparence :
 ## les vis et caches posés dessus restent lisibles.
 const LARGE_PART_RATIO: float = 0.25
@@ -69,11 +71,16 @@ func item_ids() -> PackedStringArray:
 ## Rectangle dessiné d'une pièce : son emplacement d'origine, plus le déplacement du joueur,
 ## agrandi à MIN_ITEM_SIZE.
 func item_rect(component_id: String) -> Rect2:
-	var rect: Rect2 = DeviceView._device_rect(_state.device.get_component(component_id))
-	var mapped: Rect2 = Rect2(rect.position * _scale() + _offset(), rect.size * _scale())
-	var placed: Rect2 = _grow_to(mapped, MIN_ITEM_SIZE)
+	var placed: Rect2 = _origin_rect(component_id)
 	placed.position += _offsets.get(component_id, Vector2.ZERO)
 	return placed
+
+
+## Emplacement d'origine de la pièce sur le tapis, avant déplacement.
+func _origin_rect(component_id: String) -> Rect2:
+	var rect: Rect2 = DeviceView._device_rect(_state.device.get_component(component_id))
+	var mapped: Rect2 = Rect2(rect.position * _scale() + _offset(), rect.size * _scale())
+	return _grow_to(mapped, MIN_ITEM_SIZE)
 
 
 ## Sélectionne la pièce sous le doigt : la plus petite qui contient le point (une vis posée sur
@@ -104,6 +111,29 @@ func _pick(position: Vector2) -> String:
 				nearest_distance = distance
 				nearest = id
 	return best_inside if not best_inside.is_empty() else nearest
+
+
+## Range les pièces en rangées, de la plus grande à la plus petite : vis et caches ne se
+## chevauchent plus. Les pièces aussi grandes que l'appareil (un écran détaché) restent à leur
+## place : elles servent de fond et aucune grille ne les contiendrait.
+func tidy() -> void:
+	var ids: Array = Array(item_ids()).filter(func(id: String) -> bool: return not _is_large(_origin_rect(id)))
+	ids.sort_custom(func(a: String, b: String) -> bool: return _origin_rect(a).size.y > _origin_rect(b).size.y)
+	var pen: Vector2 = Vector2(TIDY_GAP, TIDY_GAP)
+	var row_height: float = 0.0
+	for id: String in ids:
+		var origin: Rect2 = _origin_rect(id)
+		if pen.x + origin.size.x > size.x - TIDY_GAP:
+			pen = Vector2(TIDY_GAP, pen.y + row_height + TIDY_GAP)
+			row_height = 0.0
+		_offsets[id] = _clamped_offset(id, pen - origin.position)
+		pen.x += origin.size.x + TIDY_GAP
+		row_height = maxf(row_height, origin.size.y)
+	queue_redraw()
+
+
+func _is_large(rect: Rect2) -> bool:
+	return rect.get_area() > _mapped_bounds_area() * LARGE_PART_RATIO
 
 
 func _gui_input(event: InputEvent) -> void:
@@ -169,7 +199,7 @@ func _draw() -> void:
 		var component: ComponentDefinition = _state.device.get_component(id)
 		var rect: Rect2 = item_rect(id)
 		var color: Color = PartPainter.kind_color(component.kind)
-		if rect.get_area() > _mapped_bounds_area() * LARGE_PART_RATIO:
+		if _is_large(rect):
 			color.a = LARGE_PART_ALPHA
 		_painter.draw_part(self, component, rect, color)
 		if _state.is_broken(id):

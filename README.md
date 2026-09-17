@@ -58,6 +58,10 @@ godot --headless --import --path .                    # importer le projet
 godot --headless --path . --script res://tests/run_tests.gd   # suite de tests
 ```
 
+Un appui long sur le compteur de clients (accueil) ou sur le chrono (établi) ouvre l'écran de
+diagnostic : taille de la vue, zone sûre, marges appliquées, densité de l'écran. De quoi cerner
+un souci d'affichage sur un vrai téléphone sans avoir à le décrire.
+
 ### APK Android (debug)
 
 Prérequis supplémentaires : modèles d'export Android de Godot 4.7.2, JDK 17, SDK Android avec

@@ -7,6 +7,7 @@ const CUSTOMER_SCREEN: PackedScene = preload("res://game/ui/customer_screen.tscn
 const WORKBENCH: PackedScene = preload("res://game/workbench/workbench.tscn")
 const DAY_REPORT_SCREEN: PackedScene = preload("res://game/ui/day_report_screen.tscn")
 const PAUSE_OVERLAY: PackedScene = preload("res://game/ui/pause_overlay.tscn")
+const DIAGNOSTICS_OVERLAY: PackedScene = preload("res://game/ui/diagnostics_overlay.tscn")
 
 ## Chemin de sauvegarde, remplaçable par les tests.
 var save_path: String = SaveGame.PATH
@@ -24,6 +25,7 @@ const MIN_SAFE_MARGIN: int = 8
 
 var _catalog: DataCatalog
 var _pause_overlay: PauseOverlay
+var _diagnostics: DiagnosticsOverlay
 
 
 func _ready() -> void:
@@ -112,6 +114,8 @@ func _set_screen(scene: PackedScene) -> Control:
 		current_screen.queue_free()
 	current_screen = scene.instantiate() as Control
 	screen_host.add_child(current_screen)
+	for trigger: LongPressLabel in current_screen.find_children("*", "LongPressLabel", true, false):
+		trigger.long_pressed.connect(show_diagnostics)
 	if _pause_overlay != null:
 		move_child(_pause_overlay, -1)
 	return current_screen
@@ -128,6 +132,27 @@ func apply_safe_area() -> void:
 	screen_host.add_theme_constant_override("margin_top", insets.y)
 	screen_host.add_theme_constant_override("margin_right", insets.z)
 	screen_host.add_theme_constant_override("margin_bottom", insets.w)
+
+
+## Ce que l'appareil dit de lui-même, ouvert par un appui long sur le compteur ou le chrono :
+## de quoi comprendre un souci d'affichage sur un vrai téléphone.
+func show_diagnostics() -> DiagnosticsOverlay:
+	if _diagnostics != null:
+		return _diagnostics
+	_diagnostics = DIAGNOSTICS_OVERLAY.instantiate() as DiagnosticsOverlay
+	add_child(_diagnostics)
+	_diagnostics.closed.connect(func() -> void: _diagnostics = null)
+	_diagnostics.show_report(get_viewport_rect().size, applied_insets(), save_path)
+	return _diagnostics
+
+
+## Marges effectivement posées autour des écrans : gauche, haut, droite, bas.
+func applied_insets() -> Vector4i:
+	return Vector4i(
+		screen_host.get_theme_constant("margin_left"),
+		screen_host.get_theme_constant("margin_top"),
+		screen_host.get_theme_constant("margin_right"),
+		screen_host.get_theme_constant("margin_bottom"))
 
 
 ## Marges gauche, haut, droite, bas, en unités de la vue. `minimum` s'applique toujours.

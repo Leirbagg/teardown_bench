@@ -13,6 +13,7 @@ var _state: DisassemblyState
 @onready var _title: Label = %MatTitle
 @onready var _info: Label = %MatInfo
 @onready var _close_button: Button = %MatCloseButton
+@onready var _tidy_button: Button = %MatTidyButton
 @onready var _reinstall_button: Button = %MatReinstallButton
 @onready var _replace_button: Button = %MatReplaceButton
 
@@ -20,6 +21,7 @@ var _state: DisassemblyState
 func _ready() -> void:
 	_map.part_selected.connect(_on_part_selected)
 	_close_button.pressed.connect(close)
+	_tidy_button.pressed.connect(_map.tidy)
 	_reinstall_button.pressed.connect(func() -> void: reinstall_requested.emit(_map.selected_id))
 	_replace_button.pressed.connect(func() -> void: replace_requested.emit(_map.selected_id))
 

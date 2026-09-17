@@ -1,10 +1,11 @@
-[gd_scene load_steps=7 format=3]
+[gd_scene load_steps=8 format=3]
 
 [ext_resource type="Script" path="res://game/workbench/parts_mat.gd" id="1_script"]
 [ext_resource type="Script" path="res://game/workbench/mat_map.gd" id="2_map"]
 [ext_resource type="Texture2D" path="res://assets/third_party/lucide/icons/replace.svg" id="icon_0_replace"]
 [ext_resource type="Texture2D" path="res://assets/third_party/lucide/icons/undo-2.svg" id="icon_1_undo_2"]
 [ext_resource type="Texture2D" path="res://assets/third_party/lucide/icons/x.svg" id="icon_2_x"]
+[ext_resource type="Texture2D" path="res://assets/third_party/lucide/icons/layout-grid.svg" id="icon_3_layout_grid"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_mat"]
 bg_color = Color(0.0862745, 0.14902, 0.168627, 1)
@@ -38,10 +39,19 @@ layout_mode = 2
 size_flags_horizontal = 3
 theme_override_font_sizes/font_size = 16
 text = "Magnetic mat"
+clip_text = true
+
+[node name="MatTidyButton" type="Button" parent="Layout/Header"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 48)
+layout_mode = 2
+clip_text = true
+text = "Tidy"
+icon = ExtResource("icon_3_layout_grid")
 
 [node name="MatCloseButton" type="Button" parent="Layout/Header"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(96, 48)
+custom_minimum_size = Vector2(0, 48)
 layout_mode = 2
 text = "Close"
 icon = ExtResource("icon_2_x")

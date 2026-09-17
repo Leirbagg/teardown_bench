@@ -147,6 +147,24 @@ func test_an_unplugged_connector_stays_next_to_its_socket_and_plugs_back() -> vo
 	view.free()
 
 
+## Une nappe suit sa pièce : l'écran parti sur le tapis, sa nappe quitte le socle et s'estompe.
+func test_a_cable_follows_its_part_to_the_mat() -> void:
+	var state: DisassemblyState = _starter_phone_state()
+	var view: DeviceView = _device_view(state)
+	DisassemblyFixture.remove_with_prerequisites(state, "display_connector")
+	_settle(view)
+	assert_true(view.is_unplugged("display_connector"), "écran rabattu : la nappe pend près de son socle")
+	assert_false(view.is_cable_away("display_connector"))
+	var near_socket: Rect2 = view.unplugged_rect("display_connector")
+	DisassemblyFixture.remove_with_prerequisites(state, "sensor_connector")
+	_settle(view)
+	assert_true(view.is_cable_away("display_connector"), "écran détaché : la nappe part avec lui")
+	var away: Rect2 = view.unplugged_rect("display_connector")
+	assert_true(away.position.y > near_socket.position.y + 40.0, "tirée vers le tapis")
+	assert_eq(view.component_at(away.get_center()), "display_connector", "toujours rebranchable")
+	view.free()
+
+
 ## Le doigt fantôme du mode solution doit mener chaque type de geste à son terme.
 func test_ghost_finger_completes_every_gesture_kind() -> void:
 	var state: DisassemblyState = _starter_phone_state()
@@ -367,6 +385,31 @@ func test_no_screen_is_wider_than_the_narrowest_phone() -> void:
 	for path: String in ["Margin/Layout/Tools", "Margin/Layout/MatBar", "Margin/Layout/SolutionBar"]:
 		var row: Control = workbench.get_node(path)
 		assert_true(row.get_combined_minimum_size().x <= available, "%s : %.0f dp" % [path, row.get_combined_minimum_size().x])
+	main.free()
+
+
+## Sur le téléphone, un souci d'affichage ne se décrit pas : l'appareil le dit lui-même.
+func test_a_long_press_opens_the_diagnostics_from_any_screen() -> void:
+	var main: Main = _fresh_main()
+	var counter: LongPressLabel = main.current_screen.find_children("*", "LongPressLabel", true, false)[0]
+	counter._gui_input(_touch(Vector2.ZERO, true))
+	counter._process(LongPressLabel.HOLD_S / 2.0)
+	assert_true(main._diagnostics == null, "un appui court ne l'ouvre pas")
+	counter._process(LongPressLabel.HOLD_S)
+	var overlay: DiagnosticsOverlay = main._diagnostics
+	assert_true(overlay != null, "ouvert après l'appui long")
+
+	var report: String = DiagnosticsOverlay.report(Vector2(360, 720), Vector2i(1080, 2160),
+		Rect2i(0, 90, 1080, 2010), Vector4i(8, 30, 8, 20), TEST_SAVE_PATH)
+	assert_true(report.contains("360 × 720"), "taille de la vue")
+	assert_true(report.contains("left 8, top 30"), "marges appliquées")
+
+	overlay._close_button.pressed.emit()
+	assert_true(main._diagnostics == null, "refermé")
+
+	# L'établi expose le même accès, sur le chrono.
+	(main.current_screen as CustomerScreen).start_pressed.emit()
+	assert_eq(main.current_screen.find_children("*", "LongPressLabel", true, false).size(), 1, "chrono de l'établi")
 	main.free()
 
 

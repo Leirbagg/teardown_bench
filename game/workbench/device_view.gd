@@ -341,6 +341,17 @@ func _draw_open_panel_cables(component: ComponentDefinition) -> void:
 		draw_polyline(path, CABLE_COLOR, 4.0, true)
 
 
+## Nappe débranchée : du socle vers son extrémité, en pointillés quand sa pièce est sur le tapis.
+func _draw_loose_cable(component: ComponentDefinition, away: bool) -> void:
+	var from: Vector2 = view_rect(component).get_center()
+	var to: Vector2 = unplugged_rect(component.id).get_center()
+	if away:
+		draw_dashed_line(from, to, Color(CABLE_COLOR, 0.45), 3.0, 6.0)
+		return
+	draw_line(from, to, CABLE_EDGE_COLOR, 7.0)
+	draw_line(from, to, CABLE_COLOR, 4.0)
+
+
 func _draw_open_panel(component: ComponentDefinition) -> void:
 	var amount: float = _open_amount.get(component.id, 0.0)
 	if amount <= 0.01:
@@ -369,7 +380,8 @@ func _draw_open_panel(component: ComponentDefinition) -> void:
 
 # --- Connecteurs et nappes ---
 
-## Connecteur relié par une nappe et actuellement débranché : il reste près de son socle.
+## Connecteur débranché dont la pièce est encore là : la nappe pend près de son socle. Si la pièce
+## est partie (sur le tapis), sa nappe est partie avec elle.
 func is_unplugged(component_id: String) -> bool:
 	if _state == null or not _state.device.has_component(component_id):
 		return false
@@ -377,11 +389,23 @@ func is_unplugged(component_id: String) -> bool:
 	return component.visual.has("cable_to") and component.face == face and _state.is_removed(component_id)
 
 
+## Vrai quand la pièce de cette nappe est partie sur le tapis : la nappe la suit, hors de l'appareil.
+func is_cable_away(component_id: String) -> bool:
+	if not is_unplugged(component_id):
+		return false
+	var target_id: String = str(_state.device.get_component(component_id).visual["cable_to"])
+	return _state.is_removed(target_id) and not is_open_tethered(target_id)
+
+
 ## Position d'un connecteur débranché, décalée dans le sens où on l'a tiré.
 func unplugged_rect(component_id: String) -> Rect2:
 	var component: ComponentDefinition = _state.device.get_component(component_id)
+	var socket: Rect2 = view_rect(component)
+	if is_cable_away(component_id):
+		# La pièce est sur le tapis : sa nappe descend avec elle, hors de l'appareil.
+		return Rect2(Vector2(socket.position.x, lerpf(socket.position.y, size.y - socket.size.y, 0.75)), socket.size)
 	var direction: Vector2 = Vector2.from_angle(-deg_to_rad(float(component.gesture_params.get("direction_deg", 270.0))))
-	return Rect2(view_rect(component).position + direction * UNPLUG_OFFSET * _scale(), view_rect(component).size)
+	return Rect2(socket.position + direction * UNPLUG_OFFSET * _scale(), socket.size)
 
 
 ## Cible d'un geste : pièce en place, écran rabattu ou connecteur débranché à rebrancher.
@@ -391,8 +415,10 @@ func _gesture_target(component_id: String) -> Dictionary:
 		return {"gesture": "pull", "params": {"direction_deg": _closing_direction_deg(component)},
 			"rect": open_panel_rect(component_id)}
 	if is_unplugged(component_id):
-		var reconnect: float = fmod(float(component.gesture_params.get("direction_deg", 270.0)) + 180.0, 360.0)
-		return {"gesture": "pull", "params": {"direction_deg": reconnect}, "rect": unplugged_rect(component_id)}
+		var plug: Rect2 = unplugged_rect(component_id)
+		var toward_socket: Vector2 = view_rect(component).get_center() - plug.get_center()
+		var degrees: float = rad_to_deg(-toward_socket.angle())
+		return {"gesture": "pull", "params": {"direction_deg": degrees}, "rect": plug}
 	return {"gesture": component.gesture, "params": component.gesture_params, "rect": view_rect(component)}
 
 
@@ -545,8 +571,11 @@ func _draw() -> void:
 			_draw_open_panel(component)
 		elif is_unplugged(component.id):
 			# Le socle ne bouge pas : c'est la nappe qui se débranche et s'écarte.
+			var away: bool = is_cable_away(component.id)
 			_painter.draw_socket(self, view_rect(component), PartPainter.kind_color(component.kind))
-			_painter.draw_part(self, component, unplugged_rect(component.id), PartPainter.kind_color(component.kind))
+			_draw_loose_cable(component, away)
+			_painter.draw_part(self, component, unplugged_rect(component.id),
+				Color(PartPainter.kind_color(component.kind), 0.5 if away else 1.0))
 	for effect: Effect in _effects:
 		_draw_effect(effect)
 	draw_set_transform(Vector2.ZERO)
