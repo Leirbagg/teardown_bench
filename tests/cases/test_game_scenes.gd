@@ -311,6 +311,21 @@ func test_solution_mode_can_be_stopped_to_take_over() -> void:
 	main.free()
 
 
+## L'encoche et les coins arrondis rogneaient les bords sur un vrai téléphone.
+func test_screens_keep_a_margin_inside_the_safe_area() -> void:
+	var main: Main = _fresh_main()
+	assert_eq(main.current_screen.get_parent(), main.screen_host, "les écrans vivent dans la zone sûre")
+	for side: String in ["margin_left", "margin_top", "margin_right", "margin_bottom"]:
+		assert_true(main.screen_host.get_theme_constant(side) >= Main.MIN_SAFE_MARGIN, side)
+
+	# Encoche de 90 px en haut et barre de 60 px en bas, sur une fenêtre de 1080×2160 → vue 360×720.
+	var insets: Vector4i = Main.safe_area_insets(Rect2i(0, 90, 1080, 2010), Vector2i(1080, 2160), Vector2(360, 720), 8)
+	assert_eq(insets, Vector4i(8, 30, 8, 20), "converties dans les unités de la vue")
+	assert_eq(Main.safe_area_insets(Rect2i(), Vector2i(), Vector2(360, 720), 8), Vector4i(8, 8, 8, 8),
+		"sans information, la marge minimale")
+	main.free()
+
+
 # --- Progression et sauvegarde ---
 
 ## Répare le client en cours par les mêmes appels que le joueur, puis lance le test final.

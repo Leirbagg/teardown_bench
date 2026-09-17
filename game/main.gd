@@ -14,14 +14,21 @@ var workshop: Workshop = Workshop.new()
 var day: WorkDay
 var current_screen: Control
 
+## Marge minimale, même sans encoche : les coins arrondis rognent les bords.
+const MIN_SAFE_MARGIN: int = 8
+
 ## Survit aux changements d'écran, pour ne pas couper un son en cours.
 @onready var feedback: Feedback = %Feedback
+## Les écrans vivent ici, à l'intérieur de la zone sûre de l'appareil.
+@onready var screen_host: MarginContainer = %ScreenHost
 
 var _catalog: DataCatalog
 var _pause_overlay: PauseOverlay
 
 
 func _ready() -> void:
+	apply_safe_area()
+	get_viewport().size_changed.connect(apply_safe_area)
 	var errors: Array[String] = []
 	_catalog = DataCatalog.load_manifest(DataCatalog.MANIFEST_PATH, errors)
 	if _catalog == null:
@@ -104,10 +111,32 @@ func _set_screen(scene: PackedScene) -> Control:
 	if current_screen != null:
 		current_screen.queue_free()
 	current_screen = scene.instantiate() as Control
-	add_child(current_screen)
+	screen_host.add_child(current_screen)
 	if _pause_overlay != null:
 		move_child(_pause_overlay, -1)
 	return current_screen
+
+
+## Écarte les écrans des bords : encoche, barre système et coins arrondis rognent l'affichage.
+func apply_safe_area() -> void:
+	var insets: Vector4i = safe_area_insets(DisplayServer.get_display_safe_area(), DisplayServer.window_get_size(),
+		get_viewport_rect().size, MIN_SAFE_MARGIN)
+	screen_host.add_theme_constant_override("margin_left", insets.x)
+	screen_host.add_theme_constant_override("margin_top", insets.y)
+	screen_host.add_theme_constant_override("margin_right", insets.z)
+	screen_host.add_theme_constant_override("margin_bottom", insets.w)
+
+
+## Marges gauche, haut, droite, bas, en unités de la vue. `minimum` s'applique toujours.
+static func safe_area_insets(safe: Rect2i, window: Vector2i, viewport: Vector2, minimum: int) -> Vector4i:
+	if window.x <= 0 or window.y <= 0 or safe.size.x <= 0 or safe.size.y <= 0:
+		return Vector4i(minimum, minimum, minimum, minimum)
+	var scale: Vector2 = viewport / Vector2(window)
+	return Vector4i(
+		maxi(roundi(safe.position.x * scale.x), minimum),
+		maxi(roundi(safe.position.y * scale.y), minimum),
+		maxi(roundi((window.x - safe.end.x) * scale.x), minimum),
+		maxi(roundi((window.y - safe.end.y) * scale.y), minimum))
 
 
 # --- Pause ---
