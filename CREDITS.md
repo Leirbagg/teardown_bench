@@ -24,17 +24,19 @@ Fichiers : `assets/third_party/inter/Inter-Regular.ttf`, `Inter-SemiBold.ttf`.
 |---|---|---|---|---|
 | [Lucide](https://lucide.dev) | 1.46.0 | Lucide Icons and Contributors (fork de Feather, Cole Bemis) | [ISC](assets/third_party/lucide/LICENSE), MIT pour les icônes héritées de Feather | Conserver la notice de copyright dans les sources |
 
-Fichiers : 21 icônes dans `assets/third_party/lucide/icons/`.
+Fichiers : 22 icônes dans `assets/third_party/lucide/icons/`, importées à l'échelle 3 (72 px) pour
+rester nettes sur un écran de téléphone.
 
 | Icône | Usage prévu |
 |---|---|
-| `rotate-3d` | Retourner l'appareil |
+| `rotate-3d` | Retourner l'appareil (« flip » n'existe pas chez Lucide) |
 | `zoom-in` | Loupe |
 | `list-checks` | Tests logiciels |
 | `circle-check` | Test final |
 | `layout-grid` | Tapis magnétique |
 | `graduation-cap` | Mode solution |
 | `pause`, `skip-forward`, `gauge`, `square` | Contrôles du mode solution |
+| `play` | Reprendre après une pause |
 | `x` | Fermer un panneau |
 | `volume-2`, `volume-x`, `vibrate`, `vibrate-off` | Réglages son et vibrations |
 | `undo-2`, `replace` | Remonter, remplacer une pièce |

@@ -113,6 +113,8 @@ lecture seule.
 | `tests/` | Suites (`tests/cases/test_*.gd`) et fichiers de test |
 | `docs/` | Schéma des données, captures |
 
+Police et icônes : voir [CREDITS.md](CREDITS.md). Le thème commun est `game/ui/theme.tres`.
+
 Les conventions et pièges connus sont décrits dans [CLAUDE.md](CLAUDE.md).
 
 ## Ajouter un appareil ou une panne

@@ -1,9 +1,19 @@
-[gd_scene load_steps=5 format=3]
+[gd_scene load_steps=15 format=3]
 
 [ext_resource type="Script" path="res://game/workbench/workbench.gd" id="1_script"]
 [ext_resource type="PackedScene" path="res://game/workbench/device_view.tscn" id="2_device_view"]
 [ext_resource type="Script" path="res://game/workbench/solution_player.gd" id="3_solution"]
 [ext_resource type="PackedScene" path="res://game/workbench/parts_mat.tscn" id="4_parts_mat"]
+[ext_resource type="Texture2D" path="res://assets/third_party/lucide/icons/circle-check.svg" id="icon_0_circle_check"]
+[ext_resource type="Texture2D" path="res://assets/third_party/lucide/icons/gauge.svg" id="icon_1_gauge"]
+[ext_resource type="Texture2D" path="res://assets/third_party/lucide/icons/graduation-cap.svg" id="icon_2_graduation_cap"]
+[ext_resource type="Texture2D" path="res://assets/third_party/lucide/icons/layout-grid.svg" id="icon_3_layout_grid"]
+[ext_resource type="Texture2D" path="res://assets/third_party/lucide/icons/list-checks.svg" id="icon_4_list_checks"]
+[ext_resource type="Texture2D" path="res://assets/third_party/lucide/icons/pause.svg" id="icon_5_pause"]
+[ext_resource type="Texture2D" path="res://assets/third_party/lucide/icons/rotate-3d.svg" id="icon_6_rotate_3d"]
+[ext_resource type="Texture2D" path="res://assets/third_party/lucide/icons/skip-forward.svg" id="icon_7_skip_forward"]
+[ext_resource type="Texture2D" path="res://assets/third_party/lucide/icons/square.svg" id="icon_8_square"]
+[ext_resource type="Texture2D" path="res://assets/third_party/lucide/icons/zoom-in.svg" id="icon_9_zoom_in"]
 
 [node name="Workbench" type="Control"]
 layout_mode = 3
@@ -72,6 +82,7 @@ custom_minimum_size = Vector2(0, 48)
 layout_mode = 2
 size_flags_horizontal = 3
 text = "Flip"
+icon = ExtResource("icon_6_rotate_3d")
 
 [node name="LoupeButton" type="Button" parent="Margin/Layout/Tools"]
 unique_name_in_owner = true
@@ -80,6 +91,7 @@ layout_mode = 2
 size_flags_horizontal = 3
 toggle_mode = true
 text = "Loupe"
+icon = ExtResource("icon_9_zoom_in")
 
 [node name="TestsButton" type="Button" parent="Margin/Layout/Tools"]
 unique_name_in_owner = true
@@ -87,13 +99,15 @@ custom_minimum_size = Vector2(0, 48)
 layout_mode = 2
 size_flags_horizontal = 3
 text = "Tests"
+icon = ExtResource("icon_4_list_checks")
 
 [node name="FinalTestButton" type="Button" parent="Margin/Layout/Tools"]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(0, 48)
 layout_mode = 2
 size_flags_horizontal = 3
-text = "Final test"
+text = "Final"
+icon = ExtResource("icon_0_circle_check")
 
 [node name="MatBar" type="HBoxContainer" parent="Margin/Layout"]
 layout_mode = 2
@@ -105,12 +119,14 @@ custom_minimum_size = Vector2(0, 48)
 layout_mode = 2
 size_flags_horizontal = 3
 text = "Mat · 0 parts"
+icon = ExtResource("icon_3_layout_grid")
 
 [node name="SolutionButton" type="Button" parent="Margin/Layout/MatBar"]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(112, 48)
 layout_mode = 2
 text = "Solution"
+icon = ExtResource("icon_2_graduation_cap")
 
 [node name="SolutionBar" type="HBoxContainer" parent="Margin/Layout"]
 unique_name_in_owner = true
@@ -124,6 +140,7 @@ custom_minimum_size = Vector2(0, 48)
 layout_mode = 2
 size_flags_horizontal = 3
 text = "Pause"
+icon = ExtResource("icon_5_pause")
 
 [node name="SolutionNextButton" type="Button" parent="Margin/Layout/SolutionBar"]
 unique_name_in_owner = true
@@ -131,6 +148,7 @@ custom_minimum_size = Vector2(0, 48)
 layout_mode = 2
 size_flags_horizontal = 3
 text = "Next"
+icon = ExtResource("icon_7_skip_forward")
 
 [node name="SolutionSpeedButton" type="Button" parent="Margin/Layout/SolutionBar"]
 unique_name_in_owner = true
@@ -138,6 +156,7 @@ custom_minimum_size = Vector2(0, 48)
 layout_mode = 2
 size_flags_horizontal = 3
 text = "Speed ×1"
+icon = ExtResource("icon_1_gauge")
 
 [node name="SolutionStopButton" type="Button" parent="Margin/Layout/SolutionBar"]
 unique_name_in_owner = true
@@ -145,6 +164,7 @@ custom_minimum_size = Vector2(0, 48)
 layout_mode = 2
 size_flags_horizontal = 3
 text = "Stop"
+icon = ExtResource("icon_8_square")
 
 [node name="Status" type="Label" parent="Margin/Layout"]
 unique_name_in_owner = true
@@ -189,6 +209,7 @@ unique_name_in_owner = true
 custom_minimum_size = Vector2(0, 48)
 layout_mode = 2
 text = "OK"
+icon = ExtResource("icon_0_circle_check")
 
 [node name="SolutionPlayer" type="Node" parent="."]
 unique_name_in_owner = true

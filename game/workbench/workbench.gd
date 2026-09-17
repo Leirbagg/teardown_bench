@@ -381,7 +381,7 @@ func _update_timer() -> void:
 
 
 func _update_flip_label() -> void:
-	_flip_button.text = "Flip (%s)" % _device_view.face.capitalize()
+	_flip_button.text = _device_view.face.capitalize()
 
 
 func _update_clue_markers() -> void:

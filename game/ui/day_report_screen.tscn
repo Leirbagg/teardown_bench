@@ -1,6 +1,7 @@
-[gd_scene load_steps=2 format=3]
+[gd_scene load_steps=3 format=3]
 
 [ext_resource type="Script" path="res://game/ui/day_report_screen.gd" id="1_script"]
+[ext_resource type="Texture2D" path="res://assets/third_party/lucide/icons/skip-forward.svg" id="icon_0_skip_forward"]
 
 [node name="DayReportScreen" type="Control"]
 layout_mode = 3
@@ -65,3 +66,4 @@ unique_name_in_owner = true
 custom_minimum_size = Vector2(0, 56)
 layout_mode = 2
 text = "Next day"
+icon = ExtResource("icon_0_skip_forward")

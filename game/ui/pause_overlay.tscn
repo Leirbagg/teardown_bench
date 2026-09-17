@@ -1,7 +1,8 @@
-[gd_scene load_steps=3 format=3]
+[gd_scene load_steps=4 format=3]
 
 [ext_resource type="Script" path="res://game/ui/pause_overlay.gd" id="1_script"]
 [ext_resource type="PackedScene" path="res://game/settings/settings_toggles.tscn" id="2_toggles"]
+[ext_resource type="Texture2D" path="res://assets/third_party/lucide/icons/play.svg" id="icon_0_play"]
 
 [node name="PauseOverlay" type="ColorRect"]
 anchors_preset = 15
@@ -37,6 +38,7 @@ unique_name_in_owner = true
 custom_minimum_size = Vector2(0, 56)
 layout_mode = 2
 text = "Resume"
+icon = ExtResource("icon_0_play")
 
 [node name="SettingsToggles" parent="Layout" instance=ExtResource("2_toggles")]
 layout_mode = 2
