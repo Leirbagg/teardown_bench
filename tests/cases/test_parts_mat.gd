@@ -83,6 +83,84 @@ func test_small_items_are_drawn_large_enough_to_touch() -> void:
 	mat.free()
 
 
+func _touch(map: MatMap, position: Vector2, pressed: bool) -> void:
+	var touch: InputEventScreenTouch = InputEventScreenTouch.new()
+	touch.position = position
+	touch.pressed = pressed
+	map._gui_input(touch)
+
+
+func _drag(map: MatMap, position: Vector2) -> void:
+	var drag: InputEventScreenDrag = InputEventScreenDrag.new()
+	drag.position = position
+	map._gui_input(drag)
+
+
+func test_dragging_a_part_moves_it_on_the_mat() -> void:
+	var state: DisassemblyState = _starter_phone_state()
+	var mat: PartsMat = _mat(state)
+	DisassemblyFixture.remove_with_prerequisites(state, "connector_cover")
+	var map: MatMap = _map(mat)
+	var before: Rect2 = map.item_rect("cover_screw_1")
+	var start: Vector2 = before.get_center()
+	_touch(map, start, true)
+	for step: int in range(1, 6):
+		_drag(map, start + Vector2(12.0 * step, 8.0 * step))
+	_touch(map, start + Vector2(60, 40), false)
+	var after: Rect2 = map.item_rect("cover_screw_1")
+	assert_true(after.get_center().is_equal_approx(before.get_center() + Vector2(60, 40)), "la pièce suit le doigt")
+	assert_eq(map.selected_id, "cover_screw_1", "la pièce déplacée est sélectionnée")
+	assert_eq(map.item_rect("cover_screw_2"), map.item_rect("cover_screw_2"), "les autres ne bougent pas")
+	mat.free()
+
+
+func test_a_short_tap_still_selects_and_deselects() -> void:
+	var state: DisassemblyState = _starter_phone_state()
+	var mat: PartsMat = _mat(state)
+	DisassemblyFixture.remove_with_prerequisites(state, "connector_cover")
+	var map: MatMap = _map(mat)
+	var center: Vector2 = map.item_rect("cover_screw_1").get_center()
+	_touch(map, center, true)
+	_drag(map, center + Vector2(2, 1))
+	_touch(map, center + Vector2(2, 1), false)
+	assert_eq(map.selected_id, "cover_screw_1")
+	_touch(map, center, true)
+	_touch(map, center, false)
+	assert_eq(map.selected_id, "", "second appui : désélection")
+	mat.free()
+
+
+func test_a_part_cannot_be_dragged_out_of_the_mat() -> void:
+	var state: DisassemblyState = _starter_phone_state()
+	var mat: PartsMat = _mat(state)
+	DisassemblyFixture.remove_with_prerequisites(state, "connector_cover")
+	var map: MatMap = _map(mat)
+	var start: Vector2 = map.item_rect("cover_screw_1").get_center()
+	_touch(map, start, true)
+	_drag(map, Vector2(-500, -500))
+	_touch(map, Vector2(-500, -500), false)
+	var rect: Rect2 = map.item_rect("cover_screw_1")
+	assert_true(rect.position.x >= -1.0 and rect.position.y >= -1.0, "reste sur le tapis : %s" % rect)
+	mat.free()
+
+
+func test_a_part_put_back_forgets_its_place_on_the_mat() -> void:
+	var state: DisassemblyState = _starter_phone_state()
+	var mat: PartsMat = _mat(state)
+	DisassemblyFixture.remove_with_prerequisites(state, "connector_cover")
+	var map: MatMap = _map(mat)
+	var origin: Rect2 = map.item_rect("cover_screw_1")
+	var start: Vector2 = origin.get_center()
+	_touch(map, start, true)
+	_drag(map, start + Vector2(50, 30))
+	_touch(map, start + Vector2(50, 30), false)
+	assert_eq(state.commit_install("connector_cover").outcome, DisassemblyResult.Outcome.INSTALLED, "préparation")
+	assert_eq(state.commit_install("cover_screw_1").outcome, DisassemblyResult.Outcome.INSTALLED, "préparation")
+	state.commit_remove("cover_screw_1")
+	assert_eq(map.item_rect("cover_screw_1"), origin, "elle revient à son emplacement d'origine")
+	mat.free()
+
+
 func test_actions_follow_the_selected_part() -> void:
 	var state: DisassemblyState = _starter_phone_state()
 	var mat: PartsMat = _mat(state)

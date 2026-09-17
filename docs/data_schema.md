@@ -74,7 +74,7 @@ Tout fichier doit passer `DeviceValidator` (`core/data/device_validator.gd`).
 | `components[].kind` | oui | core + game | `screw`, `cover`, `connector`, `adhesive`, `module` |
 | `components[].face` | oui | game | Une valeur de `faces` |
 | `components[].gesture` | oui | game | `rotate`, `pull`, `hold`, `pry` |
-| `components[].gesture_params` | non | game | Réglages de reconnaissance (`turns`, `direction_deg`, `duration_s`) |
+| `components[].gesture_params` | non | game | Réglages de reconnaissance : `turns`, `direction_deg`, `duration_s`, `perimeter_ratio` (part du contour à parcourir au levier, 0,5 par défaut) |
 | `components[].requires` | oui | core | Ids existants, sans cycle |
 | `components[].covered_by` | oui | core | Sous-ensemble de `requires` |
 | `components[].role` | non | core | Lien avec pannes et tests. Unique par appareil |
@@ -85,7 +85,7 @@ Tout fichier doit passer `DeviceValidator` (`core/data/device_validator.gd`).
 | `components[].screw_type` | non | game | Vis uniquement : `pentalobe`, `phillips`, `tri_point` (tête dessinée) |
 | `components[].length_mm` | non | game | Vis uniquement : longueur en mm, > 0 (affichée sur le tapis) |
 | `components[].hint` | non | game | Explication affichée par le mode solution, en anglais |
-| `components[].visual` | non | game | Ignoré par `core/`. `rect` ; `hinge` (`left`, `right`, `top`, `bottom`) pour une pièce qui s'ouvre comme un livre et reste attachée par ses `replace_requires` |
+| `components[].visual` | non | game | Ignoré par `core/`. `rect` ; `hinge` (`left`, `right`, `top`, `bottom`) pour une pièce qui s'ouvre comme un livre et reste attachée par ses `replace_requires` ; `frame_thickness` pour un joint qui entoure une pièce (dessiné en cadre, touchable sur sa bande) ; `cable_to` pour un connecteur relié à une pièce (nappe dessinée, débranchement sur place) |
 
 ### Décor (`decorations`, facultatif)
 

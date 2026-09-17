@@ -107,9 +107,14 @@ Plainte client → Inspection → Mesure / test → Démontage → Remplacement
 
 - **Tapis magnétique (fait)** : chaque pièce retirée est posée à son emplacement d'origine sur une
   silhouette de l'appareil, avec sa tête de vis réelle et sa longueur. Il se déplie par-dessus
-  l'établi ; on y choisit une pièce pour la remonter ou la remplacer.
+  l'établi ; on y choisit une pièce pour la remonter ou la remplacer, et on peut les ranger en les
+  déplaçant au doigt.
 - **Pièce ouverte mais attachée (fait)** : un écran qui s'ouvre comme un livre reste rabattu à côté
   de l'appareil, tenu par ses nappes, tant qu'elles sont branchées ; on le referme en le ramenant.
+- **Nappes (fait)** : un connecteur débranché reste près de son socle, relié par sa nappe ; le
+  rebrancher est un geste, pas un bouton.
+- **Joint d'étanchéité (fait)** : l'adhésif entoure l'écran, se chauffe sur ses bords, et le
+  médiator doit faire tout le tour pour décoller l'écran.
 - **Plus tard** : remonter chaque vis dans son trou ; une vis trop longue au mauvais endroit abîme
   la carte mère (erreur de décision, compatible avec le pilier 2). Mécanique de progression.
 

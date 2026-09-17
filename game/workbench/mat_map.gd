@@ -15,6 +15,8 @@ const SILHOUETTE_COLOR: Color = Color(1, 1, 1, 0.14)
 const SELECTED_COLOR: Color = Color("ffd60a")
 const NEW_COLOR: Color = Color("46a758")
 const LENGTH_FONT_SIZE: int = 9
+## En deçà, le doigt a tapé ; au-delà, il a déplacé la pièce.
+const TAP_TOLERANCE: float = 6.0
 ## Une pièce plus grande que ce ratio de l'appareil (un écran) est dessinée en transparence :
 ## les vis et caches posés dessus restent lisibles.
 const LARGE_PART_RATIO: float = 0.25
@@ -27,6 +29,11 @@ var selected_id: String = "":
 		queue_redraw()
 
 var _state: DisassemblyState
+## Déplacements décidés par le joueur, par pièce, en pixels du tapis.
+var _offsets: Dictionary[String, Vector2] = {}
+var _drag_id: String = ""
+var _drag_start: Vector2
+var _drag_origin: Vector2
 var _bounds: Rect2
 var _painter: PartPainter = PartPainter.new()
 
@@ -59,11 +66,14 @@ func item_ids() -> PackedStringArray:
 	return ids
 
 
-## Rectangle dessiné d'une pièce, à son emplacement d'origine, agrandi à MIN_ITEM_SIZE.
+## Rectangle dessiné d'une pièce : son emplacement d'origine, plus le déplacement du joueur,
+## agrandi à MIN_ITEM_SIZE.
 func item_rect(component_id: String) -> Rect2:
 	var rect: Rect2 = DeviceView._device_rect(_state.device.get_component(component_id))
 	var mapped: Rect2 = Rect2(rect.position * _scale() + _offset(), rect.size * _scale())
-	return _grow_to(mapped, MIN_ITEM_SIZE)
+	var placed: Rect2 = _grow_to(mapped, MIN_ITEM_SIZE)
+	placed.position += _offsets.get(component_id, Vector2.ZERO)
+	return placed
 
 
 ## Sélectionne la pièce sous le doigt : la plus petite qui contient le point (une vis posée sur
@@ -98,9 +108,44 @@ func _pick(position: Vector2) -> String:
 
 func _gui_input(event: InputEvent) -> void:
 	var touch: InputEventScreenTouch = event as InputEventScreenTouch
-	if touch != null and touch.pressed:
-		select_at(touch.position)
+	if touch != null:
+		if touch.pressed:
+			_begin_drag(touch.position)
+		else:
+			_end_drag(touch.position)
 		accept_event()
+	var drag: InputEventScreenDrag = event as InputEventScreenDrag
+	if drag != null and not _drag_id.is_empty():
+		_offsets[_drag_id] = _clamped_offset(_drag_id, _drag_origin + drag.position - _drag_start)
+		queue_redraw()
+		accept_event()
+
+
+func _begin_drag(position: Vector2) -> void:
+	_drag_id = _pick(position)
+	_drag_start = position
+	_drag_origin = _offsets.get(_drag_id, Vector2.ZERO)
+
+
+## Doigt levé : un appui bref sélectionne, un déplacement garde la pièce où on l'a posée.
+func _end_drag(position: Vector2) -> void:
+	if _drag_id.is_empty():
+		return
+	if position.distance_to(_drag_start) <= TAP_TOLERANCE:
+		select_at(_drag_start)
+	elif selected_id != _drag_id:
+		selected_id = _drag_id
+		part_selected.emit(selected_id)
+	_drag_id = ""
+
+
+## Garde la pièce entièrement sur le tapis.
+func _clamped_offset(component_id: String, wanted: Vector2) -> Vector2:
+	var base: Rect2 = item_rect(component_id)
+	base.position -= _offsets.get(component_id, Vector2.ZERO)
+	var minimum: Vector2 = -base.position
+	var maximum: Vector2 = size - base.size - base.position
+	return wanted.clamp(minimum.min(maximum), maximum.max(minimum))
 
 
 func _draw() -> void:
@@ -158,6 +203,11 @@ func _on_state_changed(_component_id: String) -> void:
 	if not selected_id.is_empty() and not selected_id in item_ids():
 		selected_id = ""
 		part_selected.emit("")
+	# Une pièce remontée oublie sa place : elle repartira de son emplacement d'origine.
+	var on_mat: PackedStringArray = item_ids()
+	for id: String in _offsets.keys():
+		if not id in on_mat:
+			_offsets.erase(id)
 	queue_redraw()
 
 
