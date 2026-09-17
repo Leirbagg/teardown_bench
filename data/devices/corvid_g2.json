@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "id": "corvid_g2",
-  "name": "Corvid G2",
+  "name": "sasung22",
   "tier": 2,
   "faces": [
     "front",
@@ -1141,7 +1141,7 @@
         80,
         22
       ],
-      "label": "CORVID G2",
+      "label": "SASUNG22",
       "attached_to": "back_glass"
     }
   ]

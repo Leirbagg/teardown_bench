@@ -128,7 +128,7 @@ Plainte client → Inspection → Mesure / test → Démontage → Remplacement
 
 ### Inclus
 
-- **1 appareil au MVP** (un second, le *Corvid G2*, est arrivé depuis : voir « État » du README) :
+- **1 appareil au MVP** (un second, le *sasung22*, est arrivé depuis : voir « État » du README) :
   un smartphone fictif, analogue fidèle d'un modèle 6,1 pouces de 2021 d'après les
   guides de réparation publics (ouverture par l'écran, caches vissés, batterie débranchée en premier,
   languettes adhésives, haut-parleur, vibreur, port de charge collé). Aucun nom ni logo réel.
