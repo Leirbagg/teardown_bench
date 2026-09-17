@@ -38,9 +38,10 @@ const CORNER_RADIUS: Dictionary[String, int] = {
 	"camera": 14,
 	"notch": 8,
 	"frame_seal": 3,
+	"socket": 3,
 }
 ## Styles sans bordure : fonds et décors.
-const BORDERLESS: PackedStringArray = ["bubble", "body", "mat", "frame", "frame_seal", "board", "chip", "camera", "lens", "glass", "notch"]
+const BORDERLESS: PackedStringArray = ["bubble", "body", "mat", "frame", "frame_seal", "socket", "board", "chip", "camera", "lens", "glass", "notch"]
 
 var _styles: Dictionary[String, StyleBoxFlat] = {}
 
@@ -98,12 +99,21 @@ static func frame_thickness(component: ComponentDefinition, rect: Rect2) -> floa
 	return minf(declared * scale, minf(rect.size.x, rect.size.y) / 2.0 - 1.0)
 
 
-## Vrai si le point touche la pièce : pour un cadre, la bande, pas le trou.
-static func contains_point(component: ComponentDefinition, rect: Rect2, point: Vector2) -> bool:
+## Vrai si le point touche la pièce : pour un joint, sa bande, jamais le trou. `touch_band` élargit
+## la zone sensible d'un joint dessiné fin, sans l'épaissir à l'écran.
+static func contains_point(component: ComponentDefinition, rect: Rect2, point: Vector2, touch_band: float = 0.0) -> bool:
 	if not rect.has_point(point):
 		return false
 	var thickness: float = frame_thickness(component, rect)
-	return thickness <= 0.0 or not rect.grow(-thickness).has_point(point)
+	if thickness <= 0.0:
+		return true
+	return not rect.grow(-maxf(thickness, touch_band)).has_point(point)
+
+
+## Socle d'un connecteur débranché : creux, à la place exacte de la nappe.
+func draw_socket(canvas: CanvasItem, rect: Rect2, color: Color) -> void:
+	canvas.draw_style_box(style("socket", Color(0.06, 0.08, 0.09, 1.0)), rect)
+	canvas.draw_rect(rect, Color(color, 0.45), false, 2.0)
 
 
 ## Vis vue de dessus : ombre, corps, et empreinte selon la tête (cruciforme par défaut).

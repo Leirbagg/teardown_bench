@@ -78,34 +78,50 @@ theme_override_constants/separation = 6
 
 [node name="FlipButton" type="Button" parent="Margin/Layout/Tools"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(0, 48)
+custom_minimum_size = Vector2(0, 56)
 layout_mode = 2
 size_flags_horizontal = 3
+icon_alignment = 1
+vertical_icon_alignment = 0
+theme_override_font_sizes/font_size = 12
+clip_text = true
 text = "Flip"
 icon = ExtResource("icon_6_rotate_3d")
 
 [node name="LoupeButton" type="Button" parent="Margin/Layout/Tools"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(0, 48)
+custom_minimum_size = Vector2(0, 56)
 layout_mode = 2
 size_flags_horizontal = 3
 toggle_mode = true
+icon_alignment = 1
+vertical_icon_alignment = 0
+theme_override_font_sizes/font_size = 12
+clip_text = true
 text = "Loupe"
 icon = ExtResource("icon_9_zoom_in")
 
 [node name="TestsButton" type="Button" parent="Margin/Layout/Tools"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(0, 48)
+custom_minimum_size = Vector2(0, 56)
 layout_mode = 2
 size_flags_horizontal = 3
+icon_alignment = 1
+vertical_icon_alignment = 0
+theme_override_font_sizes/font_size = 12
+clip_text = true
 text = "Tests"
 icon = ExtResource("icon_4_list_checks")
 
 [node name="FinalTestButton" type="Button" parent="Margin/Layout/Tools"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(0, 48)
+custom_minimum_size = Vector2(0, 56)
 layout_mode = 2
 size_flags_horizontal = 3
+icon_alignment = 1
+vertical_icon_alignment = 0
+theme_override_font_sizes/font_size = 12
+clip_text = true
 text = "Final"
 icon = ExtResource("icon_0_circle_check")
 
@@ -118,6 +134,7 @@ unique_name_in_owner = true
 custom_minimum_size = Vector2(0, 48)
 layout_mode = 2
 size_flags_horizontal = 3
+clip_text = true
 text = "Mat · 0 parts"
 icon = ExtResource("icon_3_layout_grid")
 
@@ -125,6 +142,7 @@ icon = ExtResource("icon_3_layout_grid")
 unique_name_in_owner = true
 custom_minimum_size = Vector2(112, 48)
 layout_mode = 2
+clip_text = true
 text = "Solution"
 icon = ExtResource("icon_2_graduation_cap")
 
@@ -136,33 +154,49 @@ theme_override_constants/separation = 6
 
 [node name="SolutionPauseButton" type="Button" parent="Margin/Layout/SolutionBar"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(0, 48)
+custom_minimum_size = Vector2(0, 56)
 layout_mode = 2
 size_flags_horizontal = 3
+icon_alignment = 1
+vertical_icon_alignment = 0
+theme_override_font_sizes/font_size = 12
+clip_text = true
 text = "Pause"
 icon = ExtResource("icon_5_pause")
 
 [node name="SolutionNextButton" type="Button" parent="Margin/Layout/SolutionBar"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(0, 48)
+custom_minimum_size = Vector2(0, 56)
 layout_mode = 2
 size_flags_horizontal = 3
+icon_alignment = 1
+vertical_icon_alignment = 0
+theme_override_font_sizes/font_size = 12
+clip_text = true
 text = "Next"
 icon = ExtResource("icon_7_skip_forward")
 
 [node name="SolutionSpeedButton" type="Button" parent="Margin/Layout/SolutionBar"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(0, 48)
+custom_minimum_size = Vector2(0, 56)
 layout_mode = 2
 size_flags_horizontal = 3
+icon_alignment = 1
+vertical_icon_alignment = 0
+theme_override_font_sizes/font_size = 12
+clip_text = true
 text = "Speed ×1"
 icon = ExtResource("icon_1_gauge")
 
 [node name="SolutionStopButton" type="Button" parent="Margin/Layout/SolutionBar"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(0, 48)
+custom_minimum_size = Vector2(0, 56)
 layout_mode = 2
 size_flags_horizontal = 3
+icon_alignment = 1
+vertical_icon_alignment = 0
+theme_override_font_sizes/font_size = 12
+clip_text = true
 text = "Stop"
 icon = ExtResource("icon_8_square")
 

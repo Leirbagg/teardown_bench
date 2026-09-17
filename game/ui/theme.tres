@@ -4,9 +4,9 @@
 [ext_resource type="FontFile" path="res://assets/third_party/inter/Inter-SemiBold.ttf" id="2_semibold"]
 
 [sub_resource type="StyleBoxFlat" id="button_normal"]
-content_margin_left = 10.0
+content_margin_left = 7.0
 content_margin_top = 6.0
-content_margin_right = 10.0
+content_margin_right = 7.0
 content_margin_bottom = 6.0
 bg_color = Color(0.129412, 0.160784, 0.188235, 1)
 border_width_left = 1
@@ -21,9 +21,9 @@ corner_radius_bottom_left = 10
 anti_aliasing = true
 
 [sub_resource type="StyleBoxFlat" id="button_hover"]
-content_margin_left = 10.0
+content_margin_left = 7.0
 content_margin_top = 6.0
-content_margin_right = 10.0
+content_margin_right = 7.0
 content_margin_bottom = 6.0
 bg_color = Color(0.180392, 0.219608, 0.254902, 1)
 border_width_left = 1
@@ -38,9 +38,9 @@ corner_radius_bottom_left = 10
 anti_aliasing = true
 
 [sub_resource type="StyleBoxFlat" id="button_pressed"]
-content_margin_left = 10.0
+content_margin_left = 7.0
 content_margin_top = 6.0
-content_margin_right = 10.0
+content_margin_right = 7.0
 content_margin_bottom = 6.0
 bg_color = Color(0.184314, 0.498039, 0.52549, 1)
 border_width_left = 1
@@ -55,9 +55,9 @@ corner_radius_bottom_left = 10
 anti_aliasing = true
 
 [sub_resource type="StyleBoxFlat" id="button_disabled"]
-content_margin_left = 10.0
+content_margin_left = 7.0
 content_margin_top = 6.0
-content_margin_right = 10.0
+content_margin_right = 7.0
 content_margin_bottom = 6.0
 bg_color = Color(0.105882, 0.129412, 0.152941, 1)
 border_width_left = 1
@@ -104,8 +104,8 @@ Button/colors/font_hover_color = Color(1, 1, 1, 1)
 Button/colors/font_pressed_color = Color(1, 1, 1, 1)
 Button/colors/icon_disabled_color = Color(1, 1, 1, 0.35)
 Button/colors/icon_normal_color = Color(0.909804, 0.929412, 0.94902, 1)
-Button/constants/h_separation = 8
-Button/constants/icon_max_width = 22
+Button/constants/h_separation = 6
+Button/constants/icon_max_width = 20
 Button/font_sizes/font_size = 14
 Button/fonts/font = ExtResource("2_semibold")
 Button/styles/disabled = SubResource("button_disabled")

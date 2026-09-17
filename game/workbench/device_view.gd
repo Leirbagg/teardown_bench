@@ -57,8 +57,10 @@ const OPEN_PANEL_COLOR: Color = Color("15191e")
 const OPEN_PANEL_SHIELD_COLOR: Color = Color("5a6470")
 const CABLE_COLOR: Color = Color("b8892e")
 const CABLE_EDGE_COLOR: Color = Color("3d2f10")
-## Un connecteur débranché reste près de son socle, tiré dans le sens du débranchement.
-const UNPLUG_OFFSET: float = 16.0
+## Une nappe débranchée s'écarte de son socle, qui reste en place.
+const UNPLUG_OFFSET: float = 18.0
+## Un joint dessiné fin reste attrapable : sa bande sensible est plus large que son trait.
+const SEAL_TOUCH_BAND: float = 18.0
 
 
 ## Animation ponctuelle dessinée par-dessus l'appareil.
@@ -163,7 +165,7 @@ func component_at(position: Vector2) -> String:
 		if not _is_drawn(component):
 			continue
 		var rect: Rect2 = view_rect(component)
-		if direct == null and PartPainter.contains_point(component, rect, position):
+		if direct == null and PartPainter.contains_point(component, rect, position, SEAL_TOUCH_BAND):
 			direct = component
 			direct_level = i
 		elif _touch_rect(rect) != rect and _touch_rect(rect).has_point(position):
@@ -542,6 +544,8 @@ func _draw() -> void:
 		if _is_hinged(component) and component.face == face and _state.is_removed(component.id):
 			_draw_open_panel(component)
 		elif is_unplugged(component.id):
+			# Le socle ne bouge pas : c'est la nappe qui se débranche et s'écarte.
+			_painter.draw_socket(self, view_rect(component), PartPainter.kind_color(component.kind))
 			_painter.draw_part(self, component, unplugged_rect(component.id), PartPainter.kind_color(component.kind))
 	for effect: Effect in _effects:
 		_draw_effect(effect)

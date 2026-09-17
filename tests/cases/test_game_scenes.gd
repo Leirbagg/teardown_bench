@@ -349,6 +349,27 @@ func test_solution_mode_can_be_stopped_to_take_over() -> void:
 	main.free()
 
 
+## Rien ne doit être plus large que l'écran le plus étroit visé (360dp, CLAUDE.md) : sinon les
+## rangées de boutons et les textes sortent de l'écran des deux côtés.
+func test_no_screen_is_wider_than_the_narrowest_phone() -> void:
+	const NARROWEST: float = 360.0
+	var available: float = NARROWEST - 2.0 * Main.MIN_SAFE_MARGIN
+	var main: Main = _fresh_main()
+	var screens: Array[Control] = [main.current_screen]
+	(main.current_screen as CustomerScreen).start_pressed.emit()
+	var workbench: Workbench = main.current_screen as Workbench
+	screens.append(workbench)
+	workbench.start_solution()
+	screens.append(workbench.parts_mat)
+	for screen: Control in screens:
+		var minimum: float = screen.get_combined_minimum_size().x
+		assert_true(minimum <= available, "%s : %.0f dp de large, %.0f disponibles" % [screen.name, minimum, available])
+	for path: String in ["Margin/Layout/Tools", "Margin/Layout/MatBar", "Margin/Layout/SolutionBar"]:
+		var row: Control = workbench.get_node(path)
+		assert_true(row.get_combined_minimum_size().x <= available, "%s : %.0f dp" % [path, row.get_combined_minimum_size().x])
+	main.free()
+
+
 ## L'encoche et les coins arrondis rogneaient les bords sur un vrai téléphone.
 func test_screens_keep_a_margin_inside_the_safe_area() -> void:
 	var main: Main = _fresh_main()
