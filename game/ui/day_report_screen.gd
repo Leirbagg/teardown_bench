@@ -38,6 +38,9 @@ func setup(report: DayReport, workshop: Workshop) -> void:
 			"assisted" if job.assisted else ("on time" if job.deadline_met else "late"),
 			job.broken_parts.size(), job.diagnosis_errors(),
 		]
+		# Sans cette mention, ses casses semblent manquer au total du haut.
+		if not job.counted_in_totals():
+			line.text += " (not counted)"
 		if not job.assisted:
 			line.text += "\n%s · $%d − $%d parts = %s$%d" % [_stars(job.stars), job.payout + job.deadline_bonus,
 				job.parts_cost, "+" if job.earnings() >= 0 else "−", absi(job.earnings())]

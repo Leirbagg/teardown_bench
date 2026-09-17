@@ -26,6 +26,12 @@ var deadline_bonus: int
 var stars: int
 
 
+## Vrai si cette réparation pèse dans les totaux et la réputation. Une réparation assistée
+## n'entre nulle part : le bilan doit le dire sur sa ligne, sinon ses casses semblent oubliées.
+func counted_in_totals() -> bool:
+	return not assisted
+
+
 ## Erreurs de diagnostic : remplacements inutiles et tests finaux ratés.
 func diagnosis_errors() -> int:
 	return unnecessary_replacements + failed_final_tests

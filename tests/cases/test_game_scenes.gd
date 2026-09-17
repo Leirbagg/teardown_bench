@@ -388,6 +388,39 @@ func test_no_screen_is_wider_than_the_narrowest_phone() -> void:
 	main.free()
 
 
+## Le total du haut ignore les réparations assistées : la ligne doit dire pourquoi elle n'y est
+## pas, sinon le joueur croit ses casses mal comptées.
+func test_the_day_report_marks_the_lines_that_do_not_count() -> void:
+	var report: DayReport = DayReport.new()
+	report.planned_jobs = 2
+	report.jobs = [_repair_line(true, "display"), _repair_line(false, "battery")]
+	var screen: DayReportScreen = preload("res://game/ui/day_report_screen.tscn").instantiate() as DayReportScreen
+	_root().add_child(screen)
+	screen.setup(report, Workshop.new())
+
+	var summary: String = screen.get_node("%Summary").text
+	assert_true(summary.contains("1 broken part(s)"), "seule la casse qui compte est au total : %s" % summary)
+	assert_true(summary.contains("not counted in the totals"), "l'exclusion est annoncée")
+	var lines: Array[Node] = screen.get_node("%Jobs").get_children()
+	assert_eq(lines.size(), 2, "une ligne par client")
+	assert_true((lines[0] as Label).text.contains("(not counted)"), "la ligne assistée le dit")
+	assert_false((lines[1] as Label).text.contains("(not counted)"), "la ligne ordinaire compte")
+	screen.free()
+
+
+func _repair_line(assisted: bool, broken_part: String) -> RepairReport:
+	var line: RepairReport = RepairReport.new()
+	line.device_id = "starter_phone"
+	line.completed = true
+	line.assisted = assisted
+	line.deadline_met = true
+	line.elapsed_s = 60.0
+	line.deadline_s = 120.0
+	line.broken_parts = PackedStringArray([broken_part])
+	line.stars = 0 if assisted else 4
+	return line
+
+
 ## Sur le téléphone, un souci d'affichage ne se décrit pas : l'appareil le dit lui-même.
 func test_a_long_press_opens_the_diagnostics_from_any_screen() -> void:
 	var main: Main = _fresh_main()

@@ -13,6 +13,8 @@ var current_session: RepairSession = null
 
 var _next_job_index: int = 0
 var _completed_reports: Array[RepairReport] = []
+## Clients servis avant la sauvegarde : ils ne sont plus dans `jobs`, mais comptent dans la journée.
+var _jobs_before_save: int = 0
 var _paused: bool = false
 
 
@@ -36,9 +38,11 @@ func remaining_jobs() -> Array[RepairJob]:
 	return jobs.slice(first)
 
 
-## Réinjecte les clients déjà servis, au chargement d'une sauvegarde.
+## Réinjecte les clients déjà servis, au chargement d'une sauvegarde. Ils ne sont plus dans
+## `jobs` — seuls ceux qui restent y sont — mais la journée en comptait bien autant.
 func restore_completed(reports: Array[RepairReport]) -> void:
 	_completed_reports = reports.duplicate()
+	_jobs_before_save = reports.size()
 
 
 ## Rang du prochain client, à partir de 1.
@@ -87,7 +91,7 @@ func resume() -> void:
 
 func report() -> DayReport:
 	var day_report: DayReport = DayReport.new()
-	day_report.planned_jobs = jobs.size()
+	day_report.planned_jobs = jobs.size() + _jobs_before_save
 	day_report.jobs = _completed_reports.duplicate()
 	if current_session != null:
 		day_report.jobs.append(current_session.report())
