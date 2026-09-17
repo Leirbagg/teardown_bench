@@ -91,6 +91,19 @@ func _touch(position: Vector2, pressed: bool) -> InputEventScreenTouch:
 	return touch
 
 
+## Le joint entoure l'écran : on le chauffe sur ses bords, on touche l'écran au milieu.
+func test_the_seal_is_only_touchable_on_its_band() -> void:
+	var state: DisassemblyState = _starter_phone_state()
+	var view: DeviceView = _device_view(state)
+	var screen: Rect2 = view.view_rect(state.device.get_component("display"))
+	assert_eq(view.component_at(screen.get_center()), "display", "au milieu : l'écran")
+	var on_band: Vector2 = Vector2(screen.get_center().x, screen.position.y + 4.0)
+	assert_eq(view.component_at(on_band), "display_adhesive", "sur le bord : le joint")
+	var seal: ComponentDefinition = state.device.get_component("display_adhesive")
+	assert_true(PartPainter.frame_thickness(seal, view.view_rect(seal)) > 0.0, "dessiné en cadre")
+	view.free()
+
+
 ## Pilier 2 : viser une pièce en plein centre ne doit jamais attraper sa voisine, même si la
 ## zone agrandie de la voisine, dessinée par-dessus, recouvre le doigt.
 func test_touching_a_part_squarely_never_picks_its_overlapping_neighbour() -> void:

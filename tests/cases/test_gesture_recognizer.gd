@@ -131,11 +131,39 @@ func test_pull_offset_follows_direction_and_is_bounded() -> void:
 
 # --- Levier ---
 
+## Fait le tour du rectangle, d'un coin au suivant, sur `sides` côtés.
+func _around(recognizer: GestureRecognizer, sides: int) -> void:
+	var corners: Array[Vector2] = [RECT.position, Vector2(RECT.end.x, RECT.position.y), RECT.end,
+		Vector2(RECT.position.x, RECT.end.y), RECT.position]
+	for side: int in sides:
+		for i: int in range(1, 9):
+			recognizer.drag(corners[side].lerp(corners[side + 1], float(i) / 8.0))
+
+
 func test_pry_along_the_edge_completes() -> void:
 	var recognizer: GestureRecognizer = _recognizer("pry", {}, RECT.position)
-	for point: Vector2 in [Vector2(140, 100), Vector2(140, 140), Vector2(100, 140)]:
-		recognizer.drag(point)
-	assert_true(recognizer.is_complete(), "trois côtés sur un carré de 40 : plus de la moitié du périmètre")
+	_around(recognizer, 3)
+	assert_true(recognizer.is_complete(), "trois côtés sur quatre : plus de la moitié du contour")
+
+
+func test_pry_can_demand_the_whole_perimeter() -> void:
+	var recognizer: GestureRecognizer = _recognizer("pry", {"perimeter_ratio": 1.0}, RECT.position)
+	_around(recognizer, 3)
+	assert_false(recognizer.is_complete(), "il reste un côté")
+	assert_true(recognizer.progress > 0.6)
+	_around(recognizer, 4)
+	assert_true(recognizer.is_complete(), "tout le tour du joint")
+
+
+func test_pry_on_a_single_edge_never_completes() -> void:
+	var recognizer: GestureRecognizer = _recognizer("pry", {}, RECT.position)
+	for pass_count: int in 10:
+		for i: int in 9:
+			recognizer.drag(Vector2(RECT.position.x + RECT.size.x * float(i) / 8.0, RECT.position.y))
+		for i: int in 9:
+			recognizer.drag(Vector2(RECT.end.x - RECT.size.x * float(i) / 8.0, RECT.position.y))
+	assert_false(recognizer.is_complete(), "frotter un seul côté ne fait pas le tour")
+	assert_true(recognizer.progress <= 0.75, "un côté sur quatre, plus les coins")
 
 
 func test_pry_through_the_middle_does_not_count() -> void:

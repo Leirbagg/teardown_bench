@@ -15,8 +15,12 @@ const DEFAULT_HOLD_S: float = 1.5
 const HOLD_MOVE_TOLERANCE: float = 32.0
 ## Distance au bord du composant pour que le glissement compte comme un levier.
 const PRY_EDGE_DISTANCE: float = 32.0
-const PRY_PERIMETER_RATIO: float = 0.5
-const PRY_MAX_PATH: float = 360.0
+## Le contour est découpé en segments : il faut les visiter, pas seulement parcourir une distance.
+const PRY_SEGMENTS: int = 16
+## Part du contour à visiter par défaut ; `perimeter_ratio` dans les données peut l'augmenter.
+const DEFAULT_PERIMETER_RATIO: float = 0.5
+## Pas d'échantillonnage du trajet : un glissement rapide ne saute pas de segment.
+const PRY_SAMPLE_STEP: float = 6.0
 
 var gesture: String = ""
 var progress: float = 0.0
@@ -27,7 +31,7 @@ var _start: Vector2
 var _last: Vector2
 var _angle: float = 0.0
 var _held_s: float = 0.0
-var _pry_path: float = 0.0
+var _pry_covered: PackedByteArray = PackedByteArray()
 
 
 func begin(gesture_name: String, gesture_params: Dictionary, target_rect: Rect2, position: Vector2) -> void:
@@ -38,7 +42,8 @@ func begin(gesture_name: String, gesture_params: Dictionary, target_rect: Rect2,
 	_last = position
 	_angle = 0.0
 	_held_s = 0.0
-	_pry_path = 0.0
+	_pry_covered = PackedByteArray()
+	_pry_covered.resize(PRY_SEGMENTS)
 	progress = 0.0
 
 
@@ -138,11 +143,39 @@ func _track_pull(position: Vector2) -> void:
 	progress = clampf(distance / PULL_DISTANCE, 0.0, 1.0)
 
 
+## Marque les segments de contour visités par le médiator, puis compare à la part exigée.
 func _track_pry(position: Vector2) -> void:
-	if _distance_to_edge(position) <= PRY_EDGE_DISTANCE and _distance_to_edge(_last) <= PRY_EDGE_DISTANCE:
-		_pry_path += _last.distance_to(position)
-	var required: float = minf((_rect.size.x + _rect.size.y) * 2.0 * PRY_PERIMETER_RATIO, PRY_MAX_PATH)
-	progress = minf(_pry_path / required, 1.0)
+	var steps: int = maxi(1, ceili(_last.distance_to(position) / PRY_SAMPLE_STEP))
+	for i: int in range(1, steps + 1):
+		var point: Vector2 = _last.lerp(position, float(i) / steps)
+		if _distance_to_edge(point) <= PRY_EDGE_DISTANCE:
+			_pry_covered[_perimeter_segment(point)] = 1
+	var covered: int = 0
+	for visited: int in _pry_covered:
+		covered += visited
+	var required: float = maxf(PRY_SEGMENTS * float(_params.get("perimeter_ratio", DEFAULT_PERIMETER_RATIO)), 1.0)
+	progress = minf(covered / required, 1.0)
+
+
+## Segment du contour le plus proche du point, numéroté depuis le coin haut gauche.
+func _perimeter_segment(position: Vector2) -> int:
+	var point: Vector2 = position.clamp(_rect.position, _rect.end)
+	var to_left: float = point.x - _rect.position.x
+	var to_right: float = _rect.end.x - point.x
+	var to_top: float = point.y - _rect.position.y
+	var to_bottom: float = _rect.end.y - point.y
+	var width: float = _rect.size.x
+	var height: float = _rect.size.y
+	var along: float = to_left
+	var nearest: float = minf(minf(to_top, to_bottom), minf(to_left, to_right))
+	if is_equal_approx(nearest, to_right):
+		along = width + to_top
+	elif is_equal_approx(nearest, to_bottom):
+		along = width + height + (width - to_left)
+	elif is_equal_approx(nearest, to_left):
+		along = 2.0 * width + height + (height - to_top)
+	var perimeter: float = maxf(2.0 * (width + height), 0.001)
+	return clampi(floori(along / perimeter * PRY_SEGMENTS), 0, PRY_SEGMENTS - 1)
 
 
 func _distance_to_edge(position: Vector2) -> float:

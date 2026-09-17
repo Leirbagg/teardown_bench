@@ -215,6 +215,8 @@ static func _check_visual(component: Dictionary, path: String, errors: Array[Str
 		return
 	_check_rect(component["visual"]["rect"], _field(path, "visual.rect"), errors)
 	var visual: Dictionary = component["visual"]
+	if visual.has("frame_thickness"):
+		_check_positive_number(visual, "frame_thickness", _field(path, "visual"), errors)
 	if visual.has("hinge"):
 		_check_enum(visual, "hinge", ComponentDefinition.HINGE_SIDES, _field(path, "visual"), errors)
 

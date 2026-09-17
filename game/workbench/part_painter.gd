@@ -37,9 +37,10 @@ const CORNER_RADIUS: Dictionary[String, int] = {
 	"chip": 2,
 	"camera": 14,
 	"notch": 8,
+	"frame_seal": 3,
 }
 ## Styles sans bordure : fonds et décors.
-const BORDERLESS: PackedStringArray = ["bubble", "body", "mat", "frame", "board", "chip", "camera", "lens", "glass", "notch"]
+const BORDERLESS: PackedStringArray = ["bubble", "body", "mat", "frame", "frame_seal", "board", "chip", "camera", "lens", "glass", "notch"]
 
 var _styles: Dictionary[String, StyleBoxFlat] = {}
 
@@ -62,13 +63,47 @@ func style(key: String, color: Color) -> StyleBoxFlat:
 	return cached
 
 
-## Une pièce : vis ronde avec sa tête, ou boîte arrondie selon son kind.
+## Une pièce : vis ronde avec sa tête, joint en cadre, ou boîte arrondie selon son kind.
 func draw_part(canvas: CanvasItem, component: ComponentDefinition, rect: Rect2, color: Color,
 		angle: float = 0.0, lift: float = 1.0) -> void:
 	if component.kind == "screw":
 		draw_screw(canvas, rect, color, component.screw_type, angle, lift)
-	else:
-		canvas.draw_style_box(style(component.kind, color), rect)
+		return
+	var thickness: float = frame_thickness(component, rect)
+	if thickness > 0.0:
+		draw_frame(canvas, rect, thickness, color)
+		return
+	canvas.draw_style_box(style(component.kind, color), rect)
+
+
+## Joint qui entoure une pièce : quatre bandes, pas un rectangle plein.
+func draw_frame(canvas: CanvasItem, rect: Rect2, thickness: float, color: Color) -> void:
+	var inner: Rect2 = rect.grow(-thickness)
+	for band: Rect2 in [
+		Rect2(rect.position, Vector2(rect.size.x, thickness)),
+		Rect2(Vector2(rect.position.x, inner.end.y), Vector2(rect.size.x, thickness)),
+		Rect2(Vector2(rect.position.x, inner.position.y), Vector2(thickness, inner.size.y)),
+		Rect2(Vector2(inner.end.x, inner.position.y), Vector2(thickness, inner.size.y)),
+	]:
+		canvas.draw_style_box(style("frame_seal", color), band)
+
+
+## Épaisseur du cadre dans le repère de `rect` (0 si la pièce n'est pas un cadre).
+static func frame_thickness(component: ComponentDefinition, rect: Rect2) -> float:
+	var declared: float = float(component.visual.get("frame_thickness", 0.0))
+	if declared <= 0.0:
+		return 0.0
+	var device_rect: Array = component.visual.get("rect", [0, 0, 1, 1])
+	var scale: float = rect.size.x / maxf(float(device_rect[2]), 0.001)
+	return minf(declared * scale, minf(rect.size.x, rect.size.y) / 2.0 - 1.0)
+
+
+## Vrai si le point touche la pièce : pour un cadre, la bande, pas le trou.
+static func contains_point(component: ComponentDefinition, rect: Rect2, point: Vector2) -> bool:
+	if not rect.has_point(point):
+		return false
+	var thickness: float = frame_thickness(component, rect)
+	return thickness <= 0.0 or not rect.grow(-thickness).has_point(point)
 
 
 ## Vis vue de dessus : ombre, corps, et empreinte selon la tête (cruciforme par défaut).
@@ -98,8 +133,12 @@ func draw_broken(canvas: CanvasItem, rect: Rect2) -> void:
 	canvas.draw_line(Vector2(rect.end.x, rect.position.y), Vector2(rect.position.x, rect.end.y), BROKEN_COLOR, 3.0)
 
 
-## Nom centré dans la pièce, si elle est assez grande pour le contenir.
-func draw_label(canvas: CanvasItem, font: Font, text: String, rect: Rect2, min_width: float = 56.0) -> void:
+## Nom centré dans la pièce, si elle est assez grande pour le contenir. Rien sur un joint en
+## cadre : son centre appartient à la pièce qu'il entoure.
+func draw_label(canvas: CanvasItem, font: Font, text: String, rect: Rect2, min_width: float = 56.0,
+		component: ComponentDefinition = null) -> void:
+	if component != null and frame_thickness(component, rect) > 0.0:
+		return
 	if rect.size.x >= min_width and rect.size.y >= LABEL_FONT_SIZE + 6:
 		canvas.draw_string(font, Vector2(rect.position.x, rect.get_center().y + LABEL_FONT_SIZE / 2.0),
 			text, HORIZONTAL_ALIGNMENT_CENTER, rect.size.x, LABEL_FONT_SIZE, LABEL_COLOR)

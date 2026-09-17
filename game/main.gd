@@ -119,7 +119,10 @@ func _set_screen(scene: PackedScene) -> Control:
 
 ## Écarte les écrans des bords : encoche, barre système et coins arrondis rognent l'affichage.
 func apply_safe_area() -> void:
-	var insets: Vector4i = safe_area_insets(DisplayServer.get_display_safe_area(), DisplayServer.window_get_size(),
+	# Sur ordinateur, la zone sûre est celle du bureau (dock compris) et n'a rien à voir avec la
+	# fenêtre : seule la marge minimale s'applique.
+	var safe: Rect2i = DisplayServer.get_display_safe_area() if OS.has_feature("mobile") else Rect2i()
+	var insets: Vector4i = safe_area_insets(safe, DisplayServer.window_get_size(),
 		get_viewport_rect().size, MIN_SAFE_MARGIN)
 	screen_host.add_theme_constant_override("margin_left", insets.x)
 	screen_host.add_theme_constant_override("margin_top", insets.y)

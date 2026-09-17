@@ -81,10 +81,11 @@ func _pick(position: Vector2) -> String:
 	var nearest_distance: float = INF
 	for id: String in item_ids():
 		var rect: Rect2 = item_rect(id)
-		if rect.has_point(position) and rect.get_area() < best_area:
+		var component: ComponentDefinition = _state.device.get_component(id)
+		if PartPainter.contains_point(component, rect, position) and rect.get_area() < best_area:
 			best_area = rect.get_area()
 			best_inside = id
-		elif _grow_to(rect, TOUCH_SIZE).has_point(position):
+		elif _grow_to(rect, TOUCH_SIZE) != rect and _grow_to(rect, TOUCH_SIZE).has_point(position):
 			var distance: float = rect.get_center().distance_squared_to(position)
 			if distance < nearest_distance:
 				nearest_distance = distance
@@ -127,7 +128,7 @@ func _draw() -> void:
 			_painter.draw_broken(self, rect)
 		elif id in replaced:
 			draw_string(font, rect.position + Vector2(2, 11), "NEW", HORIZONTAL_ALIGNMENT_LEFT, -1, LENGTH_FONT_SIZE, NEW_COLOR)
-		_painter.draw_label(self, font, UiFormat.label(id), rect)
+		_painter.draw_label(self, font, UiFormat.label(id), rect, 56.0, component)
 		if component.length_mm > 0.0:
 			draw_string(font, Vector2(rect.position.x - 8, rect.end.y + LENGTH_FONT_SIZE + 1), "%.1f" % component.length_mm,
 				HORIZONTAL_ALIGNMENT_CENTER, rect.size.x + 16, LENGTH_FONT_SIZE, PartPainter.DECORATION_LABEL_COLOR)

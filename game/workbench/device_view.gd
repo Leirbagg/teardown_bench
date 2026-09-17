@@ -158,10 +158,12 @@ func component_at(position: Vector2) -> String:
 		if not _is_drawn(component):
 			continue
 		var rect: Rect2 = view_rect(component)
-		if direct == null and rect.has_point(position):
+		if direct == null and PartPainter.contains_point(component, rect, position):
 			direct = component
 			direct_level = i
-		elif _touch_rect(rect).has_point(position):
+		elif _touch_rect(rect) != rect and _touch_rect(rect).has_point(position):
+			# Seules les pièces trop petites pour le doigt gagnent une zone élargie : une grande
+			# pièce, joint en cadre compris, ne se touche que par sa forme.
 			expanded.append(i)
 
 	var nearest_id: String = "" if direct == null else direct.id
@@ -402,7 +404,7 @@ static func ghost_duration(component: ComponentDefinition) -> float:
 		"hold":
 			return float(component.gesture_params.get("duration_s", GestureRecognizer.DEFAULT_HOLD_S)) * GHOST_OVERSHOOT + 0.2
 		"pry":
-			return 1.8
+			return 2.6
 	return 1.0
 
 
@@ -441,12 +443,15 @@ func _ghost_position(component: ComponentDefinition, ratio: float) -> Vector2:
 				direction = Vector2.from_angle(-deg_to_rad(float(component.gesture_params["direction_deg"])))
 			return center + direction * GestureRecognizer.PULL_DISTANCE * GHOST_OVERSHOOT * ratio
 		"pry":
+			# Tour complet du contour : le geste simulé doit couvrir ce que le joueur doit couvrir.
 			var inset: Rect2 = rect.grow(-minf(6.0, minf(rect.size.x, rect.size.y) / 4.0))
-			var corners: Array[Vector2] = [inset.position, Vector2(inset.position.x, inset.end.y), inset.end, Vector2(inset.end.x, inset.position.y)]
-			var legs: Array[float] = [inset.size.y, inset.size.x, inset.size.y]
-			var distance: float = ratio * (legs[0] + legs[1] + legs[2])
-			for leg: int in 3:
-				if distance <= legs[leg] or leg == 2:
+			var corners: Array[Vector2] = [inset.position, Vector2(inset.position.x, inset.end.y), inset.end,
+				Vector2(inset.end.x, inset.position.y), inset.position]
+			var legs: Array[float] = [inset.size.y, inset.size.x, inset.size.y, inset.size.x]
+			var perimeter: float = legs[0] + legs[1] + legs[2] + legs[3]
+			var distance: float = ratio * perimeter
+			for leg: int in 4:
+				if distance <= legs[leg] or leg == 3:
 					return corners[leg].lerp(corners[leg + 1], clampf(distance / maxf(legs[leg], 0.001), 0.0, 1.0))
 				distance -= legs[leg]
 	return center
@@ -506,7 +511,7 @@ func _draw_component(component: ComponentDefinition) -> void:
 		1.0 + SCREW_LIFT_RATIO * progress)
 	if _state.is_broken(component.id):
 		_painter.draw_broken(self, rect)
-	_painter.draw_label(self, get_theme_default_font(), UiFormat.label(component.id), rect, LABEL_MIN_WIDTH)
+	_painter.draw_label(self, get_theme_default_font(), UiFormat.label(component.id), rect, LABEL_MIN_WIDTH, component)
 	if loupe_mode and component.id in clue_component_ids:
 		var pulse: float = 18.0 + 3.0 * sin(_time_s * 6.0)
 		draw_arc(rect.get_center(), pulse, 0.0, TAU, 32, CLUE_COLOR, 3.0)
