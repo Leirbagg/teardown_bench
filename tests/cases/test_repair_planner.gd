@@ -147,3 +147,16 @@ func test_plan_recovers_from_any_messy_state() -> void:
 		_execute(diagnosis, RepairPlanner.plan(diagnosis), "graine %d" % seed_value)
 		if _failures > failures_before:
 			return
+
+
+## Le mode solution ne doit pas perdre les capteurs : il les démonte avant de changer l'écran,
+## puis les remonte sur le neuf.
+func test_plan_transfers_mounted_parts_instead_of_losing_them() -> void:
+	var diagnosis: Diagnosis = _diagnosis([DisassemblyFixture.make_fault("screen_cracked", "screen")])
+	var plan: Array[SolutionStep] = RepairPlanner.plan(diagnosis)
+	var kinds: PackedStringArray = _kinds(plan)
+	assert_true("REMOVE:front_sensors" in kinds, "capteurs démontés : %s" % ", ".join(kinds))
+	assert_true(kinds.find("REMOVE:front_sensors") < kinds.find("REPLACE:screen"), "avant de poser l'écran neuf")
+	assert_true("INSTALL:front_sensors" in kinds, "puis remontés")
+	assert_false("REPLACE:front_sensors" in kinds, "sans en racheter")
+	_execute(diagnosis, plan, "transfert des capteurs")

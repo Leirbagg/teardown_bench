@@ -39,6 +39,7 @@ var decorations: Array[Decoration] = []
 
 var _components_by_id: Dictionary[String, ComponentDefinition] = {}
 var _components_by_role: Dictionary[String, ComponentDefinition] = {}
+var _mounted_on: Dictionary[String, PackedStringArray] = {}
 
 
 ## Construit la définition à partir d'un dictionnaire déjà validé par DeviceValidator.
@@ -54,6 +55,10 @@ static func from_dict(data: Dictionary) -> DeviceDefinition:
 		device._components_by_id[component.id] = component
 		if not component.role.is_empty():
 			device._components_by_role[component.role] = component
+		if not component.mounted_on.is_empty():
+			var carried: PackedStringArray = device._mounted_on.get(component.mounted_on, PackedStringArray())
+			carried.append(component.id)
+			device._mounted_on[component.mounted_on] = carried
 	for raw: Dictionary in data["software_tests"]:
 		var test: SoftwareTest = SoftwareTest.new()
 		test.id = raw["id"]
@@ -84,6 +89,11 @@ func get_component(component_id: String) -> ComponentDefinition:
 ## Renvoie null si aucun composant ne porte ce rôle.
 func component_for_role(role: String) -> ComponentDefinition:
 	return _components_by_role.get(role)
+
+
+## Pièces montées sur ce composant : elles partent avec lui si on le remplace.
+func parts_mounted_on(component_id: String) -> PackedStringArray:
+	return _mounted_on.get(component_id, PackedStringArray())
 
 
 func component_ids() -> PackedStringArray:

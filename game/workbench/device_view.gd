@@ -140,9 +140,36 @@ func set_resisting(value: bool) -> void:
 	queue_redraw()
 
 
-## Rectangle d'un composant dans le repère de la vue.
+## Rectangle d'un composant dans le repère de la vue. Une pièce montée sur un panneau qui s'ouvre
+## voyage avec lui : elle est dessinée, touchée et manipulée là où elle se trouve vraiment.
 func view_rect(component: ComponentDefinition) -> Rect2:
-	return _to_view(_device_rect(component))
+	var rect: Rect2 = _to_view(_device_rect(component))
+	if component.mounted_on.is_empty():
+		return rect
+	var amount: float = _open_amount.get(component.mounted_on, 0.0)
+	if amount <= 0.01:
+		return rect
+	return _onto_open_panel(_state.device.get_component(component.mounted_on), rect, amount)
+
+
+## Projette un rectangle de l'appareil sur le quadrilatère du panneau ouvert.
+func _onto_open_panel(carrier: ComponentDefinition, rect: Rect2, amount: float) -> Rect2:
+	var base: Rect2 = _to_view(_device_rect(carrier))
+	if base.size.x <= 0.0 or base.size.y <= 0.0:
+		return rect
+	var quad: PackedVector2Array = _open_panel_polygon(carrier, amount)
+	var sideways: bool = str(carrier.visual["hinge"]) in ["left", "right"]
+	var corners: PackedVector2Array = PackedVector2Array()
+	for corner: Vector2 in [rect.position, Vector2(rect.end.x, rect.position.y), rect.end, Vector2(rect.position.x, rect.end.y)]:
+		var normalized: Vector2 = (corner - base.position) / base.size
+		# u va de la charnière au bord libre, v court le long de la charnière.
+		var u: float = normalized.x if sideways else normalized.y
+		var v: float = normalized.y if sideways else normalized.x
+		corners.append(quad[0].lerp(quad[1], u).lerp(quad[3].lerp(quad[2], u), v))
+	var mapped: Rect2 = Rect2(corners[0], Vector2.ZERO)
+	for corner: Vector2 in corners:
+		mapped = mapped.expand(corner)
+	return mapped
 
 
 ## Composant touché sous `position`, ou "" s'il n'y en a pas. Les petites pièces ont une zone de
@@ -154,6 +181,11 @@ func component_at(position: Vector2) -> String:
 		return ""
 	for component: ComponentDefinition in _state.device.components:
 		if is_open_tethered(component.id) and open_panel_rect(component.id).grow(8.0).has_point(position):
+			# Ce qui est posé sur le panneau se touche avant le panneau lui-même.
+			for mounted: String in _state.device.parts_mounted_on(component.id):
+				var part: ComponentDefinition = _state.device.get_component(mounted)
+				if _is_drawn(part) and _touch_rect(view_rect(part)).has_point(position):
+					return mounted
 			return component.id
 		if is_unplugged(component.id) and _touch_rect(unplugged_rect(component.id)).has_point(position):
 			return component.id
@@ -203,6 +235,11 @@ func _scale() -> float:
 
 func _is_drawn(component: ComponentDefinition) -> bool:
 	return component.face == face and not _state.is_removed(component.id) and _state.is_visible(component.id)
+
+
+## Vrai quand la pièce est posée sur un panneau ouvert : elle se dessine avec lui, par-dessus.
+func _rides_open_panel(component: ComponentDefinition) -> bool:
+	return not component.mounted_on.is_empty() and _open_amount.get(component.mounted_on, 0.0) > 0.01
 
 
 # --- Animation ---
@@ -561,7 +598,7 @@ func _draw() -> void:
 		if component.visual.has("cable_to") and component.face == face and _state.is_visible(component.id):
 			_draw_cable(component)
 	for component: ComponentDefinition in _draw_order:
-		if _is_drawn(component):
+		if _is_drawn(component) and not _rides_open_panel(component):
 			_draw_component(component)
 			for decoration: DeviceDefinition.Decoration in _state.device.decorations:
 				if decoration.attached_to == component.id:
@@ -569,6 +606,10 @@ func _draw() -> void:
 	for component: ComponentDefinition in _state.device.components:
 		if _is_hinged(component) and component.face == face and _state.is_removed(component.id):
 			_draw_open_panel(component)
+			for mounted: String in _state.device.parts_mounted_on(component.id):
+				var part: ComponentDefinition = _state.device.get_component(mounted)
+				if _is_drawn(part):
+					_draw_component(part)
 		elif is_unplugged(component.id):
 			# Le socle ne bouge pas : c'est la nappe qui se débranche et s'écarte.
 			var away: bool = is_cable_away(component.id)

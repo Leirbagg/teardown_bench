@@ -81,6 +81,7 @@ Tout fichier doit passer `DeviceValidator` (`core/data/device_validator.gd`).
 | `components[].replaceable` | non (`false`) | core | Seules ces pièces peuvent être remplacées ou cassées |
 | `components[].force_breaks` | non (`[id]`) | core | Pièces cassées quand on force ce composant |
 | `components[].replace_requires` | non (`[]`) | core | Pièces à retirer avant de remplacer ce composant, ex. les nappes d'un écran qui s'ouvre comme un livre |
+| `components[].mounted_on` | non (`""`) | core | Pièce qui porte celle-ci, à lister aussi dans `requires` : remplacer le porteur emporte ce qui est resté monté dessus (capteurs frontaux sur un écran) |
 | `components[].part_price` | non | core | Pièces `replaceable` uniquement : prix d'une pièce de rechange, > 0 |
 | `components[].screw_type` | non | game | Vis uniquement : `pentalobe`, `phillips`, `tri_point` (tête dessinée) |
 | `components[].length_mm` | non | game | Vis uniquement : longueur en mm, > 0 (affichée sur le tapis) |
@@ -112,6 +113,9 @@ sont rattachés.
   pièces `replaceable`.
 - `replace_requires` : références existantes, jamais le composant lui-même, et seulement sur un
   composant `replaceable`.
+- `mounted_on` : référence existante, jamais le composant lui-même, sur un porteur `replaceable`,
+  présente dans `requires`, et la pièce montée est elle-même `replaceable` — sinon la perdre avec
+  son porteur bloquerait la réparation (GDD, pilier 3).
 - **Orphelin** : composant que rien ne requiert (ni `requires` ni `replace_requires`), non
   `replaceable` et sans rôle. Le retirer ne sert à rien, c'est une erreur.
 

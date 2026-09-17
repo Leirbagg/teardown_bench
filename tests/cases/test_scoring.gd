@@ -44,13 +44,11 @@ func _force_the_screen_flex(state: DisassemblyState) -> DisassemblyResult:
 	return state.commit_remove("screen_flex")
 
 
-## Pose une pièce neuve à la place de celle qu'on a cassée, nappes détachées comprises.
+## Pose une pièce neuve à la place de celle qu'on a cassée, nappes détachées et pièces montées
+## dessus transférées.
 func _replace_part(state: DisassemblyState, component_id: String) -> void:
-	DisassemblyFixture.remove_with_prerequisites(state, component_id)
-	for attached: String in state.device.get_component(component_id).replace_requires:
-		DisassemblyFixture.remove_with_prerequisites(state, attached)
-	assert_eq(state.replace(component_id).outcome, DisassemblyResult.Outcome.REPLACED,
-		"préparation : pièce neuve posée")
+	DisassemblyFixture.replace_part(state, component_id)
+	assert_true(component_id in state.replaced_ids(), "préparation : pièce neuve posée")
 
 
 func _repair_and_finish(session: RepairSession) -> RepairReport:
@@ -243,3 +241,34 @@ func test_the_wallet_follows_the_reports_of_the_day() -> void:
 	assert_eq(workshop.money, start + expected, "le porte-monnaie suit les gains affichés")
 	assert_eq(workshop.jobs_done(), 2)
 	assert_eq(workshop.reputation(), 5.0, "deux réparations propres")
+
+
+## Un écran neuf arrive nu : oublier de transférer les capteurs se paie, mais ne bloque jamais.
+func test_sensors_left_on_the_old_screen_cost_a_new_part_and_a_star() -> void:
+	var errors: Array[String] = []
+	var catalog: DataCatalog = DataCatalog.load_manifest(DataCatalog.MANIFEST_PATH, errors)
+	assert_no_errors(errors)
+	var day: WorkDay = _catalog_day(catalog, ["screen_cracked"])
+	var session: RepairSession = day.start_next_job()
+	day.advance(10.0)
+	var state: DisassemblyState = session.state
+
+	DisassemblyFixture.remove_with_prerequisites(state, "display")
+	for attached: String in state.device.get_component("display").replace_requires:
+		DisassemblyFixture.remove_with_prerequisites(state, attached)
+	assert_eq(state.replace("display").outcome, DisassemblyResult.Outcome.REPLACED)
+	assert_true(state.is_broken("front_sensors"), "les capteurs sont partis avec l'ancien écran")
+
+	DisassemblyFixture.reassemble(state)
+	assert_false(session.run_final_test().is_passed(), "sans capteurs, l'appareil ne passe pas les appels")
+
+	DisassemblyFixture.replace_part(state, "front_sensors")
+	DisassemblyFixture.reassemble(state)
+	assert_true(session.run_final_test().is_passed(), "des capteurs neufs terminent la réparation")
+
+	var report: RepairReport = session.report()
+	assert_eq(report.broken_parts, PackedStringArray(["front_sensors"]))
+	assert_true("front_sensors" in report.replaced_parts, "il a fallu en racheter")
+	assert_eq(report.parts_cost, catalog.devices[0].get_component("display").part_price
+		+ catalog.devices[0].get_component("front_sensors").part_price, "l'écran et les capteurs")
+	assert_eq(report.stars, RepairPricing.MAX_STARS - 2, "la perte et le test final raté")

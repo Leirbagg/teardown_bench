@@ -378,8 +378,25 @@ func _on_replace_pressed() -> void:
 	if result.outcome == Outcome.NOT_DETACHED:
 		_set_status("Disconnect first: %s." % UiFormat.labels_brief(result.blockers, 2))
 	elif result.is_success():
-		_set_status("Swapped %s for a new part." % UiFormat.label(component_id))
-		_feedback.pulse(&"click", VIBRATE_CLICK_MS)
+		# Ce qui était resté monté dessus est parti avec l'ancienne pièce : le dire tout de suite,
+		# sinon le joueur ne comprend le manque qu'au test final.
+		var lost: PackedStringArray = _lost_with(component_id)
+		if lost.is_empty():
+			_set_status("Swapped %s for a new part." % UiFormat.label(component_id))
+			_feedback.pulse(&"click", VIBRATE_CLICK_MS)
+		else:
+			_set_status("Swapped %s — but %s went out with the old one." % [
+				UiFormat.label(component_id), UiFormat.labels_brief(lost, 2)])
+			_feedback.pulse(&"crack", VIBRATE_BREAK_MS)
+
+
+## Pièces qui viennent de partir avec la pièce remplacée : montées dessus, et cassées de ce fait.
+func _lost_with(component_id: String) -> PackedStringArray:
+	var lost: PackedStringArray = PackedStringArray()
+	for mounted: String in session.state.device.parts_mounted_on(component_id):
+		if session.state.is_broken(mounted):
+			lost.append(mounted)
+	return lost
 
 
 # --- Affichage ---

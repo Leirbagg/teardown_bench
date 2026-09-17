@@ -256,3 +256,40 @@ func test_random_actions_keep_invariant_and_match_queries() -> void:
 			_assert_invariant(state, context)
 		if _failures > failures_before:
 			return
+
+
+# --- Pièces montées sur une autre (mounted_on) ---
+
+## Un écran neuf arrive nu : ce qui était monté dessus part avec l'ancien.
+func test_replacing_a_part_takes_away_what_was_mounted_on_it() -> void:
+	var state: DisassemblyState = _new_state()
+	var lost: Array[String] = []
+	state.component_broken.connect(func(id: String, cause: String) -> void: lost.append("%s/%s" % [id, cause]))
+	DisassemblyFixture.remove_with_prerequisites(state, "screen")
+	assert_false(state.is_removed("front_sensors"), "préparation : les capteurs sont encore sur l'écran")
+
+	assert_eq(state.replace("screen").outcome, DisassemblyResult.Outcome.REPLACED)
+	assert_true(state.is_removed("front_sensors"), "les capteurs sont partis avec l'ancien écran")
+	assert_true(state.is_broken("front_sensors"), "et ne reviendront pas : il en faut des neufs")
+	assert_eq(lost, ["front_sensors/screen"] as Array[String], "la perte est annoncée")
+
+
+func test_transferred_parts_are_kept_when_they_were_taken_off_first() -> void:
+	var state: DisassemblyState = _new_state()
+	var lost: Array[String] = []
+	state.component_broken.connect(func(id: String, _cause: String) -> void: lost.append(id))
+	DisassemblyFixture.remove_with_prerequisites(state, "front_sensors")
+	assert_eq(state.replace("screen").outcome, DisassemblyResult.Outcome.REPLACED)
+	assert_true(state.is_removed("front_sensors"))
+	assert_false(state.is_broken("front_sensors"), "démontés à temps, ils se remontent sur l'écran neuf")
+	assert_eq(lost, [] as Array[String])
+	assert_eq(state.commit_install("front_sensors").outcome, DisassemblyResult.Outcome.INSTALLED)
+
+
+func test_a_lost_part_is_replaced_like_any_broken_one() -> void:
+	var state: DisassemblyState = _new_state()
+	DisassemblyFixture.remove_with_prerequisites(state, "screen")
+	state.replace("screen")
+	assert_eq(state.replace("front_sensors").outcome, DisassemblyResult.Outcome.REPLACED)
+	assert_false(state.is_broken("front_sensors"), "des capteurs neufs remplacent ceux qu'on a perdus")
+	assert_eq(state.replaced_ids(), PackedStringArray(["screen", "front_sensors"]), "deux pièces payées")

@@ -34,7 +34,7 @@ func test_removal_blockers_are_requires_still_in_place() -> void:
 func test_dependents_are_reverse_requires() -> void:
 	assert_eq(_graph.dependents("back_cover"), PackedStringArray(["battery_connector", "battery_adhesive", "battery", "port_screw", "charge_port", "screen_flex"]))
 	assert_eq(_graph.dependents("battery_connector"), PackedStringArray(["battery", "charge_port", "screen_flex"]))
-	assert_eq(_graph.dependents("screen"), PackedStringArray())
+	assert_eq(_graph.dependents("screen"), PackedStringArray(["front_sensors"]), "les capteurs sont montés dessus")
 
 
 func test_install_blockers_are_removed_dependents() -> void:

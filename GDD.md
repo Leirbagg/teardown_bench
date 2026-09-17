@@ -79,6 +79,10 @@ Plainte client → Inspection → Mesure / test → Démontage → Remplacement
 ### 3.5 Erreurs, casse et économie
 
 - Une casse vient toujours d'une mauvaise décision (pilier 2).
+- **Pièces à transférer** : certaines pièces sont montées sur une autre (capteurs frontaux sur
+  l'écran). Une pièce de rechange arrive nue : il faut les démonter de l'ancienne et les remonter
+  sur la neuve. Remplacer sans transférer les emporte — l'appareil rate son test, il faut en poser
+  des neuves, et cela compte comme une casse. Le joueur n'est jamais bloqué, seulement plus pauvre.
 - **Facture** : le client paie le prix de sa panne, plus 20 % si le délai est tenu. L'atelier paie
   chaque pièce posée, donc une casse ou un remplacement inutile mange la marge.
 - **Note** : 5 étoiles, moins une par casse, par erreur de diagnostic et en cas de retard.

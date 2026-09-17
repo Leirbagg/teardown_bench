@@ -404,3 +404,54 @@ func test_loader_builds_fault_definition() -> void:
 	assert_eq(fault.target_role, "battery")
 	assert_eq(fault.target_time_s, 120.0)
 	assert_eq(fault.clues[0].visibility, "exposed")
+
+
+# --- mounted_on ---
+
+## Une pièce montée sur une autre part avec elle quand on la remplace : il faut donc pouvoir en
+## racheter, et le porteur doit être remplaçable pour que la situation existe.
+func _mounted_device() -> Dictionary:
+	var device: Dictionary = _valid_device()
+	device["components"].append({"id": "sensor", "kind": "module", "face": "back", "gesture": "pull",
+		"requires": ["cover"], "covered_by": ["cover"], "mounted_on": "cover",
+		"replaceable": true, "part_price": 5})
+	return device
+
+
+func test_accepts_a_part_mounted_on_another() -> void:
+	assert_no_errors(DeviceValidator.validate_device(_mounted_device()))
+
+
+func test_rejects_mounted_on_unknown_component() -> void:
+	var device: Dictionary = _mounted_device()
+	_component(device, "sensor")["mounted_on"] = "nowhere"
+	assert_has_code(DeviceValidator.validate_device(device), "unknown_ref")
+
+
+func test_rejects_a_part_mounted_on_itself() -> void:
+	var device: Dictionary = _mounted_device()
+	_component(device, "sensor")["mounted_on"] = "sensor"
+	assert_has_code(DeviceValidator.validate_device(device), "bad_value")
+
+
+func test_rejects_mounting_on_an_irreplaceable_carrier() -> void:
+	var device: Dictionary = _mounted_device()
+	_component(device, "sensor")["mounted_on"] = "screw"
+	assert_has_code(DeviceValidator.validate_device(device), "mounted_on_irreplaceable")
+
+
+## Sans pièce de rechange, perdre les capteurs bloquerait la réparation (GDD, pilier 3).
+func test_rejects_an_irreplaceable_mounted_part() -> void:
+	var device: Dictionary = _mounted_device()
+	_component(device, "sensor")["replaceable"] = false
+	_component(device, "sensor").erase("part_price")
+	assert_has_code(DeviceValidator.validate_device(device), "mounted_not_replaceable")
+
+
+## Le porteur doit être retiré pour accéder à ce qu'il porte : sinon la pièce montée serait
+## encore accessible une fois son support parti.
+func test_rejects_a_mounted_part_that_does_not_require_its_carrier() -> void:
+	var device: Dictionary = _mounted_device()
+	_component(device, "sensor")["requires"] = []
+	_component(device, "sensor")["covered_by"] = []
+	assert_has_code(DeviceValidator.validate_device(device), "mounted_not_required")

@@ -149,4 +149,17 @@ func replace(component_id: String) -> DisassemblyResult:
 	var was_broken: bool = _broken.erase(component_id)
 	_replaced.append(component_id)
 	component_replaced.emit(component_id, was_broken)
+	_carry_away_mounted_parts(component_id)
 	return DisassemblyResult.new(Outcome.REPLACED, component_id)
+
+
+## Une pièce neuve arrive nue : ce qui était resté monté sur l'ancienne s'en va avec elle. Le
+## joueur devait la transférer avant ; il lui faudra maintenant en poser une neuve.
+func _carry_away_mounted_parts(carrier_id: String) -> void:
+	for mounted_id: String in device.parts_mounted_on(carrier_id):
+		if is_removed(mounted_id):
+			continue
+		_removed[mounted_id] = true
+		_broken[mounted_id] = true
+		component_removed.emit(mounted_id)
+		component_broken.emit(mounted_id, carrier_id)

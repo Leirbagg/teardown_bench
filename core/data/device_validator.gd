@@ -106,16 +106,39 @@ static func _check_components(raw_components: Array, faces: PackedStringArray, e
 		var replace_requires: PackedStringArray = _check_string_array(raw, "replace_requires", path, errors, false)
 		if id in replace_requires:
 			errors.append("[bad_value] %s.replace_requires : un composant ne peut pas se requérir lui-même" % path)
+		var mounted_on: String = _check_string(raw, "mounted_on", path, errors, false)
+		if mounted_on == id:
+			errors.append("[bad_value] %s.mounted_on : un composant ne peut pas être monté sur lui-même" % path)
 		components[id] = {
 			"path": path,
 			"requires": requires,
 			"covered_by": covered_by,
 			"force_breaks": ComponentDefinition.resolve_force_breaks(id, force_breaks),
 			"replace_requires": replace_requires,
+			"mounted_on": mounted_on,
 			"role": _check_string(raw, "role", path, errors, false),
 			"replaceable": _check_bool(raw, "replaceable", path, errors),
 		}
 	return components
+
+
+## Une pièce montée sur une autre part avec elle quand on la remplace. Pour que cela ait un sens
+## sans jamais bloquer le joueur : le porteur est remplaçable, la pièce montée aussi (on en pose
+## une neuve), et il faut retirer le porteur pour l'atteindre.
+static func _check_mounted_on(component: Dictionary, components: Dictionary[String, Dictionary], errors: Array[String]) -> void:
+	var carrier_id: String = component["mounted_on"]
+	if carrier_id.is_empty():
+		return
+	var path: String = component["path"]
+	if not components.has(carrier_id):
+		errors.append("[unknown_ref] %s.mounted_on : '%s' n'existe pas" % [path, carrier_id])
+		return
+	if not components[carrier_id]["replaceable"]:
+		errors.append("[mounted_on_irreplaceable] %s : monté sur '%s', qui ne se remplace pas" % [path, carrier_id])
+	if not component["replaceable"]:
+		errors.append("[mounted_not_replaceable] %s : monté sur '%s' et non replaceable : perdu avec lui, il bloquerait la réparation" % [path, carrier_id])
+	if carrier_id not in (component["requires"] as PackedStringArray):
+		errors.append("[mounted_not_required] %s.mounted_on : '%s' doit être dans requires" % [path, carrier_id])
 
 
 static func _check_graph(components: Dictionary[String, Dictionary], errors: Array[String]) -> void:
@@ -136,6 +159,7 @@ static func _check_graph(components: Dictionary[String, Dictionary], errors: Arr
 			for target: String in component[field]:
 				if not components.has(target):
 					errors.append("[unknown_ref] %s.%s : '%s' n'existe pas" % [path, field, target])
+		_check_mounted_on(component, components, errors)
 		for target: String in requires + (component["replace_requires"] as PackedStringArray):
 			required_ids[target] = true
 		for target: String in covered_by:

@@ -22,6 +22,8 @@ var replaceable: bool
 var force_breaks: PackedStringArray
 ## Pièces à retirer (débrancher) avant de pouvoir remplacer celle-ci, en plus de la retirer elle-même.
 var replace_requires: PackedStringArray
+## Pièce qui porte celle-ci ("" si aucune) : la remplacer emporte ce qui est resté monté dessus.
+var mounted_on: String
 ## Vrai si le composant peut être visible tout en étant retenu, donc forcé.
 var forceable: bool
 ## Explication affichée par le mode solution ("" si aucune).
@@ -49,6 +51,7 @@ static func from_dict(data: Dictionary) -> ComponentDefinition:
 	component.replaceable = data.get("replaceable", false)
 	component.force_breaks = resolve_force_breaks(component.id, PackedStringArray(data.get("force_breaks", [])))
 	component.replace_requires = PackedStringArray(data.get("replace_requires", []))
+	component.mounted_on = data.get("mounted_on", "")
 	component.forceable = is_forceable(component.requires, component.covered_by)
 	component.hint = data.get("hint", "")
 	component.part_price = int(data.get("part_price", 0))

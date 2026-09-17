@@ -23,6 +23,9 @@ static func plan(diagnosis: Diagnosis) -> Array[SolutionStep]:
 		_collect_prerequisites(device, target, needed)
 		for attached: String in device.get_component(target).replace_requires:
 			_collect_prerequisites(device, attached, needed)
+		# Ce qui est monté dessus se transfère : le démonter avant, le remonter après.
+		for mounted: String in device.parts_mounted_on(target):
+			_collect_prerequisites(device, mounted, needed)
 
 	var inspected: Dictionary[String, bool] = {}
 	_inspect_new_clues(diagnosis, simulated, steps, inspected)

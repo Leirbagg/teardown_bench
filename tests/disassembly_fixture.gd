@@ -48,12 +48,19 @@ static func reassemble(state: DisassemblyState) -> void:
 ## Répare proprement : remplace la pièce de chaque panne, puis remonte tout.
 static func repair_faults(state: DisassemblyState, faults: Array[FaultDefinition]) -> void:
 	for fault: FaultDefinition in faults:
-		var component_id: String = state.device.component_for_role(fault.target_role).id
-		remove_with_prerequisites(state, component_id)
-		for attached: String in state.device.get_component(component_id).replace_requires:
-			remove_with_prerequisites(state, attached)
-		state.replace(component_id)
+		replace_part(state, state.device.component_for_role(fault.target_role).id)
 	reassemble(state)
+
+
+## Remplace une pièce dans les règles : prérequis retirés, attaches détachées, et pièces montées
+## dessus transférées au lieu de partir avec l'ancienne.
+static func replace_part(state: DisassemblyState, component_id: String) -> void:
+	remove_with_prerequisites(state, component_id)
+	for attached: String in state.device.get_component(component_id).replace_requires:
+		remove_with_prerequisites(state, attached)
+	for mounted: String in state.device.parts_mounted_on(component_id):
+		remove_with_prerequisites(state, mounted)
+	state.replace(component_id)
 
 
 ## Retire tout ce qui est libre jusqu'à ne plus progresser, sans séquence codée en dur.

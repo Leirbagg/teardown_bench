@@ -1,0 +1,19 @@
+{
+  "schema_version": 1,
+  "id": "front_sensors_dead",
+  "tier": 2,
+  "target_role": "front_sensors",
+  "complaints": [
+    "Nobody hears me on calls, and the screen stays lit against my ear."
+  ],
+  "clues": [
+    {
+      "tool": "loupe",
+      "role": "front_sensors",
+      "clue": "torn_flex",
+      "visible": "exposed"
+    }
+  ],
+  "target_time_s": 300,
+  "price": 119
+}

@@ -553,10 +553,29 @@ func _play_repair(workbench: Workbench) -> void:
 	(workbench.get_node("%InfoCloseButton") as Button).pressed.emit()
 	(workbench.get_node("%FinalTestButton") as Button).pressed.emit()
 	assert_false(workbench.session.is_completed(), "appareil ouvert : pas de fin")
-	DisassemblyFixture.remove_with_prerequisites(state, "display")
-	for attached: String in state.device.get_component("display").replace_requires:
-		DisassemblyFixture.remove_with_prerequisites(state, attached)
-	assert_eq(state.replace("display").outcome, DisassemblyResult.Outcome.REPLACED, "nappes débranchées → écran remplacé")
+	DisassemblyFixture.replace_part(state, "display")
+	assert_true("display" in state.replaced_ids(), "nappes débranchées, capteurs transférés → écran remplacé")
+	assert_false(state.is_broken("front_sensors"), "les capteurs n'ont pas été perdus en route")
 	DisassemblyFixture.repair_faults(state, workbench.session.job.faults)
 	(workbench.get_node("%FinalTestButton") as Button).pressed.emit()
 	assert_true(workbench.session.is_completed(), "réparation terminée")
+
+
+## Les capteurs sont montés sur l'écran : quand il se rabat, ils partent avec lui, et c'est là
+## qu'on va les chercher pour les transférer.
+func test_front_sensors_travel_with_the_open_screen() -> void:
+	var state: DisassemblyState = _starter_phone_state()
+	var view: DeviceView = _device_view(state)
+	var sensors: ComponentDefinition = state.device.get_component("front_sensors")
+	var closed: Rect2 = view.view_rect(sensors)
+	DisassemblyFixture.remove_with_prerequisites(state, "display")
+	_settle(view)
+	assert_true(view.is_open_tethered("display"), "préparation : écran rabattu sur le côté")
+
+	var opened: Rect2 = view.view_rect(sensors)
+	assert_true(opened.get_center().x < closed.get_center().x - 20.0, "les capteurs ont suivi le panneau")
+	assert_true(view.open_panel_rect("display").grow(8.0).encloses(opened), "posés sur le panneau ouvert")
+	assert_eq(view.component_at(opened.get_center()), "front_sensors", "et se touchent là où on les voit")
+	assert_eq(view.component_at(view.open_panel_rect("display").position + Vector2(4.0, 4.0)), "display",
+		"le reste du panneau referme toujours l'écran")
+	view.free()

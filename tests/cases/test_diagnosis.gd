@@ -177,8 +177,7 @@ func test_final_test_requires_assembled_device() -> void:
 
 func test_final_test_passes_after_correct_repair() -> void:
 	var diagnosis: Diagnosis = _session([_screen_cracked()])
-	DisassemblyFixture.remove_with_prerequisites(diagnosis.state, "screen")
-	diagnosis.state.replace("screen")
+	DisassemblyFixture.replace_part(diagnosis.state, "screen")
 	DisassemblyFixture.reassemble(diagnosis.state)
 	var result: FinalTestResult = diagnosis.run_final_test()
 	assert_eq(result.outcome, FinalOutcome.PASSED)
