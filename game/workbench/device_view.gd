@@ -57,6 +57,8 @@ const OPEN_PANEL_COLOR: Color = Color("15191e")
 const OPEN_PANEL_SHIELD_COLOR: Color = Color("5a6470")
 const CABLE_COLOR: Color = Color("b8892e")
 const CABLE_EDGE_COLOR: Color = Color("3d2f10")
+## Un connecteur débranché reste près de son socle, tiré dans le sens du débranchement.
+const UNPLUG_OFFSET: float = 16.0
 
 
 ## Animation ponctuelle dessinée par-dessus l'appareil.
@@ -111,6 +113,7 @@ var _ghost_active: bool = false
 var _ghost_time_s: float = 0.0
 var _ghost_duration_s: float = 1.0
 var _ghost_speed: float = 1.0
+var _ghost_target: Dictionary = {}
 
 
 func setup(state: DisassemblyState) -> void:
@@ -149,6 +152,8 @@ func component_at(position: Vector2) -> String:
 		return ""
 	for component: ComponentDefinition in _state.device.components:
 		if is_open_tethered(component.id) and open_panel_rect(component.id).grow(8.0).has_point(position):
+			return component.id
+		if is_unplugged(component.id) and _touch_rect(unplugged_rect(component.id)).has_point(position):
 			return component.id
 	var direct: ComponentDefinition = null
 	var direct_level: int = -1
@@ -360,6 +365,51 @@ func _draw_open_panel(component: ComponentDefinition) -> void:
 		_painter.draw_broken(self, open_panel_rect(component.id))
 
 
+# --- Connecteurs et nappes ---
+
+## Connecteur relié par une nappe et actuellement débranché : il reste près de son socle.
+func is_unplugged(component_id: String) -> bool:
+	if _state == null or not _state.device.has_component(component_id):
+		return false
+	var component: ComponentDefinition = _state.device.get_component(component_id)
+	return component.visual.has("cable_to") and component.face == face and _state.is_removed(component_id)
+
+
+## Position d'un connecteur débranché, décalée dans le sens où on l'a tiré.
+func unplugged_rect(component_id: String) -> Rect2:
+	var component: ComponentDefinition = _state.device.get_component(component_id)
+	var direction: Vector2 = Vector2.from_angle(-deg_to_rad(float(component.gesture_params.get("direction_deg", 270.0))))
+	return Rect2(view_rect(component).position + direction * UNPLUG_OFFSET * _scale(), view_rect(component).size)
+
+
+## Cible d'un geste : pièce en place, écran rabattu ou connecteur débranché à rebrancher.
+func _gesture_target(component_id: String) -> Dictionary:
+	var component: ComponentDefinition = _state.device.get_component(component_id)
+	if is_open_tethered(component_id):
+		return {"gesture": "pull", "params": {"direction_deg": _closing_direction_deg(component)},
+			"rect": open_panel_rect(component_id)}
+	if is_unplugged(component_id):
+		var reconnect: float = fmod(float(component.gesture_params.get("direction_deg", 270.0)) + 180.0, 360.0)
+		return {"gesture": "pull", "params": {"direction_deg": reconnect}, "rect": unplugged_rect(component_id)}
+	return {"gesture": component.gesture, "params": component.gesture_params, "rect": view_rect(component)}
+
+
+## Nappe d'un connecteur jusqu'à sa pièce, avec un peu de mou quand il est débranché.
+func _draw_cable(component: ComponentDefinition) -> void:
+	var target_id: String = str(component.visual["cable_to"])
+	if not _state.device.has_component(target_id) or is_open_tethered(target_id):
+		return
+	var target: ComponentDefinition = _state.device.get_component(target_id)
+	if _state.is_removed(target_id) or target.face != face:
+		return
+	var from: Rect2 = unplugged_rect(component.id) if is_unplugged(component.id) else view_rect(component)
+	var to: Vector2 = view_rect(target).get_center()
+	var anchor: Vector2 = from.get_center()
+	var path: PackedVector2Array = PackedVector2Array([anchor, anchor.lerp(to, 0.5) + (to - anchor).orthogonal().normalized() * 6.0, to])
+	draw_polyline(path, CABLE_EDGE_COLOR, 7.0, true)
+	draw_polyline(path, CABLE_COLOR, 4.0, true)
+
+
 # --- Doigt fantôme (mode solution) ---
 
 ## Joue le geste d'un composant avec un doigt simulé. Passe par la même reconnaissance que le
@@ -372,10 +422,16 @@ func start_ghost(component_id: String, speed: float = 1.0) -> void:
 	_resisting = false
 	_ghost_time_s = 0.0
 	_ghost_speed = maxf(speed, 0.01)
-	_ghost_duration_s = ghost_duration(component) / _ghost_speed
+	_ghost_target = _gesture_target(component_id)
+	_ghost_duration_s = ghost_duration(component, _ghost_target["gesture"]) / _ghost_speed
 	_ghost_active = true
-	_recognizer.begin(component.gesture, component.gesture_params, view_rect(component), _ghost_position(component, 0.0))
+	_recognizer.begin(_ghost_target["gesture"], _ghost_target["params"], _ghost_target["rect"], _ghost_position(component, 0.0))
 	queue_redraw()
+
+
+## Le mode solution peut jouer le rebranchement d'une nappe comme un vrai geste.
+func can_ghost_install(component_id: String) -> bool:
+	return is_unplugged(component_id) or is_open_tethered(component_id)
 
 
 func is_ghost_running() -> bool:
@@ -395,8 +451,8 @@ func stop_ghost() -> void:
 
 
 ## Durée d'un geste simulé à vitesse 1, lisible pour qui apprend.
-static func ghost_duration(component: ComponentDefinition) -> float:
-	match component.gesture:
+static func ghost_duration(component: ComponentDefinition, gesture: String = "") -> float:
+	match gesture if not gesture.is_empty() else component.gesture:
 		"rotate":
 			return maxf(0.6, float(component.gesture_params.get("turns", GestureRecognizer.DEFAULT_TURNS)) * 0.8)
 		"pull":
@@ -431,16 +487,17 @@ func _advance_ghost(delta: float) -> void:
 
 ## Position du doigt simulé à l'avancement `ratio` (0 à 1) du geste.
 func _ghost_position(component: ComponentDefinition, ratio: float) -> Vector2:
-	var rect: Rect2 = view_rect(component)
+	var params: Dictionary = _ghost_target.get("params", component.gesture_params)
+	var rect: Rect2 = _ghost_target.get("rect", view_rect(component))
 	var center: Vector2 = rect.get_center()
-	match component.gesture:
+	match str(_ghost_target.get("gesture", component.gesture)):
 		"rotate":
-			var turns: float = float(component.gesture_params.get("turns", GestureRecognizer.DEFAULT_TURNS))
+			var turns: float = float(params.get("turns", GestureRecognizer.DEFAULT_TURNS))
 			return center + Vector2.from_angle(ratio * turns * TAU * GHOST_OVERSHOOT) * GHOST_ROTATION_RADIUS
 		"pull":
 			var direction: Vector2 = Vector2.from_angle(PI / 4.0)
-			if component.gesture_params.has("direction_deg"):
-				direction = Vector2.from_angle(-deg_to_rad(float(component.gesture_params["direction_deg"])))
+			if params.has("direction_deg"):
+				direction = Vector2.from_angle(-deg_to_rad(float(params["direction_deg"])))
 			return center + direction * GestureRecognizer.PULL_DISTANCE * GHOST_OVERSHOOT * ratio
 		"pry":
 			# Tour complet du contour : le geste simulé doit couvrir ce que le joueur doit couvrir.
@@ -473,6 +530,8 @@ func _draw() -> void:
 	for component: ComponentDefinition in _state.device.components:
 		if _is_hinged(component) and component.face == face:
 			_draw_open_panel_cables(component)
+		if component.visual.has("cable_to") and component.face == face and _state.is_visible(component.id):
+			_draw_cable(component)
 	for component: ComponentDefinition in _draw_order:
 		if _is_drawn(component):
 			_draw_component(component)
@@ -482,6 +541,8 @@ func _draw() -> void:
 	for component: ComponentDefinition in _state.device.components:
 		if _is_hinged(component) and component.face == face and _state.is_removed(component.id):
 			_draw_open_panel(component)
+		elif is_unplugged(component.id):
+			_painter.draw_part(self, component, unplugged_rect(component.id), PartPainter.kind_color(component.kind))
 	for effect: Effect in _effects:
 		_draw_effect(effect)
 	draw_set_transform(Vector2.ZERO)
@@ -628,10 +689,8 @@ func _on_touch(touch: InputEventScreenTouch) -> void:
 		_active_id = component_id
 		_last_step = 0
 		_resisting = false
-		if is_open_tethered(component_id):
-			_recognizer.begin("pull", {"direction_deg": _closing_direction_deg(component)}, open_panel_rect(component_id), touch.position)
-		else:
-			_recognizer.begin(component.gesture, component.gesture_params, view_rect(component), touch.position)
+		var target: Dictionary = _gesture_target(component_id)
+		_recognizer.begin(target["gesture"], target["params"], target["rect"], touch.position)
 		gesture_started.emit(component_id)
 		queue_redraw()
 	elif touch.index == _touch_index:

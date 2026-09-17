@@ -122,6 +122,31 @@ func test_touching_a_part_squarely_never_picks_its_overlapping_neighbour() -> vo
 	view.free()
 
 
+## Une nappe reste attachée à sa pièce : débranchée sur place, rebranchée par un geste.
+func test_an_unplugged_connector_stays_next_to_its_socket_and_plugs_back() -> void:
+	var state: DisassemblyState = _starter_phone_state()
+	var view: DeviceView = _device_view(state)
+	var completed: Array[String] = []
+	view.gesture_completed.connect(func(id: String) -> void: completed.append(id))
+	DisassemblyFixture.remove_with_prerequisites(state, "battery_connector")
+	_settle(view)
+	assert_true(view.is_unplugged("battery_connector"))
+	var socket: Rect2 = view.view_rect(state.device.get_component("battery_connector"))
+	var plug: Rect2 = view.unplugged_rect("battery_connector")
+	assert_true(plug.position.x > socket.position.x, "tiré dans le sens du débranchement")
+	assert_eq(view.component_at(plug.get_center()), "battery_connector", "touchable à sa place")
+
+	var start: Vector2 = plug.get_center()
+	view._gui_input(_touch(start, true))
+	for step: int in range(1, 11):
+		var drag: InputEventScreenDrag = InputEventScreenDrag.new()
+		drag.position = start + Vector2(-10.0 * step, 0)
+		view._gui_input(drag)
+	view._gui_input(_touch(start + Vector2(-100, 0), false))
+	assert_eq(completed, ["battery_connector"] as Array[String], "ramener la nappe vers son socle la rebranche")
+	view.free()
+
+
 ## Le doigt fantôme du mode solution doit mener chaque type de geste à son terme.
 func test_ghost_finger_completes_every_gesture_kind() -> void:
 	var state: DisassemblyState = _starter_phone_state()

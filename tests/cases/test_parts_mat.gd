@@ -33,6 +33,16 @@ func _map(mat: PartsMat) -> MatMap:
 	return mat.get_node("%MatMap") as MatMap
 
 
+func test_connectors_never_reach_the_mat() -> void:
+	var state: DisassemblyState = _starter_phone_state()
+	var mat: PartsMat = _mat(state)
+	DisassemblyFixture.remove_with_prerequisites(state, "battery_connector")
+	var items: PackedStringArray = _map(mat).item_ids()
+	assert_true("display_adhesive" in items, "le joint, lui, se retire")
+	assert_false("battery_connector" in items, "une nappe reste sur l'appareil")
+	mat.free()
+
+
 func test_mat_lists_detached_parts_only() -> void:
 	var state: DisassemblyState = _starter_phone_state()
 	var mat: PartsMat = _mat(state)

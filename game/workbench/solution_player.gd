@@ -105,5 +105,5 @@ func _act() -> void:
 	_workbench.perform_solution_step(step, speed)
 
 
-static func _is_quick(step: SolutionStep) -> bool:
-	return step.kind == SolutionStep.Kind.INSTALL
+func _is_quick(step: SolutionStep) -> bool:
+	return step.kind == SolutionStep.Kind.INSTALL and not _workbench.shows_install_gesture(step.component_id)

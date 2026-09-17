@@ -300,10 +300,19 @@ func perform_solution_step(step: SolutionStep, speed: float) -> void:
 			_on_replace_pressed()
 		SolutionStep.Kind.INSTALL:
 			_device_view.face = session.state.device.get_component(step.component_id).face
+			if _device_view.can_ghost_install(step.component_id):
+				# Rebrancher une nappe ou refermer l'écran se montre, comme un retrait.
+				_device_view.start_ghost(step.component_id, speed)
+				return
 			_selected_part_id = step.component_id
 			_on_reinstall_pressed()
 		SolutionStep.Kind.FINAL_TEST:
 			_on_final_test_pressed()
+
+
+## Ce remontage se joue comme un geste : il mérite son explication et sa pause.
+func shows_install_gesture(component_id: String) -> bool:
+	return _device_view.can_ghost_install(component_id)
 
 
 func is_solution_step_running() -> bool:

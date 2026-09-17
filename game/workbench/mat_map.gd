@@ -52,6 +52,9 @@ func item_ids() -> PackedStringArray:
 		var component: ComponentDefinition = _state.device.get_component(id)
 		if component.visual.has("hinge") and not _state.attached_parts(id).is_empty():
 			continue
+		if component.visual.has("cable_to"):
+			# Une nappe reste attachée à sa pièce : elle se débranche sur place, jamais sur le tapis.
+			continue
 		ids.append(id)
 	return ids
 

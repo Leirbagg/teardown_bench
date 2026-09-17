@@ -64,6 +64,15 @@ static func validate_fault(data: Dictionary) -> Array[String]:
 
 # --- Appareil ---
 
+## Identifiants déclarés, pour vérifier les références internes au fichier.
+static func _component_ids(raw_components: Array) -> PackedStringArray:
+	var ids: PackedStringArray = PackedStringArray()
+	for raw: Variant in raw_components:
+		if typeof(raw) == TYPE_DICTIONARY and typeof((raw as Dictionary).get("id")) == TYPE_STRING:
+			ids.append(raw["id"])
+	return ids
+
+
 ## Vérifie la forme de chaque composant et renvoie les champs utiles au graphe, indexés par id.
 static func _check_components(raw_components: Array, faces: PackedStringArray, errors: Array[String]) -> Dictionary[String, Dictionary]:
 	var components: Dictionary[String, Dictionary] = {}
@@ -84,7 +93,7 @@ static func _check_components(raw_components: Array, faces: PackedStringArray, e
 		_check_enum(raw, "face", faces, path, errors)
 		_check_enum(raw, "gesture", ComponentDefinition.GESTURES, path, errors)
 		_check_dictionary(raw, "gesture_params", path, errors)
-		_check_visual(raw, path, errors)
+		_check_visual(raw, path, errors, _component_ids(raw_components))
 		_check_string(raw, "hint", path, errors, false)
 		_check_screw_details(raw, path, errors)
 		if raw.has("part_price"):
@@ -209,12 +218,16 @@ static func _check_software_tests(data: Dictionary, components: Dictionary[Strin
 
 
 ## Facultatif. Si présent, `rect` vaut [x, y, largeur, hauteur] avec largeur et hauteur > 0.
-static func _check_visual(component: Dictionary, path: String, errors: Array[String]) -> void:
+static func _check_visual(component: Dictionary, path: String, errors: Array[String], known_components: PackedStringArray = PackedStringArray()) -> void:
 	_check_dictionary(component, "visual", path, errors)
 	if typeof(component.get("visual")) != TYPE_DICTIONARY or not (component["visual"] as Dictionary).has("rect"):
 		return
 	_check_rect(component["visual"]["rect"], _field(path, "visual.rect"), errors)
 	var visual: Dictionary = component["visual"]
+	if visual.has("cable_to"):
+		var target: String = _check_string(visual, "cable_to", _field(path, "visual"), errors)
+		if not target.is_empty() and not target in known_components:
+			errors.append("[unknown_ref] %s : '%s' n'existe pas" % [_field(path, "visual.cable_to"), target])
 	if visual.has("frame_thickness"):
 		_check_positive_number(visual, "frame_thickness", _field(path, "visual"), errors)
 	if visual.has("hinge"):
