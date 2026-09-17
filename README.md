@@ -45,7 +45,7 @@ Détails : [GDD](GDD.md) · [schéma des données et règles](docs/data_schema.m
 ## État
 
 MVP jouable sur téléphone : **2 appareils** de 36 pièces — l'*ipone13*, qui s'ouvre par l'écran,
-et le *sasung22*, qui s'ouvre par le dos et se débloque à la réputation — 4 pannes (écran,
+et le *sasung22*, qui s'ouvre par le dos, tirés au hasard dès le premier jour — 4 pannes (écran,
 batterie, port de charge, capteurs frontaux), journées de 2 à 3 clients, économie (prix des pannes,
 coût des pièces, note en étoiles, réputation) et sauvegarde après chaque client. Pas encore de
 stock à acheter, d'upgrades d'outils ni de monétisation (voir « Hors périmètre » dans le GDD).

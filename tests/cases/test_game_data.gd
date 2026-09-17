@@ -140,7 +140,7 @@ func test_the_second_device_opens_from_the_back() -> void:
 	assert_true(device != null, "corvid_g2 présent")
 	if device == null:
 		return
-	assert_eq(device.tier, 2, "modèle plus exigeant : débloqué à la réputation")
+	assert_eq(device.tier, 1, "disponible dès le premier jour, comme l'autre")
 	var back: int = 0
 	for component: ComponentDefinition in device.components:
 		if component.face == "back":
@@ -151,6 +151,22 @@ func test_the_second_device_opens_from_the_back() -> void:
 		"on débranche l'écran par le dos avant de le décoller")
 	for role: String in ["screen", "battery", "charge_port", "front_sensors"]:
 		assert_true(device.component_for_role(role) != null, "rôle '%s' présent" % role)
+
+
+## Les deux appareils arrivent au hasard dès le début : c'est le modèle qu'on découvre en
+## ouvrant le carton, pas une récompense de progression.
+func test_both_devices_show_up_from_the_first_day() -> void:
+	var rng: RandomNumberGenerator = RandomNumberGenerator.new()
+	var seen: PackedStringArray = PackedStringArray()
+	for seed_value: int in 30:
+		rng.seed = seed_value
+		var errors: Array[String] = []
+		for job: RepairJob in DayGenerator.generate(_load_devices(), _load_faults(), 1, rng, errors):
+			if job.device.id not in seen:
+				seen.append(job.device.id)
+		assert_no_errors(errors)
+	for device: DeviceDefinition in _load_devices():
+		assert_true(device.id in seen, "%s tombe dès le tier 1 : vus = %s" % [device.id, ", ".join(seen)])
 
 
 func test_tier_two_day_can_be_generated_and_played_to_the_report() -> void:

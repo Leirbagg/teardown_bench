@@ -19,6 +19,25 @@ func _fresh_main() -> Main:
 	return main
 
 
+## Journée déterministe sur un appareil choisi : depuis que les deux modèles tombent au hasard,
+## un test qui nomme une pièce doit dire sur quel appareil il travaille.
+func _main_on(device_id: String, fault_id: String) -> Main:
+	var main: Main = _fresh_main()
+	var errors: Array[String] = []
+	var catalog: DataCatalog = DataCatalog.load_manifest(DataCatalog.MANIFEST_PATH, errors)
+	assert_no_errors(errors)
+	var device: DeviceDefinition = null
+	for candidate: DeviceDefinition in catalog.devices:
+		if candidate.id == device_id:
+			device = candidate
+	assert_true(device != null, "appareil '%s' du catalogue" % device_id)
+	var faults: Array[FaultDefinition] = [catalog.find_fault(fault_id)]
+	var jobs: Array[RepairJob] = [RepairJob.create("job_1", device, faults, "Complaint.", errors)]
+	assert_no_errors(errors)
+	main._begin_day(WorkDay.new(jobs))
+	return main
+
+
 func _root() -> Window:
 	return (Engine.get_main_loop() as SceneTree).root
 
@@ -213,6 +232,20 @@ func test_ghost_can_be_finished_early_or_stopped() -> void:
 
 
 ## Laisse les animations (ouverture, décalage de l'appareil) aller au bout.
+## Première pièce que le joueur peut retirer sur cet appareil : une vis si l'une est accessible,
+## sinon n'importe quelle pièce libre (le dos collé du second modèle commence par son joint).
+func _first_removable(state: DisassemblyState) -> String:
+	var fallback: String = ""
+	for component: ComponentDefinition in state.device.components:
+		if state.query_remove(component.id).outcome != DisassemblyResult.Outcome.REMOVED:
+			continue
+		if component.kind == "screw":
+			return component.id
+		if fallback.is_empty():
+			fallback = component.id
+	return fallback
+
+
 func _settle(view: DeviceView) -> void:
 	for frame: int in 60:
 		view._process(1.0 / 60.0)
@@ -261,7 +294,8 @@ func test_pulling_the_open_display_toward_the_device_closes_it() -> void:
 
 
 func test_workbench_closes_the_open_display_or_explains_what_to_reconnect() -> void:
-	var main: Main = _fresh_main()
+	# L'écran rabattu comme un livre est propre au premier modèle : celui-ci se démonte entier.
+	var main: Main = _main_on("starter_phone", "screen_cracked")
 	(main.current_screen as CustomerScreen).start_pressed.emit()
 	var workbench: Workbench = main.current_screen as Workbench
 	var state: DisassemblyState = workbench.session.state
@@ -282,7 +316,7 @@ func test_workbench_closes_the_open_display_or_explains_what_to_reconnect() -> v
 
 
 func test_workbench_mat_reinstalls_parts_and_hands_back_control() -> void:
-	var main: Main = _fresh_main()
+	var main: Main = _main_on("starter_phone", "screen_cracked")
 	(main.current_screen as CustomerScreen).start_pressed.emit()
 	var workbench: Workbench = main.current_screen as Workbench
 	var state: DisassemblyState = workbench.session.state
@@ -325,7 +359,7 @@ func _run_solution(workbench: Workbench, max_frames: int = 20000) -> void:
 
 
 func test_solution_mode_repairs_from_a_damaged_state_and_marks_the_job_assisted() -> void:
-	var main: Main = _fresh_main()
+	var main: Main = _main_on("starter_phone", "screen_cracked")
 	(main.current_screen as CustomerScreen).start_pressed.emit()
 	var workbench: Workbench = main.current_screen as Workbench
 	var session: RepairSession = workbench.session
@@ -541,23 +575,27 @@ func test_main_plays_a_full_day_through_screen_signals() -> void:
 	main.free()
 
 
-## Retire une vis par geste, force l'écran (fissure), puis répare et lance le test final.
+## Retire la première pièce accessible par geste, force l'écran (fissure), puis répare et lance
+## le test final. Rien de codé en dur : la journée tire l'un ou l'autre appareil au hasard.
 func _play_repair(workbench: Workbench) -> void:
 	var state: DisassemblyState = workbench.session.state
 	var view: DeviceView = workbench.get_node("%DeviceView") as DeviceView
-	view.gesture_started.emit("pentalobe_left")
-	view.gesture_completed.emit("pentalobe_left")
-	assert_true(state.is_removed("pentalobe_left"), "geste terminé → vis retirée")
-	assert_true(workbench.parts_mat.item_count() > 0, "vis posée sur le tapis")
-	view.gesture_completed.emit("display")
-	assert_true(state.is_broken("display"), "écran forcé sans chauffer → cassé")
+	var first: String = _first_removable(state)
+	assert_false(first.is_empty(), "%s : une pièce à retirer" % state.device.id)
+	view.gesture_started.emit(first)
+	view.gesture_completed.emit(first)
+	assert_true(state.is_removed(first), "geste terminé → %s retirée" % first)
+	assert_true(workbench.parts_mat.item_count() > 0, "pièce posée sur le tapis")
+	var screen: String = state.device.component_for_role("screen").id
+	view.gesture_completed.emit(screen)
+	assert_true(state.is_broken(screen), "écran forcé sans chauffer → cassé")
 	(workbench.get_node("%TestsButton") as Button).pressed.emit()
 	assert_true((workbench.get_node("%InfoPanel") as Control).visible, "résultats des tests affichés")
 	(workbench.get_node("%InfoCloseButton") as Button).pressed.emit()
 	(workbench.get_node("%FinalTestButton") as Button).pressed.emit()
 	assert_false(workbench.session.is_completed(), "appareil ouvert : pas de fin")
-	DisassemblyFixture.replace_part(state, "display")
-	assert_true("display" in state.replaced_ids(), "nappes débranchées, capteurs transférés → écran remplacé")
+	DisassemblyFixture.replace_part(state, screen)
+	assert_true(screen in state.replaced_ids(), "nappes débranchées, capteurs transférés → écran remplacé")
 	assert_false(state.is_broken("front_sensors"), "les capteurs n'ont pas été perdus en route")
 	DisassemblyFixture.repair_faults(state, workbench.session.job.faults)
 	(workbench.get_node("%FinalTestButton") as Button).pressed.emit()

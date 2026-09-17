@@ -87,7 +87,8 @@ Plainte client → Inspection → Mesure / test → Démontage → Remplacement
   chaque pièce posée, donc une casse ou un remplacement inutile mange la marge.
 - **Note** : 5 étoiles, moins une par casse, par erreur de diagnostic et en cas de retard.
 - **Réputation** : moyenne des 10 dernières notes. Avec de l'expérience, elle débloque les pannes
-  et appareils de tier supérieur.
+  de tier supérieur. Les appareils, eux, tombent tous au hasard dès le premier jour : découvrir un
+  modèle qu'on ne connaît pas fait partie du métier, ce n'est pas une récompense.
 - **Jamais bloqué** : l'argent ne descend pas sous zéro, il n'y a pas de dette ni de faillite.
 - **Mode solution** : une réparation assistée ne paie rien, ne coûte rien et n'est pas notée.
 - **Sauvegarde** : après chaque client. Une réparation interrompue reprend à son début.
