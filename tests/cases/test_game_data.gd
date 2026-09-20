@@ -338,3 +338,11 @@ func test_no_two_models_share_the_same_teardown() -> void:
 		var signature: String = ",".join(ids)
 		assert_false(seen.has(signature), "%s est la copie de %s" % [device.id, seen.get(signature, "")])
 		seen[signature] = device.id
+
+
+## Un modèle jouable dit sur quel guide public son démontage a été recoupé : c'est ce qui
+## sépare un appareil vérifié d'un appareil écrit de mémoire.
+func test_every_playable_model_cites_the_guide_it_was_checked_against() -> void:
+	for model: ModelCatalog.Model in _models().playable():
+		assert_false(model.source.is_empty(), "%s : aucune source citée" % model.id)
+		assert_true(model.source.begins_with("https://"), "%s : source consultable" % model.id)

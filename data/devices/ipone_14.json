@@ -20,7 +20,7 @@
       "covered_by": [],
       "hint": "Two pentalobe screws on the bottom edge hold both the screen and the back glass.",
       "screw_type": "pentalobe",
-      "length_mm": 6.9,
+      "length_mm": 6.8,
       "visual": {
         "rect": [
           56,
@@ -42,7 +42,7 @@
       "covered_by": [],
       "hint": "Two pentalobe screws on the bottom edge hold both the screen and the back glass.",
       "screw_type": "pentalobe",
-      "length_mm": 6.9,
+      "length_mm": 6.8,
       "visual": {
         "rect": [
           116,
@@ -88,7 +88,10 @@
       ],
       "covered_by": [],
       "replaceable": true,
-      "hint": "Slide the pick around the back, then lift the glass away.",
+      "replace_requires": [
+        "coil_connector"
+      ],
+      "hint": "Work the pick around the back, then swing the glass open: a short cable still holds it.",
       "part_price": 95,
       "visual": {
         "rect": [
@@ -96,7 +99,8 @@
           4,
           172,
           360
-        ]
+        ],
+        "hinge": "left"
       }
     },
     {
@@ -399,6 +403,34 @@
       }
     },
     {
+      "id": "coil_connector",
+      "kind": "connector",
+      "face": "back",
+      "gesture": "pull",
+      "gesture_params": {
+        "direction_deg": 0
+      },
+      "requires": [
+        "back_glass"
+      ],
+      "covered_by": [
+        "back_glass"
+      ],
+      "force_breaks": [
+        "wireless_coil"
+      ],
+      "hint": "The short cable that tethers the back glass: unplug it before taking the glass away.",
+      "visual": {
+        "rect": [
+          140,
+          200,
+          26,
+          14
+        ],
+        "cable_to": "wireless_coil"
+      }
+    },
+    {
       "id": "wireless_coil",
       "kind": "module",
       "face": "back",
@@ -407,13 +439,15 @@
         "direction_deg": 90
       },
       "requires": [
-        "back_glass"
+        "back_glass",
+        "coil_connector"
       ],
       "covered_by": [
         "back_glass"
       ],
+      "mounted_on": "back_glass",
       "replaceable": true,
-      "hint": "The charging coil sits above the battery plate.",
+      "hint": "The charging coil is stuck to the back glass: move it over to the new one.",
       "part_price": 22,
       "visual": {
         "rect": [

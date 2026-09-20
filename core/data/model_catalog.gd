@@ -34,6 +34,8 @@ class Model:
 	var teardown: String
 	## Faux quand la fiche repose sur une connaissance incomplète, à confirmer sur un guide.
 	var verified: bool
+	## Guide public sur lequel le démontage a été recoupé ("" tant qu'il ne l'a pas été).
+	var source: String
 	var note: String
 
 	func is_playable() -> bool:
@@ -79,6 +81,7 @@ static func load_from(path: String, errors: Array[String]) -> ModelCatalog:
 		model.port = str(entry.get("port", ""))
 		model.teardown = str(entry.get("teardown", ""))
 		model.verified = bool(entry.get("verified", false))
+		model.source = str(entry.get("source", ""))
 		model.note = str(entry.get("note", ""))
 		if model.id.is_empty() or model.id in model_ids:
 			errors.append("[bad_value] %s : modèle sans id ou en double ('%s')" % [path, model.id])

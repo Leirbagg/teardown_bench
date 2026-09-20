@@ -63,7 +63,8 @@
       "port": "lightning",
       "teardown": "ipone_x",
       "verified": true,
-      "note": "Folded two-layer logic board: the shield comes off before anything else."
+      "note": "Folded two-layer logic board: the shield comes off before anything else.",
+      "source": "https://www.ifixit.com/Guide/iPhone+X+Battery+Replacement/103390"
     },
     {
       "id": "ipone_xr",
@@ -77,7 +78,8 @@
       "port": "lightning",
       "teardown": "",
       "verified": true,
-      "note": "Thicker LCD panel and a flat board: roomier inside than the OLED models."
+      "note": "Thicker LCD panel and a flat board: roomier inside than the OLED models.",
+      "source": ""
     },
     {
       "id": "ipone_xs",
@@ -91,7 +93,8 @@
       "port": "lightning",
       "teardown": "",
       "verified": true,
-      "note": "Folded two-layer logic board: the shield comes off before anything else."
+      "note": "Folded two-layer logic board: the shield comes off before anything else.",
+      "source": ""
     },
     {
       "id": "ipone_xs_max",
@@ -105,7 +108,8 @@
       "port": "lightning",
       "teardown": "",
       "verified": true,
-      "note": "Folded two-layer logic board: the shield comes off before anything else."
+      "note": "Folded two-layer logic board: the shield comes off before anything else.",
+      "source": ""
     },
     {
       "id": "ipone_11",
@@ -119,7 +123,8 @@
       "port": "lightning",
       "teardown": "ipone_11",
       "verified": true,
-      "note": "Thicker LCD panel and a flat board: roomier inside than the OLED models."
+      "note": "Thicker LCD panel and a flat board: roomier inside than the OLED models.",
+      "source": "https://www.ifixit.com/Guide/iPhone+11+Battery+Replacement/127450"
     },
     {
       "id": "ipone_11_pro",
@@ -133,7 +138,8 @@
       "port": "lightning",
       "teardown": "",
       "verified": true,
-      "note": "Folded two-layer logic board: the shield comes off before anything else."
+      "note": "Folded two-layer logic board: the shield comes off before anything else.",
+      "source": ""
     },
     {
       "id": "ipone_11_pro_max",
@@ -147,7 +153,8 @@
       "port": "lightning",
       "teardown": "",
       "verified": true,
-      "note": "Folded two-layer logic board: the shield comes off before anything else."
+      "note": "Folded two-layer logic board: the shield comes off before anything else.",
+      "source": ""
     },
     {
       "id": "ipone_12_mini",
@@ -161,7 +168,8 @@
       "port": "lightning",
       "teardown": "",
       "verified": true,
-      "note": "Magnet ring around the wireless coil; the screen swings open like a book."
+      "note": "Magnet ring around the wireless coil; the screen swings open like a book.",
+      "source": ""
     },
     {
       "id": "ipone_12",
@@ -175,7 +183,8 @@
       "port": "lightning",
       "teardown": "",
       "verified": true,
-      "note": "Magnet ring around the wireless coil; the screen swings open like a book."
+      "note": "Magnet ring around the wireless coil; the screen swings open like a book.",
+      "source": ""
     },
     {
       "id": "ipone_12_pro",
@@ -189,7 +198,8 @@
       "port": "lightning",
       "teardown": "",
       "verified": true,
-      "note": "Magnet ring around the wireless coil; the screen swings open like a book."
+      "note": "Magnet ring around the wireless coil; the screen swings open like a book.",
+      "source": ""
     },
     {
       "id": "ipone_12_pro_max",
@@ -203,7 +213,8 @@
       "port": "lightning",
       "teardown": "",
       "verified": true,
-      "note": "Magnet ring around the wireless coil; the screen swings open like a book."
+      "note": "Magnet ring around the wireless coil; the screen swings open like a book.",
+      "source": ""
     },
     {
       "id": "ipone_13_mini",
@@ -217,7 +228,8 @@
       "port": "lightning",
       "teardown": "",
       "verified": true,
-      "note": "Magnet ring around the wireless coil; the screen swings open like a book."
+      "note": "Magnet ring around the wireless coil; the screen swings open like a book.",
+      "source": ""
     },
     {
       "id": "ipone_13",
@@ -231,7 +243,8 @@
       "port": "lightning",
       "teardown": "ipone_13",
       "verified": true,
-      "note": "Magnet ring around the wireless coil; the screen swings open like a book."
+      "note": "Magnet ring around the wireless coil; the screen swings open like a book.",
+      "source": "https://www.ifixit.com/Guide/iPhone+13+Battery+Replacement/145896"
     },
     {
       "id": "ipone_13_pro",
@@ -245,7 +258,8 @@
       "port": "lightning",
       "teardown": "",
       "verified": true,
-      "note": "Magnet ring around the wireless coil; the screen swings open like a book."
+      "note": "Magnet ring around the wireless coil; the screen swings open like a book.",
+      "source": ""
     },
     {
       "id": "ipone_13_pro_max",
@@ -259,7 +273,8 @@
       "port": "lightning",
       "teardown": "",
       "verified": true,
-      "note": "Magnet ring around the wireless coil; the screen swings open like a book."
+      "note": "Magnet ring around the wireless coil; the screen swings open like a book.",
+      "source": ""
     },
     {
       "id": "ipone_14",
@@ -273,7 +288,8 @@
       "port": "lightning",
       "teardown": "ipone_14",
       "verified": true,
-      "note": "Redesigned frame: the back glass comes off too, so most repairs go in from the back."
+      "note": "Redesigned frame: the back glass comes off too, so most repairs go in from the back.",
+      "source": "https://www.ifixit.com/Guide/iPhone+14+Battery+Replacement/152966"
     },
     {
       "id": "ipone_14_plus",
@@ -287,7 +303,8 @@
       "port": "lightning",
       "teardown": "",
       "verified": true,
-      "note": "Redesigned frame: the back glass comes off too, so most repairs go in from the back."
+      "note": "Redesigned frame: the back glass comes off too, so most repairs go in from the back.",
+      "source": ""
     },
     {
       "id": "ipone_14_pro",
@@ -301,7 +318,8 @@
       "port": "lightning",
       "teardown": "",
       "verified": true,
-      "note": "Kept the older one-way frame: everything still goes in through the screen."
+      "note": "Kept the older one-way frame: everything still goes in through the screen.",
+      "source": ""
     },
     {
       "id": "ipone_14_pro_max",
@@ -315,7 +333,8 @@
       "port": "lightning",
       "teardown": "",
       "verified": true,
-      "note": "Kept the older one-way frame: everything still goes in through the screen."
+      "note": "Kept the older one-way frame: everything still goes in through the screen.",
+      "source": ""
     },
     {
       "id": "ipone_15",
@@ -329,7 +348,8 @@
       "port": "usb_c",
       "teardown": "ipone_15",
       "verified": true,
-      "note": "Same two-way frame as the 14, now with a USB-C port board."
+      "note": "Same two-way frame as the 14, now with a USB-C port board.",
+      "source": "https://www.ifixit.com/Guide/iPhone+15+Battery+Replacement/165733"
     },
     {
       "id": "ipone_15_plus",
@@ -343,7 +363,8 @@
       "port": "usb_c",
       "teardown": "",
       "verified": true,
-      "note": "Same two-way frame as the 14, now with a USB-C port board."
+      "note": "Same two-way frame as the 14, now with a USB-C port board.",
+      "source": ""
     },
     {
       "id": "ipone_15_pro",
@@ -357,7 +378,8 @@
       "port": "usb_c",
       "teardown": "",
       "verified": true,
-      "note": "Same two-way frame as the 14, now with a USB-C port board."
+      "note": "Same two-way frame as the 14, now with a USB-C port board.",
+      "source": ""
     },
     {
       "id": "ipone_15_pro_max",
@@ -371,7 +393,8 @@
       "port": "usb_c",
       "teardown": "",
       "verified": true,
-      "note": "Same two-way frame as the 14, now with a USB-C port board."
+      "note": "Same two-way frame as the 14, now with a USB-C port board.",
+      "source": ""
     },
     {
       "id": "ipone_16",
@@ -385,7 +408,8 @@
       "port": "usb_c",
       "teardown": "",
       "verified": false,
-      "note": "The battery adhesive lets go under a low voltage instead of being pulled out."
+      "note": "The battery adhesive lets go under a low voltage instead of being pulled out.",
+      "source": ""
     },
     {
       "id": "ipone_16_plus",
@@ -399,7 +423,8 @@
       "port": "usb_c",
       "teardown": "",
       "verified": false,
-      "note": "The battery adhesive lets go under a low voltage instead of being pulled out."
+      "note": "The battery adhesive lets go under a low voltage instead of being pulled out.",
+      "source": ""
     },
     {
       "id": "ipone_16_pro",
@@ -413,7 +438,8 @@
       "port": "usb_c",
       "teardown": "",
       "verified": false,
-      "note": "The battery adhesive lets go under a low voltage instead of being pulled out."
+      "note": "The battery adhesive lets go under a low voltage instead of being pulled out.",
+      "source": ""
     },
     {
       "id": "ipone_16_pro_max",
@@ -427,7 +453,8 @@
       "port": "usb_c",
       "teardown": "",
       "verified": false,
-      "note": "The battery adhesive lets go under a low voltage instead of being pulled out."
+      "note": "The battery adhesive lets go under a low voltage instead of being pulled out.",
+      "source": ""
     },
     {
       "id": "ipone_17",
@@ -441,7 +468,8 @@
       "port": "usb_c",
       "teardown": "",
       "verified": false,
-      "note": "Teardown details still to be confirmed against a public guide."
+      "note": "Teardown details still to be confirmed against a public guide.",
+      "source": ""
     },
     {
       "id": "ipone_17_pro",
@@ -455,7 +483,8 @@
       "port": "usb_c",
       "teardown": "",
       "verified": false,
-      "note": "Teardown details still to be confirmed against a public guide."
+      "note": "Teardown details still to be confirmed against a public guide.",
+      "source": ""
     },
     {
       "id": "ipone_17_pro_max",
@@ -469,7 +498,8 @@
       "port": "usb_c",
       "teardown": "",
       "verified": false,
-      "note": "Teardown details still to be confirmed against a public guide."
+      "note": "Teardown details still to be confirmed against a public guide.",
+      "source": ""
     }
   ]
 }

@@ -279,9 +279,16 @@ func test_opened_display_is_shown_tethered_beside_the_device() -> void:
 	assert_true(view.is_open_tethered("display"), "ouvert, encore tenu par ses nappes")
 	var panel: Rect2 = view.open_panel_rect("display")
 	var body: Rect2 = view.view_rect(state.device.get_component("display"))
-	assert_true(panel.end.x <= body.position.x + 1.0, "rabattu à gauche, côté charnière")
-	assert_true(view.view_rect(state.device.get_component("battery")).get_center().x > battery_before.get_center().x,
-		"l'appareil se décale pour faire de la place")
+	# Le côté dépend du modèle : ce 13 s'ouvre vers la droite, l'x et le 11 vers la gauche.
+	var to_the_right: bool = str(state.device.get_component("display").visual["hinge"]) == "right"
+	if to_the_right:
+		assert_true(panel.position.x >= body.end.x - 1.0, "rabattu du côté de sa charnière")
+		assert_true(view.view_rect(state.device.get_component("battery")).get_center().x < battery_before.get_center().x,
+			"l'appareil se décale pour faire de la place")
+	else:
+		assert_true(panel.end.x <= body.position.x + 1.0, "rabattu du côté de sa charnière")
+		assert_true(view.view_rect(state.device.get_component("battery")).get_center().x > battery_before.get_center().x,
+			"l'appareil se décale pour faire de la place")
 	assert_true(panel.position.x >= 0.0, "le panneau reste dans la vue")
 	assert_eq(view.component_at(panel.get_center()), "display", "on peut toucher l'écran ouvert")
 
@@ -302,12 +309,14 @@ func test_pulling_the_open_display_toward_the_device_closes_it() -> void:
 	DisassemblyFixture.remove_with_prerequisites(state, "display")
 	_settle(view)
 	var start: Vector2 = view.open_panel_rect("display").get_center()
+	# On referme en ramenant le panneau vers l'appareil, quel que soit le côté de la charnière.
+	var toward: float = signf(view.view_rect(state.device.get_component("display")).get_center().x - start.x)
 	view._gui_input(_touch(start, true))
 	for step: int in range(1, 11):
 		var drag: InputEventScreenDrag = InputEventScreenDrag.new()
-		drag.position = start + Vector2(10.0 * step, 0)
+		drag.position = start + Vector2(10.0 * step * toward, 0)
 		view._gui_input(drag)
-	view._gui_input(_touch(start + Vector2(100, 0), false))
+	view._gui_input(_touch(start + Vector2(100.0 * toward, 0), false))
 	assert_eq(completed, ["display"] as Array[String], "tirer vers la charnière referme l'écran")
 	view.free()
 
@@ -686,7 +695,7 @@ func test_front_sensors_travel_with_the_open_screen() -> void:
 	assert_true(view.is_open_tethered("display"), "préparation : écran rabattu sur le côté")
 
 	var opened: Rect2 = view.view_rect(sensors)
-	assert_true(opened.get_center().x < closed.get_center().x - 20.0, "les capteurs ont suivi le panneau")
+	assert_true(absf(opened.get_center().x - closed.get_center().x) > 20.0, "les capteurs ont suivi le panneau")
 	assert_true(view.open_panel_rect("display").grow(8.0).encloses(opened), "posés sur le panneau ouvert")
 	assert_eq(view.component_at(opened.get_center()), "front_sensors", "et se touchent là où on les voit")
 	assert_eq(view.component_at(view.open_panel_rect("display").position + Vector2(4.0, 4.0)), "display",
