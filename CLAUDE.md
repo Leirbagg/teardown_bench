@@ -60,9 +60,9 @@ Aucun nom de marque, logo, ou nom de modèle réel dans le code, les données ou
 assets. Les appareils sont des analogues fictifs. Si un nom réel apparaît dans une
 demande, utiliser l'équivalent fictif du projet.
 
-**Exception décidée par le propriétaire du projet** : les deux noms de modèle affichés
-au joueur (`ipone13`, `sasung22`, dans le champ `name` des appareils et sur leur plaque
-au dos) sont des quasi-homonymes assumés de modèles réels. Ne pas les « corriger ».
+**Exception décidée par le propriétaire du projet** : les noms de modèle affichés au
+joueur (champ `name` des appareils et plaque gravée au dos) sont des quasi-homonymes
+assumés de modèles réels. Ne pas les « corriger ».
 Ils restent risqués pour une publication sur un store : le reste de la règle s'applique
 toujours, et rien d'autre ne doit évoquer une marque.
 

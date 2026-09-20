@@ -131,47 +131,10 @@ func test_each_device_is_a_recognisable_model() -> void:
 			"%s : la plaque porte le nom du modèle" % device.id)
 
 
-## Le deuxième appareil s'ouvre par le dos : c'est ce qui le distingue en jeu, pas sa fiche.
-func test_the_second_device_opens_from_the_back() -> void:
-	var device: DeviceDefinition = null
-	for candidate: DeviceDefinition in _load_devices():
-		if candidate.id == "corvid_g2":
-			device = candidate
-	assert_true(device != null, "corvid_g2 présent")
-	if device == null:
-		return
-	assert_eq(device.tier, 1, "disponible dès le premier jour, comme l'autre")
-	var back: int = 0
-	for component: ComponentDefinition in device.components:
-		if component.face == "back":
-			back += 1
-	assert_true(back > device.components.size() / 2, "l'essentiel du démontage se fait au dos : %d pièces" % back)
-	# L'écran ne se décolle qu'une fois la nappe débranchée, et elle est sous le capot arrière.
-	assert_true("display_connector" in device.get_component("display").requires,
-		"on débranche l'écran par le dos avant de le décoller")
-	for role: String in ["screen", "battery", "charge_port", "front_sensors"]:
-		assert_true(device.component_for_role(role) != null, "rôle '%s' présent" % role)
-
-
-## Les deux appareils arrivent au hasard dès le début : c'est le modèle qu'on découvre en
-## ouvrant le carton, pas une récompense de progression.
-func test_both_devices_show_up_from_the_first_day() -> void:
-	var rng: RandomNumberGenerator = RandomNumberGenerator.new()
-	var seen: PackedStringArray = PackedStringArray()
-	for seed_value: int in 30:
-		rng.seed = seed_value
-		var errors: Array[String] = []
-		for job: RepairJob in DayGenerator.generate(_load_devices(), _load_faults(), 1, rng, errors):
-			if job.device.id not in seen:
-				seen.append(job.device.id)
-		assert_no_errors(errors)
-	for device: DeviceDefinition in _load_devices():
-		assert_true(device.id in seen, "%s tombe dès le tier 1 : vus = %s" % [device.id, ", ".join(seen)])
-
-
 func test_tier_two_day_can_be_generated_and_played_to_the_report() -> void:
 	var rng: RandomNumberGenerator = RandomNumberGenerator.new()
 	var seen: PackedStringArray = PackedStringArray()
+	var faults_seen: PackedStringArray = PackedStringArray()
 	for seed_value: int in 40:
 		rng.seed = seed_value
 		var errors: Array[String] = []
@@ -180,6 +143,8 @@ func test_tier_two_day_can_be_generated_and_played_to_the_report() -> void:
 		for job: RepairJob in jobs:
 			if job.device.id not in seen:
 				seen.append(job.device.id)
+			if job.faults[0].id not in faults_seen:
+				faults_seen.append(job.faults[0].id)
 			var session: RepairSession = RepairSession.new(job)
 			session.advance(60.0)
 			DisassemblyFixture.repair_faults(session.state, job.faults)
@@ -187,7 +152,7 @@ func test_tier_two_day_can_be_generated_and_played_to_the_report() -> void:
 				"%s sur %s : réparable" % [job.faults[0].id, job.device.id])
 			assert_eq(session.report().broken_parts, PackedStringArray(),
 				"%s sur %s : réparation propre, sans casse" % [job.faults[0].id, job.device.id])
-	assert_true("corvid_g2" in seen, "le deuxième appareil arrive en tier 2 : %s" % ", ".join(seen))
+	assert_true("front_sensors_dead" in faults_seen, "la panne de tier 2 arrive : %s" % ", ".join(faults_seen))
 
 
 ## Le mode solution sert surtout face à un modèle qu'on ne connaît pas : il doit mener chaque

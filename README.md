@@ -24,11 +24,9 @@ remplace la pièce, on remonte et on lance le test final.
 - **On punit l'intention, pas la précision.** Un geste raté se réessaie sans conséquence. Seule
   une mauvaise décision casse quelque chose : forcer un écran encore collé, débrancher une nappe
   avant la batterie, tirer une batterie encore tenue par ses languettes.
-- **Un process fidèle.** Chaque appareil suit l'ordre réel de réparation d'après les guides
-  publics, et chacun s'ouvre à sa façon : l'*ipone13* par l'écran (joint chauffé, écran rabattu
-  comme un livre, caches vissés, languettes adhésives), le *sasung22* par le dos (verre arrière
-  collé, capot de châssis à huit vis portant la bobine de charge, batterie collée sans languette,
-  écran débranché par l'arrière avant d'être décollé).
+- **Un process fidèle.** L'appareil suit l'ordre réel de réparation d'après les guides publics :
+  joint chauffé, écran rabattu comme un livre, caches vissés, batterie débranchée en premier,
+  languettes adhésives, haut-parleur, vibreur, port de charge collé.
 - **Diagnostic.** Plainte du client, loupe, tests logiciels, test final ; les remplacements
   inutiles comptent comme erreurs au bilan.
 - **Tapis magnétique.** Chaque vis et chaque pièce retirée reste posée à sa place d'origine, avec sa
@@ -44,8 +42,7 @@ Détails : [GDD](GDD.md) · [schéma des données et règles](docs/data_schema.m
 
 ## État
 
-MVP jouable sur téléphone : **2 appareils** de 36 pièces — l'*ipone13*, qui s'ouvre par l'écran,
-et le *sasung22*, qui s'ouvre par le dos, tirés au hasard dès le premier jour — 4 pannes (écran,
+MVP jouable sur téléphone : 1 appareil de 36 pièces, l'*ipone13* — 4 pannes (écran,
 batterie, port de charge, capteurs frontaux), journées de 2 à 3 clients, économie (prix des pannes,
 coût des pièces, note en étoiles, réputation) et sauvegarde après chaque client. Pas encore de
 stock à acheter, d'upgrades d'outils ni de monétisation (voir « Hors périmètre » dans le GDD).
