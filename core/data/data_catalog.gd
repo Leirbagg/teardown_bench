@@ -8,6 +8,8 @@ const MANIFEST_PATH: String = "res://data/preload_manifest.json"
 
 var devices: Array[DeviceDefinition] = []
 var faults: Array[FaultDefinition] = []
+## Fiches de la gamme : tous les modèles, y compris ceux dont le démontage n'existe pas encore.
+var models: ModelCatalog
 
 
 ## Renvoie null et remplit `errors` si le manifeste ou l'un des fichiers est invalide.
@@ -25,6 +27,10 @@ static func load_manifest(path: String, errors: Array[String]) -> DataCatalog:
 		var fault: FaultDefinition = DeviceLoader.load_fault(fault_path, errors)
 		if fault != null:
 			catalog.faults.append(fault)
+	var model_paths: PackedStringArray = _paths(manifest, "models", path, errors)
+	catalog.models = ModelCatalog.load_from(model_paths[0] if not model_paths.is_empty() else ModelCatalog.PATH, errors)
+	if catalog.models != null:
+		catalog.models.check_teardowns(catalog.devices, errors)
 	return catalog if errors.size() == errors_before else null
 
 
@@ -47,7 +53,7 @@ func find_fault(fault_id: String) -> FaultDefinition:
 ## Tous les chemins listés, appareils puis pannes.
 static func listed_paths(manifest: Dictionary) -> PackedStringArray:
 	var paths: PackedStringArray = PackedStringArray()
-	for key: String in ["devices", "faults"]:
+	for key: String in ["devices", "faults", "models"]:
 		if typeof(manifest.get(key)) == TYPE_ARRAY:
 			for item: Variant in manifest[key]:
 				paths.append(str(item))

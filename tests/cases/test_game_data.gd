@@ -43,6 +43,7 @@ func test_manifest_lists_exactly_the_data_files() -> void:
 	assert_no_errors(errors)
 	var listed: PackedStringArray = DataCatalog.listed_paths(manifest)
 	var on_disk: PackedStringArray = _json_files(DEVICES_DIR) + _json_files(FAULTS_DIR)
+	on_disk.append(ModelCatalog.PATH)
 	for path: String in on_disk:
 		assert_true(path in listed, "%s absent du manifeste : il ne serait pas exporté" % path)
 	for path: String in listed:
@@ -50,7 +51,7 @@ func test_manifest_lists_exactly_the_data_files() -> void:
 	var catalog: DataCatalog = DataCatalog.load_manifest(DataCatalog.MANIFEST_PATH, errors)
 	assert_no_errors(errors)
 	if catalog != null:
-		assert_eq(catalog.devices.size() + catalog.faults.size(), on_disk.size())
+		assert_eq(catalog.devices.size() + catalog.faults.size() + 1, on_disk.size())
 
 
 func test_every_component_has_a_display_rect() -> void:
@@ -66,7 +67,7 @@ func test_mvp_content_is_present() -> void:
 	var fault_ids: PackedStringArray = PackedStringArray()
 	for fault: FaultDefinition in _load_faults():
 		fault_ids.append(fault.id)
-	assert_true("starter_phone" in device_ids, "starter_phone présent")
+	assert_true("ipone_13" in device_ids, "ipone_13 présent")
 	for fault_id: String in ["screen_cracked", "battery_dead", "charge_port_faulty"]:
 		assert_true(fault_id in fault_ids, "%s présent" % fault_id)
 
@@ -182,3 +183,70 @@ func test_solution_mode_repairs_every_fault_of_every_device() -> void:
 						assert_true(diagnosis.run_final_test().is_passed(), "%s : test final réussi" % where)
 			assert_eq(state.broken_ids(), PackedStringArray(), "%s : rien de cassé en chemin" % where)
 			assert_true(state.is_fully_assembled(), "%s : appareil refermé" % where)
+
+
+# --- Fiches de la gamme ---
+
+func _models() -> ModelCatalog:
+	var errors: Array[String] = []
+	var catalog: ModelCatalog = ModelCatalog.load_from(ModelCatalog.PATH, errors)
+	assert_no_errors(errors)
+	return catalog
+
+
+## La gamme entière est consultable, même là où le démontage n'existe pas encore.
+func test_the_whole_line_up_has_a_card() -> void:
+	var catalog: ModelCatalog = _models()
+	assert_true(catalog.models.size() >= 30, "la gamme va de l'X au dernier : %d fiches" % catalog.models.size())
+	var ids: PackedStringArray = PackedStringArray()
+	for model: ModelCatalog.Model in catalog.models:
+		assert_true(model.id not in ids, "%s : fiche en double" % model.id)
+		ids.append(model.id)
+		assert_false(model.name.is_empty(), "%s : un nom affichable" % model.id)
+		assert_true(model.year >= 2017, "%s : année plausible (%d)" % [model.id, model.year])
+		assert_true(model.screen_inches > 4.0 and model.screen_inches < 8.0,
+			"%s : diagonale plausible (%.1f)" % [model.id, model.screen_inches])
+		assert_true(model.screen_tech in ["oled", "lcd"], "%s : dalle '%s'" % [model.id, model.screen_tech])
+		assert_true(model.port in ["lightning", "usb_c"], "%s : port '%s'" % [model.id, model.port])
+		assert_true(model.opens_from in ["screen", "screen_or_back"], "%s : ouverture '%s'" % [model.id, model.opens_from])
+	for bound: String in ["ipone_x", "ipone_17_pro_max"]:
+		assert_true(catalog.find(bound) != null, "%s présent : c'est une borne de la gamme" % bound)
+
+
+## Chaque fiche renvoie à une famille décrite, et en hérite la façon de s'ouvrir.
+func test_every_card_belongs_to_a_described_family() -> void:
+	var catalog: ModelCatalog = _models()
+	assert_true(catalog.families.size() >= 4, "plusieurs familles de démontage")
+	for model: ModelCatalog.Model in catalog.models:
+		var family: ModelCatalog.Family = null
+		for candidate: ModelCatalog.Family in catalog.families:
+			if candidate.id == model.family:
+				family = candidate
+		assert_true(family != null, "%s : famille '%s' décrite" % [model.id, model.family])
+		if family != null:
+			assert_eq(model.opens_from, family.opens_from, "%s : s'ouvre comme sa famille" % model.id)
+			assert_false(family.note.is_empty(), "famille %s : une note pour le joueur" % family.id)
+
+
+## Un modèle jouable désigne un démontage réellement chargé ; les autres sont consultables.
+func test_playable_models_point_at_a_real_teardown() -> void:
+	var catalog: ModelCatalog = _models()
+	var errors: Array[String] = []
+	catalog.check_teardowns(_load_devices(), errors)
+	assert_no_errors(errors)
+	assert_true(catalog.playable().size() >= 1, "au moins un modèle se joue")
+	for model: ModelCatalog.Model in catalog.playable():
+		assert_true(model.verified, "%s est jouable : sa fiche doit être vérifiée" % model.id)
+	for device: DeviceDefinition in _load_devices():
+		var model: ModelCatalog.Model = catalog.for_teardown(device.id)
+		assert_true(model != null, "l'appareil %s doit avoir sa fiche" % device.id)
+		if model != null:
+			assert_eq(model.name, device.name, "%s : même nom sur la fiche et sur l'appareil" % device.id)
+
+
+## Le catalogue refuse une fiche rattachée à une famille qui n'existe pas.
+func test_a_card_without_a_family_is_rejected() -> void:
+	var errors: Array[String] = []
+	var catalog: ModelCatalog = ModelCatalog.load_from("res://tests/fixtures/models_bad_family.json", errors)
+	assert_has_code(errors, "unknown_ref")
+	assert_true(catalog == null, "catalogue refusé")

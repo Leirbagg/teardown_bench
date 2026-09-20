@@ -41,7 +41,7 @@ Tout fichier doit passer `DeviceValidator` (`core/data/device_validator.gd`).
 ```json
 {
   "schema_version": 1,
-  "id": "starter_phone",
+  "id": "ipone_13",
   "name": "Starter Phone",
   "tier": 1,
   "faces": ["front", "back"],
@@ -118,6 +118,36 @@ sont rattachés.
   son porteur bloquerait la réparation (GDD, pilier 3).
 - **Orphelin** : composant que rien ne requiert (ni `requires` ni `replace_requires`), non
   `replaceable` et sans rôle. Le retirer ne sert à rien, c'est une erreur.
+
+## Fiches de la gamme (`data/models.json`)
+
+Un seul fichier décrit **tous** les modèles, y compris ceux qu'on ne peut pas encore démonter :
+la gamme est consultable en entier, elle devient jouable par lots.
+
+```json
+{
+  "families": [
+    { "id": "12_13", "label": "MagSafe era", "opens_from": "screen", "note": "…" }
+  ],
+  "models": [
+    { "id": "ipone_13", "name": "ipone 13", "year": 2021, "screen_inches": 6.1,
+      "screen_tech": "oled", "family": "12_13", "family_label": "MagSafe era",
+      "opens_from": "screen", "port": "lightning",
+      "teardown": "ipone_13", "verified": true, "note": "…" }
+  ]
+}
+```
+
+| Champ | Rôle |
+|---|---|
+| `family` | Renvoie à une famille décrite plus haut ; le modèle en hérite `opens_from` |
+| `teardown` | Id de l'appareil de `data/devices/`. **Vide** = fiche consultable, modèle non jouable |
+| `verified` | Faux quand la fiche repose sur une connaissance incomplète, à confirmer sur un guide |
+| `screen_tech` | `oled` ou `lcd` · `port` : `lightning` ou `usb_c` · `opens_from` : `screen` ou `screen_or_back` |
+
+Règles vérifiées : ids uniques, nom non vide, famille existante, ouverture héritée de la famille,
+et tout `teardown` non vide désigne un appareil réellement chargé. Un modèle jouable doit être
+`verified`.
 
 ## Panne
 

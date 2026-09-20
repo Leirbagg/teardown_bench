@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
-  "id": "starter_phone",
-  "name": "ipone13",
+  "id": "ipone_13",
+  "name": "ipone 13",
   "tier": 1,
   "faces": [
     "front",
@@ -1151,7 +1151,7 @@
         70,
         22
       ],
-      "label": "IPONE13"
+      "label": "IPONE 13"
     }
   ]
 }

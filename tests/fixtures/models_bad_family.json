@@ -1,0 +1,11 @@
+{
+  "schema_version": 1,
+  "families": [
+    {"id": "known", "label": "Known", "opens_from": "screen", "note": "A family."}
+  ],
+  "models": [
+    {"id": "ipone_test", "name": "ipone test", "year": 2020, "screen_inches": 6.1,
+     "screen_tech": "oled", "family": "ghost", "family_label": "Ghost",
+     "opens_from": "screen", "port": "lightning", "teardown": "", "verified": true, "note": ""}
+  ]
+}

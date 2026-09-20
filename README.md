@@ -42,7 +42,9 @@ Détails : [GDD](GDD.md) · [schéma des données et règles](docs/data_schema.m
 
 ## État
 
-MVP jouable sur téléphone : 1 appareil de 36 pièces, l'*ipone13* — 4 pannes (écran,
+MVP jouable sur téléphone : la gamme entière est fichée, de l'*ipone x* à l'*ipone 17 pro max*
+(30 modèles, 8 familles de démontage), dont **1 démontable** pour l'instant, l'*ipone 13* et ses
+36 pièces — 4 pannes (écran,
 batterie, port de charge, capteurs frontaux), journées de 2 à 3 clients, économie (prix des pannes,
 coût des pièces, note en étoiles, réputation) et sauvegarde après chaque client. Pas encore de
 stock à acheter, d'upgrades d'outils ni de monétisation (voir « Hors périmètre » dans le GDD).
@@ -113,7 +115,7 @@ lecture seule.
 |---|---|
 | `core/` | Règles du jeu en GDScript pur, testables sans écran : graphe de démontage, diagnostic, journée et bilan, économie, sauvegarde, plan du mode solution, chargement et validation des données |
 | `game/` | Scènes, interface, reconnaissance des gestes, rendu, sons et vibrations. Consomme `core/`, n'ajoute aucune règle |
-| `data/` | Appareils et pannes en JSON, listés dans `data/preload_manifest.json` |
+| `data/` | Appareils, pannes et fiches des modèles en JSON, listés dans `data/preload_manifest.json` |
 | `assets/audio/` | Effets sonores générés par `scripts/generate_sfx.py` |
 | `tests/` | Suites (`tests/cases/test_*.gd`) et fichiers de test |
 | `docs/` | Schéma des données, captures |

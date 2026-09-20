@@ -8,7 +8,7 @@ func _root() -> Window:
 	return (Engine.get_main_loop() as SceneTree).root
 
 
-func _starter_phone_state() -> DisassemblyState:
+func _phone_state() -> DisassemblyState:
 	var errors: Array[String] = []
 	var catalog: DataCatalog = DataCatalog.load_manifest(DataCatalog.MANIFEST_PATH, errors)
 	assert_no_errors(errors)
@@ -34,7 +34,7 @@ func _map(mat: PartsMat) -> MatMap:
 
 
 func test_connectors_never_reach_the_mat() -> void:
-	var state: DisassemblyState = _starter_phone_state()
+	var state: DisassemblyState = _phone_state()
 	var mat: PartsMat = _mat(state)
 	DisassemblyFixture.remove_with_prerequisites(state, "battery_connector")
 	var items: PackedStringArray = _map(mat).item_ids()
@@ -44,7 +44,7 @@ func test_connectors_never_reach_the_mat() -> void:
 
 
 func test_mat_lists_detached_parts_only() -> void:
-	var state: DisassemblyState = _starter_phone_state()
+	var state: DisassemblyState = _phone_state()
 	var mat: PartsMat = _mat(state)
 	assert_eq(_map(mat).item_ids(), PackedStringArray())
 	DisassemblyFixture.remove_with_prerequisites(state, "display")
@@ -58,7 +58,7 @@ func test_mat_lists_detached_parts_only() -> void:
 
 
 func test_touching_a_screw_on_the_mat_beats_the_display_under_it() -> void:
-	var state: DisassemblyState = _starter_phone_state()
+	var state: DisassemblyState = _phone_state()
 	var mat: PartsMat = _mat(state)
 	for id: String in ["display_connector", "sensor_connector"]:
 		DisassemblyFixture.remove_with_prerequisites(state, id)
@@ -75,7 +75,7 @@ func test_touching_a_screw_on_the_mat_beats_the_display_under_it() -> void:
 
 
 func test_small_items_are_drawn_large_enough_to_touch() -> void:
-	var state: DisassemblyState = _starter_phone_state()
+	var state: DisassemblyState = _phone_state()
 	var mat: PartsMat = _mat(state)
 	DisassemblyFixture.remove_with_prerequisites(state, "connector_cover")
 	var map: MatMap = _map(mat)
@@ -97,7 +97,7 @@ func _drag(map: MatMap, position: Vector2) -> void:
 
 
 func test_dragging_a_part_moves_it_on_the_mat() -> void:
-	var state: DisassemblyState = _starter_phone_state()
+	var state: DisassemblyState = _phone_state()
 	var mat: PartsMat = _mat(state)
 	DisassemblyFixture.remove_with_prerequisites(state, "connector_cover")
 	var map: MatMap = _map(mat)
@@ -115,7 +115,7 @@ func test_dragging_a_part_moves_it_on_the_mat() -> void:
 
 
 func test_a_short_tap_still_selects_and_deselects() -> void:
-	var state: DisassemblyState = _starter_phone_state()
+	var state: DisassemblyState = _phone_state()
 	var mat: PartsMat = _mat(state)
 	DisassemblyFixture.remove_with_prerequisites(state, "connector_cover")
 	var map: MatMap = _map(mat)
@@ -131,7 +131,7 @@ func test_a_short_tap_still_selects_and_deselects() -> void:
 
 
 func test_a_part_cannot_be_dragged_out_of_the_mat() -> void:
-	var state: DisassemblyState = _starter_phone_state()
+	var state: DisassemblyState = _phone_state()
 	var mat: PartsMat = _mat(state)
 	DisassemblyFixture.remove_with_prerequisites(state, "connector_cover")
 	var map: MatMap = _map(mat)
@@ -145,7 +145,7 @@ func test_a_part_cannot_be_dragged_out_of_the_mat() -> void:
 
 
 func test_a_part_put_back_forgets_its_place_on_the_mat() -> void:
-	var state: DisassemblyState = _starter_phone_state()
+	var state: DisassemblyState = _phone_state()
 	var mat: PartsMat = _mat(state)
 	DisassemblyFixture.remove_with_prerequisites(state, "connector_cover")
 	var map: MatMap = _map(mat)
@@ -162,7 +162,7 @@ func test_a_part_put_back_forgets_its_place_on_the_mat() -> void:
 
 
 func test_tidy_spreads_the_parts_without_overlap() -> void:
-	var state: DisassemblyState = _starter_phone_state()
+	var state: DisassemblyState = _phone_state()
 	var mat: PartsMat = _mat(state)
 	DisassemblyFixture.remove_with_prerequisites(state, "connector_cover")
 	var map: MatMap = _map(mat)
@@ -193,7 +193,7 @@ func _overlaps(rects: Array[Rect2]) -> int:
 
 
 func test_actions_follow_the_selected_part() -> void:
-	var state: DisassemblyState = _starter_phone_state()
+	var state: DisassemblyState = _phone_state()
 	var mat: PartsMat = _mat(state)
 	DisassemblyFixture.remove_with_prerequisites(state, "connector_cover")
 	var requests: Array[String] = []

@@ -42,12 +42,12 @@ func _root() -> Window:
 	return (Engine.get_main_loop() as SceneTree).root
 
 
-func _starter_phone_state() -> DisassemblyState:
+func _ipone_13_state() -> DisassemblyState:
 	var errors: Array[String] = []
 	var catalog: DataCatalog = DataCatalog.load_manifest(DataCatalog.MANIFEST_PATH, errors)
 	assert_no_errors(errors)
 	for device: DeviceDefinition in catalog.devices:
-		if device.id == "starter_phone":
+		if device.id == "ipone_13":
 			return DisassemblyState.new(device)
 	return null
 
@@ -68,7 +68,7 @@ func _center_of(view: DeviceView, component_id: String) -> Vector2:
 # --- Vue de l'appareil ---
 
 func test_device_view_hits_topmost_visible_part() -> void:
-	var state: DisassemblyState = _starter_phone_state()
+	var state: DisassemblyState = _ipone_13_state()
 	var view: DeviceView = _device_view(state)
 	assert_eq(view.face, "front", "on commence côté écran")
 	assert_eq(view.component_at(_center_of(view, "pentalobe_left")), "pentalobe_left", "vis au-dessus de l'écran")
@@ -86,7 +86,7 @@ func test_device_view_hits_topmost_visible_part() -> void:
 
 ## Régression : en mouse_filter IGNORE, l'interface ne transmet jamais les touchers à la vue.
 func test_device_view_receives_touches_through_gui_input() -> void:
-	var state: DisassemblyState = _starter_phone_state()
+	var state: DisassemblyState = _ipone_13_state()
 	var view: DeviceView = _device_view(state)
 	assert_eq(view.mouse_filter, Control.MOUSE_FILTER_STOP, "la vue doit capter les touchers")
 	var completed: Array[String] = []
@@ -112,7 +112,7 @@ func _touch(position: Vector2, pressed: bool) -> InputEventScreenTouch:
 
 ## Le joint entoure l'écran : on le chauffe sur ses bords, on touche l'écran au milieu.
 func test_the_seal_is_only_touchable_on_its_band() -> void:
-	var state: DisassemblyState = _starter_phone_state()
+	var state: DisassemblyState = _ipone_13_state()
 	var view: DeviceView = _device_view(state)
 	var screen: Rect2 = view.view_rect(state.device.get_component("display"))
 	assert_eq(view.component_at(screen.get_center()), "display", "au milieu : l'écran")
@@ -126,7 +126,7 @@ func test_the_seal_is_only_touchable_on_its_band() -> void:
 ## Pilier 2 : viser une pièce en plein centre ne doit jamais attraper sa voisine, même si la
 ## zone agrandie de la voisine, dessinée par-dessus, recouvre le doigt.
 func test_touching_a_part_squarely_never_picks_its_overlapping_neighbour() -> void:
-	var state: DisassemblyState = _starter_phone_state()
+	var state: DisassemblyState = _ipone_13_state()
 	var view: DeviceView = _device_view(state)
 	DisassemblyFixture.remove_with_prerequisites(state, "connector_cover")
 	var battery_connector: Rect2 = view.view_rect(state.device.get_component("battery_connector"))
@@ -143,7 +143,7 @@ func test_touching_a_part_squarely_never_picks_its_overlapping_neighbour() -> vo
 
 ## Une nappe reste attachée à sa pièce : débranchée sur place, rebranchée par un geste.
 func test_an_unplugged_connector_stays_next_to_its_socket_and_plugs_back() -> void:
-	var state: DisassemblyState = _starter_phone_state()
+	var state: DisassemblyState = _ipone_13_state()
 	var view: DeviceView = _device_view(state)
 	var completed: Array[String] = []
 	view.gesture_completed.connect(func(id: String) -> void: completed.append(id))
@@ -168,7 +168,7 @@ func test_an_unplugged_connector_stays_next_to_its_socket_and_plugs_back() -> vo
 
 ## Une nappe suit sa pièce : l'écran parti sur le tapis, sa nappe quitte le socle et s'estompe.
 func test_a_cable_follows_its_part_to_the_mat() -> void:
-	var state: DisassemblyState = _starter_phone_state()
+	var state: DisassemblyState = _ipone_13_state()
 	var view: DeviceView = _device_view(state)
 	DisassemblyFixture.remove_with_prerequisites(state, "display_connector")
 	_settle(view)
@@ -186,7 +186,7 @@ func test_a_cable_follows_its_part_to_the_mat() -> void:
 
 ## Le doigt fantôme du mode solution doit mener chaque type de geste à son terme.
 func test_ghost_finger_completes_every_gesture_kind() -> void:
-	var state: DisassemblyState = _starter_phone_state()
+	var state: DisassemblyState = _ipone_13_state()
 	var view: DeviceView = _device_view(state)
 	var completed: Array[String] = []
 	var steps: Array[int] = [0]
@@ -213,7 +213,7 @@ func test_ghost_finger_completes_every_gesture_kind() -> void:
 
 
 func test_ghost_can_be_finished_early_or_stopped() -> void:
-	var state: DisassemblyState = _starter_phone_state()
+	var state: DisassemblyState = _ipone_13_state()
 	var view: DeviceView = _device_view(state)
 	var completed: Array[String] = []
 	view.gesture_completed.connect(func(id: String) -> void: completed.append(id))
@@ -252,7 +252,7 @@ func _settle(view: DeviceView) -> void:
 
 
 func test_opened_display_is_shown_tethered_beside_the_device() -> void:
-	var state: DisassemblyState = _starter_phone_state()
+	var state: DisassemblyState = _ipone_13_state()
 	var view: DeviceView = _device_view(state)
 	var battery_before: Rect2 = view.view_rect(state.device.get_component("battery"))
 	DisassemblyFixture.remove_with_prerequisites(state, "display")
@@ -276,7 +276,7 @@ func test_opened_display_is_shown_tethered_beside_the_device() -> void:
 
 
 func test_pulling_the_open_display_toward_the_device_closes_it() -> void:
-	var state: DisassemblyState = _starter_phone_state()
+	var state: DisassemblyState = _ipone_13_state()
 	var view: DeviceView = _device_view(state)
 	var completed: Array[String] = []
 	view.gesture_completed.connect(func(id: String) -> void: completed.append(id))
@@ -295,7 +295,7 @@ func test_pulling_the_open_display_toward_the_device_closes_it() -> void:
 
 func test_workbench_closes_the_open_display_or_explains_what_to_reconnect() -> void:
 	# L'écran rabattu comme un livre est propre au premier modèle : celui-ci se démonte entier.
-	var main: Main = _main_on("starter_phone", "screen_cracked")
+	var main: Main = _main_on("ipone_13", "screen_cracked")
 	(main.current_screen as CustomerScreen).start_pressed.emit()
 	var workbench: Workbench = main.current_screen as Workbench
 	var state: DisassemblyState = workbench.session.state
@@ -316,7 +316,7 @@ func test_workbench_closes_the_open_display_or_explains_what_to_reconnect() -> v
 
 
 func test_workbench_mat_reinstalls_parts_and_hands_back_control() -> void:
-	var main: Main = _main_on("starter_phone", "screen_cracked")
+	var main: Main = _main_on("ipone_13", "screen_cracked")
 	(main.current_screen as CustomerScreen).start_pressed.emit()
 	var workbench: Workbench = main.current_screen as Workbench
 	var state: DisassemblyState = workbench.session.state
@@ -337,7 +337,7 @@ func test_workbench_mat_reinstalls_parts_and_hands_back_control() -> void:
 
 
 func test_small_parts_get_a_48dp_touch_target() -> void:
-	var state: DisassemblyState = _starter_phone_state()
+	var state: DisassemblyState = _ipone_13_state()
 	var view: DeviceView = _device_view(state)
 	var screw: Rect2 = view.view_rect(state.device.get_component("pentalobe_right"))
 	assert_true(screw.size.x < DeviceView.MIN_TOUCH_TARGET, "préparation : la vis est plus petite que 48dp")
@@ -359,7 +359,7 @@ func _run_solution(workbench: Workbench, max_frames: int = 20000) -> void:
 
 
 func test_solution_mode_repairs_from_a_damaged_state_and_marks_the_job_assisted() -> void:
-	var main: Main = _main_on("starter_phone", "screen_cracked")
+	var main: Main = _main_on("ipone_13", "screen_cracked")
 	(main.current_screen as CustomerScreen).start_pressed.emit()
 	var workbench: Workbench = main.current_screen as Workbench
 	var session: RepairSession = workbench.session
@@ -444,7 +444,7 @@ func test_the_day_report_marks_the_lines_that_do_not_count() -> void:
 
 func _repair_line(assisted: bool, broken_part: String) -> RepairReport:
 	var line: RepairReport = RepairReport.new()
-	line.device_id = "starter_phone"
+	line.device_id = "ipone_13"
 	line.completed = true
 	line.assisted = assisted
 	line.deadline_met = true
@@ -605,7 +605,7 @@ func _play_repair(workbench: Workbench) -> void:
 ## Les capteurs sont montés sur l'écran : quand il se rabat, ils partent avec lui, et c'est là
 ## qu'on va les chercher pour les transférer.
 func test_front_sensors_travel_with_the_open_screen() -> void:
-	var state: DisassemblyState = _starter_phone_state()
+	var state: DisassemblyState = _ipone_13_state()
 	var view: DeviceView = _device_view(state)
 	var sensors: ComponentDefinition = state.device.get_component("front_sensors")
 	var closed: Rect2 = view.view_rect(sensors)

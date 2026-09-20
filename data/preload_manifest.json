@@ -1,12 +1,15 @@
 {
   "schema_version": 1,
   "devices": [
-    "res://data/devices/starter_phone.json"
+    "res://data/devices/ipone_13.json"
   ],
   "faults": [
     "res://data/faults/screen_cracked.json",
     "res://data/faults/battery_dead.json",
     "res://data/faults/charge_port_faulty.json",
     "res://data/faults/front_sensors_dead.json"
+  ],
+  "models": [
+    "res://data/models.json"
   ]
 }
