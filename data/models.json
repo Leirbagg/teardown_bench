@@ -117,7 +117,7 @@
       "family_label": "Single-layer LCD",
       "opens_from": "screen",
       "port": "lightning",
-      "teardown": "",
+      "teardown": "ipone_11",
       "verified": true,
       "note": "Thicker LCD panel and a flat board: roomier inside than the OLED models."
     },
@@ -327,7 +327,7 @@
       "family_label": "Two-way chassis, USB-C",
       "opens_from": "screen_or_back",
       "port": "usb_c",
-      "teardown": "",
+      "teardown": "ipone_15",
       "verified": true,
       "note": "Same two-way frame as the 14, now with a USB-C port board."
     },

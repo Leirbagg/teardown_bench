@@ -1,0 +1,1179 @@
+{
+  "schema_version": 1,
+  "id": "ipone_15",
+  "name": "ipone 15",
+  "tier": 1,
+  "faces": [
+    "front",
+    "back"
+  ],
+  "components": [
+    {
+      "id": "pentalobe_left",
+      "kind": "screw",
+      "face": "front",
+      "gesture": "rotate",
+      "gesture_params": {
+        "turns": 1.5
+      },
+      "requires": [],
+      "covered_by": [],
+      "hint": "Two pentalobe screws hold both the screen and the back glass.",
+      "screw_type": "pentalobe",
+      "length_mm": 6.9,
+      "visual": {
+        "rect": [
+          56,
+          356,
+          8,
+          8
+        ]
+      }
+    },
+    {
+      "id": "pentalobe_right",
+      "kind": "screw",
+      "face": "front",
+      "gesture": "rotate",
+      "gesture_params": {
+        "turns": 1.5
+      },
+      "requires": [],
+      "covered_by": [],
+      "hint": "Two pentalobe screws hold both the screen and the back glass.",
+      "screw_type": "pentalobe",
+      "length_mm": 6.9,
+      "visual": {
+        "rect": [
+          116,
+          356,
+          8,
+          8
+        ]
+      }
+    },
+    {
+      "id": "back_adhesive",
+      "kind": "adhesive",
+      "face": "back",
+      "gesture": "hold",
+      "gesture_params": {
+        "duration_s": 3.5
+      },
+      "requires": [],
+      "covered_by": [],
+      "hint": "Warm the seal around the back glass: this chassis opens from both sides.",
+      "visual": {
+        "rect": [
+          4,
+          4,
+          172,
+          360
+        ],
+        "frame_thickness": 3
+      }
+    },
+    {
+      "id": "back_glass",
+      "kind": "cover",
+      "face": "back",
+      "gesture": "pry",
+      "gesture_params": {
+        "perimeter_ratio": 1.0
+      },
+      "requires": [
+        "pentalobe_left",
+        "pentalobe_right",
+        "back_adhesive"
+      ],
+      "covered_by": [],
+      "replaceable": true,
+      "hint": "Slide the pick around the back, then lift the glass away.",
+      "part_price": 99,
+      "visual": {
+        "rect": [
+          4,
+          4,
+          172,
+          360
+        ]
+      }
+    },
+    {
+      "id": "shield_screw_1",
+      "kind": "screw",
+      "face": "back",
+      "gesture": "rotate",
+      "gesture_params": {
+        "turns": 0.5
+      },
+      "requires": [
+        "back_glass"
+      ],
+      "covered_by": [
+        "back_glass"
+      ],
+      "hint": "Six screws hold the plate over the battery.",
+      "screw_type": "phillips",
+      "length_mm": 1.4,
+      "visual": {
+        "rect": [
+          16,
+          120,
+          8,
+          8
+        ]
+      }
+    },
+    {
+      "id": "shield_screw_2",
+      "kind": "screw",
+      "face": "back",
+      "gesture": "rotate",
+      "gesture_params": {
+        "turns": 0.5
+      },
+      "requires": [
+        "back_glass"
+      ],
+      "covered_by": [
+        "back_glass"
+      ],
+      "hint": "Six screws hold the plate over the battery.",
+      "screw_type": "phillips",
+      "length_mm": 1.4,
+      "visual": {
+        "rect": [
+          88,
+          112,
+          8,
+          8
+        ]
+      }
+    },
+    {
+      "id": "shield_screw_3",
+      "kind": "screw",
+      "face": "back",
+      "gesture": "rotate",
+      "gesture_params": {
+        "turns": 0.5
+      },
+      "requires": [
+        "back_glass"
+      ],
+      "covered_by": [
+        "back_glass"
+      ],
+      "hint": "Six screws hold the plate over the battery.",
+      "screw_type": "phillips",
+      "length_mm": 1.4,
+      "visual": {
+        "rect": [
+          158,
+          120,
+          8,
+          8
+        ]
+      }
+    },
+    {
+      "id": "shield_screw_4",
+      "kind": "screw",
+      "face": "back",
+      "gesture": "rotate",
+      "gesture_params": {
+        "turns": 0.5
+      },
+      "requires": [
+        "back_glass"
+      ],
+      "covered_by": [
+        "back_glass"
+      ],
+      "hint": "Six screws hold the plate over the battery.",
+      "screw_type": "phillips",
+      "length_mm": 1.4,
+      "visual": {
+        "rect": [
+          16,
+          300,
+          8,
+          8
+        ]
+      }
+    },
+    {
+      "id": "shield_screw_5",
+      "kind": "screw",
+      "face": "back",
+      "gesture": "rotate",
+      "gesture_params": {
+        "turns": 0.5
+      },
+      "requires": [
+        "back_glass"
+      ],
+      "covered_by": [
+        "back_glass"
+      ],
+      "hint": "Six screws hold the plate over the battery.",
+      "screw_type": "phillips",
+      "length_mm": 1.4,
+      "visual": {
+        "rect": [
+          88,
+          320,
+          8,
+          8
+        ]
+      }
+    },
+    {
+      "id": "shield_screw_6",
+      "kind": "screw",
+      "face": "back",
+      "gesture": "rotate",
+      "gesture_params": {
+        "turns": 0.5
+      },
+      "requires": [
+        "back_glass"
+      ],
+      "covered_by": [
+        "back_glass"
+      ],
+      "hint": "Six screws hold the plate over the battery.",
+      "screw_type": "phillips",
+      "length_mm": 1.4,
+      "visual": {
+        "rect": [
+          158,
+          300,
+          8,
+          8
+        ]
+      }
+    },
+    {
+      "id": "back_shield",
+      "kind": "cover",
+      "face": "back",
+      "gesture": "pull",
+      "gesture_params": {
+        "direction_deg": 90
+      },
+      "requires": [
+        "back_glass",
+        "shield_screw_1",
+        "shield_screw_2",
+        "shield_screw_3",
+        "shield_screw_4",
+        "shield_screw_5",
+        "shield_screw_6"
+      ],
+      "covered_by": [
+        "back_glass"
+      ],
+      "replaceable": true,
+      "hint": "Lift the plate: the battery and its connector are underneath.",
+      "part_price": 7,
+      "visual": {
+        "rect": [
+          10,
+          104,
+          160,
+          236
+        ]
+      }
+    },
+    {
+      "id": "battery_connector",
+      "kind": "connector",
+      "face": "back",
+      "gesture": "pull",
+      "gesture_params": {
+        "direction_deg": 180
+      },
+      "requires": [
+        "back_glass",
+        "back_shield"
+      ],
+      "covered_by": [
+        "back_glass",
+        "back_shield"
+      ],
+      "hint": "Unplug the battery here, from the back, before touching anything on the front.",
+      "visual": {
+        "rect": [
+          20,
+          116,
+          26,
+          14
+        ],
+        "cable_to": "battery"
+      }
+    },
+    {
+      "id": "battery_tab_left",
+      "kind": "adhesive",
+      "face": "back",
+      "gesture": "pull",
+      "gesture_params": {
+        "direction_deg": 270
+      },
+      "requires": [
+        "back_glass",
+        "back_shield"
+      ],
+      "covered_by": [
+        "back_glass",
+        "back_shield"
+      ],
+      "hint": "Two stretch-release tabs hold the battery: pull them slowly and flat.",
+      "visual": {
+        "rect": [
+          30,
+          320,
+          16,
+          12
+        ]
+      }
+    },
+    {
+      "id": "battery_tab_right",
+      "kind": "adhesive",
+      "face": "back",
+      "gesture": "pull",
+      "gesture_params": {
+        "direction_deg": 270
+      },
+      "requires": [
+        "back_glass",
+        "back_shield"
+      ],
+      "covered_by": [
+        "back_glass",
+        "back_shield"
+      ],
+      "hint": "Two stretch-release tabs hold the battery: pull them slowly and flat.",
+      "visual": {
+        "rect": [
+          60,
+          320,
+          16,
+          12
+        ]
+      }
+    },
+    {
+      "id": "battery",
+      "kind": "module",
+      "face": "back",
+      "gesture": "pull",
+      "gesture_params": {
+        "direction_deg": 90
+      },
+      "requires": [
+        "back_glass",
+        "back_shield",
+        "battery_connector",
+        "battery_tab_left",
+        "battery_tab_right"
+      ],
+      "covered_by": [
+        "back_glass",
+        "back_shield"
+      ],
+      "role": "battery",
+      "replaceable": true,
+      "hint": "Lift the battery out from the back once both tabs are released.",
+      "part_price": 49,
+      "visual": {
+        "rect": [
+          22,
+          140,
+          100,
+          170
+        ]
+      }
+    },
+    {
+      "id": "wireless_coil",
+      "kind": "module",
+      "face": "back",
+      "gesture": "pull",
+      "gesture_params": {
+        "direction_deg": 90
+      },
+      "requires": [
+        "back_glass"
+      ],
+      "covered_by": [
+        "back_glass"
+      ],
+      "replaceable": true,
+      "hint": "The charging coil sits above the battery plate.",
+      "part_price": 24,
+      "visual": {
+        "rect": [
+          104,
+          14,
+          62,
+          80
+        ]
+      }
+    },
+    {
+      "id": "camera_screw_1",
+      "kind": "screw",
+      "face": "back",
+      "gesture": "rotate",
+      "gesture_params": {
+        "turns": 0.5
+      },
+      "requires": [
+        "back_glass"
+      ],
+      "covered_by": [
+        "back_glass"
+      ],
+      "hint": "Three screws hold the bigger camera block of this generation.",
+      "screw_type": "phillips",
+      "length_mm": 1.4,
+      "visual": {
+        "rect": [
+          20,
+          20,
+          8,
+          8
+        ]
+      }
+    },
+    {
+      "id": "camera_screw_2",
+      "kind": "screw",
+      "face": "back",
+      "gesture": "rotate",
+      "gesture_params": {
+        "turns": 0.5
+      },
+      "requires": [
+        "back_glass"
+      ],
+      "covered_by": [
+        "back_glass"
+      ],
+      "hint": "Three screws hold the bigger camera block of this generation.",
+      "screw_type": "phillips",
+      "length_mm": 1.4,
+      "visual": {
+        "rect": [
+          20,
+          78,
+          8,
+          8
+        ]
+      }
+    },
+    {
+      "id": "camera_screw_3",
+      "kind": "screw",
+      "face": "back",
+      "gesture": "rotate",
+      "gesture_params": {
+        "turns": 0.5
+      },
+      "requires": [
+        "back_glass"
+      ],
+      "covered_by": [
+        "back_glass"
+      ],
+      "hint": "Three screws hold the bigger camera block of this generation.",
+      "screw_type": "phillips",
+      "length_mm": 1.4,
+      "visual": {
+        "rect": [
+          70,
+          48,
+          8,
+          8
+        ]
+      }
+    },
+    {
+      "id": "camera_module",
+      "kind": "module",
+      "face": "back",
+      "gesture": "pull",
+      "requires": [
+        "back_glass",
+        "camera_screw_1",
+        "camera_screw_2",
+        "camera_screw_3"
+      ],
+      "covered_by": [
+        "back_glass"
+      ],
+      "replaceable": true,
+      "hint": "The 48-megapixel block is bulkier than the one before it.",
+      "part_price": 82,
+      "visual": {
+        "rect": [
+          12,
+          14,
+          76,
+          82
+        ]
+      }
+    },
+    {
+      "id": "display_adhesive",
+      "kind": "adhesive",
+      "face": "front",
+      "gesture": "hold",
+      "gesture_params": {
+        "duration_s": 3.0
+      },
+      "requires": [],
+      "covered_by": [],
+      "hint": "Warm the seal around the screen before lifting it.",
+      "visual": {
+        "rect": [
+          4,
+          4,
+          172,
+          360
+        ],
+        "frame_thickness": 3
+      }
+    },
+    {
+      "id": "display",
+      "kind": "module",
+      "face": "front",
+      "gesture": "pry",
+      "gesture_params": {
+        "perimeter_ratio": 1.0
+      },
+      "requires": [
+        "pentalobe_left",
+        "pentalobe_right",
+        "display_adhesive"
+      ],
+      "covered_by": [],
+      "role": "screen",
+      "replaceable": true,
+      "replace_requires": [
+        "display_connector",
+        "sensor_connector"
+      ],
+      "hint": "Work the pick around the screen, then swing it open like a book.",
+      "part_price": 172,
+      "visual": {
+        "rect": [
+          4,
+          4,
+          172,
+          360
+        ],
+        "hinge": "left"
+      }
+    },
+    {
+      "id": "flex_cover_screw_1",
+      "kind": "screw",
+      "face": "front",
+      "gesture": "rotate",
+      "gesture_params": {
+        "turns": 0.5
+      },
+      "requires": [
+        "display"
+      ],
+      "covered_by": [
+        "display"
+      ],
+      "hint": "Three screws hold the bracket over the screen cables.",
+      "screw_type": "phillips",
+      "length_mm": 1.2,
+      "visual": {
+        "rect": [
+          14,
+          150,
+          8,
+          8
+        ]
+      }
+    },
+    {
+      "id": "flex_cover_screw_2",
+      "kind": "screw",
+      "face": "front",
+      "gesture": "rotate",
+      "gesture_params": {
+        "turns": 0.5
+      },
+      "requires": [
+        "display"
+      ],
+      "covered_by": [
+        "display"
+      ],
+      "hint": "Three screws hold the bracket over the screen cables.",
+      "screw_type": "phillips",
+      "length_mm": 1.2,
+      "visual": {
+        "rect": [
+          52,
+          150,
+          8,
+          8
+        ]
+      }
+    },
+    {
+      "id": "flex_cover_screw_3",
+      "kind": "screw",
+      "face": "front",
+      "gesture": "rotate",
+      "gesture_params": {
+        "turns": 0.5
+      },
+      "requires": [
+        "display"
+      ],
+      "covered_by": [
+        "display"
+      ],
+      "hint": "Three screws hold the bracket over the screen cables.",
+      "screw_type": "phillips",
+      "length_mm": 1.2,
+      "visual": {
+        "rect": [
+          33,
+          186,
+          8,
+          8
+        ]
+      }
+    },
+    {
+      "id": "flex_cover",
+      "kind": "cover",
+      "face": "front",
+      "gesture": "pull",
+      "gesture_params": {
+        "direction_deg": 90
+      },
+      "requires": [
+        "display",
+        "flex_cover_screw_1",
+        "flex_cover_screw_2",
+        "flex_cover_screw_3"
+      ],
+      "covered_by": [
+        "display"
+      ],
+      "replaceable": true,
+      "hint": "Lift the bracket to reach the screen cables.",
+      "part_price": 4,
+      "visual": {
+        "rect": [
+          12,
+          146,
+          52,
+          48
+        ]
+      }
+    },
+    {
+      "id": "display_connector",
+      "kind": "connector",
+      "face": "front",
+      "gesture": "pull",
+      "gesture_params": {
+        "direction_deg": 180
+      },
+      "requires": [
+        "display",
+        "flex_cover",
+        "battery_connector"
+      ],
+      "covered_by": [
+        "display",
+        "flex_cover"
+      ],
+      "force_breaks": [
+        "display"
+      ],
+      "hint": "The battery must already be unplugged at the back before this cable comes off.",
+      "visual": {
+        "rect": [
+          16,
+          198,
+          24,
+          14
+        ],
+        "cable_to": "display"
+      }
+    },
+    {
+      "id": "sensor_connector",
+      "kind": "connector",
+      "face": "front",
+      "gesture": "pull",
+      "gesture_params": {
+        "direction_deg": 180
+      },
+      "requires": [
+        "display",
+        "flex_cover",
+        "battery_connector"
+      ],
+      "covered_by": [
+        "display",
+        "flex_cover"
+      ],
+      "force_breaks": [
+        "display"
+      ],
+      "hint": "Unplug the front sensor cable: the screen is now free.",
+      "visual": {
+        "rect": [
+          42,
+          198,
+          24,
+          14
+        ],
+        "cable_to": "display"
+      }
+    },
+    {
+      "id": "front_sensors",
+      "kind": "module",
+      "face": "front",
+      "gesture": "pull",
+      "gesture_params": {
+        "direction_deg": 270
+      },
+      "requires": [
+        "display"
+      ],
+      "covered_by": [
+        "display"
+      ],
+      "mounted_on": "display",
+      "role": "front_sensors",
+      "replaceable": true,
+      "hint": "Earpiece and front sensors stay with the screen: move them to the new one.",
+      "part_price": 50,
+      "visual": {
+        "rect": [
+          58,
+          16,
+          64,
+          22
+        ]
+      }
+    },
+    {
+      "id": "port_bracket_screw_1",
+      "kind": "screw",
+      "face": "front",
+      "gesture": "rotate",
+      "gesture_params": {
+        "turns": 0.5
+      },
+      "requires": [
+        "display"
+      ],
+      "covered_by": [
+        "display"
+      ],
+      "hint": "Two screws hold the bracket over the USB-C board.",
+      "screw_type": "phillips",
+      "length_mm": 1.3,
+      "visual": {
+        "rect": [
+          70,
+          296,
+          8,
+          8
+        ]
+      }
+    },
+    {
+      "id": "port_bracket_screw_2",
+      "kind": "screw",
+      "face": "front",
+      "gesture": "rotate",
+      "gesture_params": {
+        "turns": 0.5
+      },
+      "requires": [
+        "display"
+      ],
+      "covered_by": [
+        "display"
+      ],
+      "hint": "Two screws hold the bracket over the USB-C board.",
+      "screw_type": "phillips",
+      "length_mm": 1.3,
+      "visual": {
+        "rect": [
+          104,
+          296,
+          8,
+          8
+        ]
+      }
+    },
+    {
+      "id": "port_bracket",
+      "kind": "cover",
+      "face": "front",
+      "gesture": "pull",
+      "gesture_params": {
+        "direction_deg": 90
+      },
+      "requires": [
+        "display",
+        "port_bracket_screw_1",
+        "port_bracket_screw_2"
+      ],
+      "covered_by": [
+        "display"
+      ],
+      "replaceable": true,
+      "hint": "The USB-C board sits under its own bracket.",
+      "part_price": 3,
+      "visual": {
+        "rect": [
+          66,
+          292,
+          48,
+          30
+        ]
+      }
+    },
+    {
+      "id": "port_connector",
+      "kind": "connector",
+      "face": "front",
+      "gesture": "pull",
+      "gesture_params": {
+        "direction_deg": 0
+      },
+      "requires": [
+        "display",
+        "port_bracket",
+        "battery_connector"
+      ],
+      "covered_by": [
+        "display",
+        "port_bracket"
+      ],
+      "force_breaks": [
+        "usb_c_port"
+      ],
+      "hint": "Unplug the USB-C board before lifting it.",
+      "visual": {
+        "rect": [
+          120,
+          300,
+          26,
+          14
+        ],
+        "cable_to": "usb_c_port"
+      }
+    },
+    {
+      "id": "usb_c_port",
+      "kind": "module",
+      "face": "front",
+      "gesture": "pull",
+      "gesture_params": {
+        "direction_deg": 270
+      },
+      "requires": [
+        "display",
+        "port_connector"
+      ],
+      "covered_by": [
+        "display"
+      ],
+      "role": "charge_port",
+      "replaceable": true,
+      "hint": "A USB-C board, not a Lightning one: the part is not the same at all.",
+      "part_price": 38,
+      "visual": {
+        "rect": [
+          66,
+          330,
+          48,
+          24
+        ]
+      }
+    },
+    {
+      "id": "speaker_screw_1",
+      "kind": "screw",
+      "face": "front",
+      "gesture": "rotate",
+      "gesture_params": {
+        "turns": 0.5
+      },
+      "requires": [
+        "display"
+      ],
+      "covered_by": [
+        "display"
+      ],
+      "hint": "Two screws hold the loudspeaker.",
+      "screw_type": "phillips",
+      "length_mm": 1.4,
+      "visual": {
+        "rect": [
+          20,
+          300,
+          8,
+          8
+        ]
+      }
+    },
+    {
+      "id": "speaker_screw_2",
+      "kind": "screw",
+      "face": "front",
+      "gesture": "rotate",
+      "gesture_params": {
+        "turns": 0.5
+      },
+      "requires": [
+        "display"
+      ],
+      "covered_by": [
+        "display"
+      ],
+      "hint": "Two screws hold the loudspeaker.",
+      "screw_type": "phillips",
+      "length_mm": 1.4,
+      "visual": {
+        "rect": [
+          20,
+          330,
+          8,
+          8
+        ]
+      }
+    },
+    {
+      "id": "loudspeaker",
+      "kind": "module",
+      "face": "front",
+      "gesture": "pull",
+      "requires": [
+        "display",
+        "speaker_screw_1",
+        "speaker_screw_2"
+      ],
+      "covered_by": [
+        "display"
+      ],
+      "replaceable": true,
+      "hint": "The loudspeaker sits beside the USB-C board.",
+      "part_price": 17,
+      "visual": {
+        "rect": [
+          32,
+          296,
+          32,
+          58
+        ]
+      }
+    },
+    {
+      "id": "haptic_screw_1",
+      "kind": "screw",
+      "face": "front",
+      "gesture": "rotate",
+      "gesture_params": {
+        "turns": 0.5
+      },
+      "requires": [
+        "display"
+      ],
+      "covered_by": [
+        "display"
+      ],
+      "hint": "One screw holds the haptic motor.",
+      "screw_type": "phillips",
+      "length_mm": 1.4,
+      "visual": {
+        "rect": [
+          150,
+          330,
+          8,
+          8
+        ]
+      }
+    },
+    {
+      "id": "haptic_motor",
+      "kind": "module",
+      "face": "front",
+      "gesture": "pull",
+      "requires": [
+        "display",
+        "haptic_screw_1"
+      ],
+      "covered_by": [
+        "display"
+      ],
+      "replaceable": true,
+      "hint": "The haptic motor sits at the bottom right.",
+      "part_price": 15,
+      "visual": {
+        "rect": [
+          122,
+          326,
+          24,
+          30
+        ]
+      }
+    }
+  ],
+  "software_tests": [
+    {
+      "id": "boot",
+      "roles": [
+        "battery"
+      ],
+      "after": []
+    },
+    {
+      "id": "display",
+      "roles": [
+        "screen"
+      ],
+      "after": [
+        "boot"
+      ]
+    },
+    {
+      "id": "touch",
+      "roles": [
+        "screen"
+      ],
+      "after": [
+        "boot"
+      ]
+    },
+    {
+      "id": "charging",
+      "roles": [
+        "charge_port"
+      ],
+      "after": [
+        "boot"
+      ]
+    },
+    {
+      "id": "call_audio",
+      "roles": [
+        "front_sensors"
+      ],
+      "after": [
+        "boot"
+      ]
+    }
+  ],
+  "decorations": [
+    {
+      "id": "midframe",
+      "face": "front",
+      "kind": "frame",
+      "rect": [
+        2,
+        2,
+        176,
+        364
+      ]
+    },
+    {
+      "id": "notch",
+      "face": "front",
+      "kind": "notch",
+      "rect": [
+        58,
+        6,
+        64,
+        18
+      ],
+      "attached_to": "display"
+    },
+    {
+      "id": "front_camera",
+      "face": "front",
+      "kind": "lens",
+      "rect": [
+        104,
+        10,
+        9,
+        9
+      ],
+      "attached_to": "display"
+    },
+    {
+      "id": "camera_bump",
+      "face": "back",
+      "kind": "camera",
+      "rect": [
+        10,
+        10,
+        80,
+        80
+      ],
+      "attached_to": "back_glass"
+    },
+    {
+      "id": "lens_wide",
+      "face": "back",
+      "kind": "lens",
+      "rect": [
+        16,
+        16,
+        30,
+        30
+      ],
+      "attached_to": "back_glass"
+    },
+    {
+      "id": "lens_ultra_wide",
+      "face": "back",
+      "kind": "lens",
+      "rect": [
+        52,
+        52,
+        30,
+        30
+      ],
+      "attached_to": "back_glass"
+    },
+    {
+      "id": "model_badge",
+      "face": "back",
+      "kind": "chip",
+      "rect": [
+        55,
+        300,
+        70,
+        22
+      ],
+      "label": "IPONE 15",
+      "attached_to": "back_glass"
+    }
+  ]
+}

@@ -303,18 +303,38 @@ func test_the_x_hides_its_board_under_a_second_layer() -> void:
 	assert_eq(tabs, 2, "deux languettes de batterie, là où le 13 en a quatre")
 
 
-## Trois modèles jouables, trois procédures : changer la batterie ne demande pas les mêmes
-## gestes d'un modèle à l'autre. C'est ce que le joueur doit sentir en choisissant.
-func test_changing_the_battery_is_a_different_job_on_each_model() -> void:
-	var routes: Dictionary[String, String] = {}
+## La route vers la batterie découle de la façon dont l'appareil s'ouvre : par l'avant sur un
+## châssis d'une seule pièce, par le dos sur un châssis qui se démonte des deux côtés. Deux
+## modèles d'une même génération de châssis partagent légitimement ce chemin — le 14 et le 15
+## le font, et le jeu ne doit pas prétendre le contraire.
+func test_the_battery_route_matches_how_the_model_opens() -> void:
+	var catalog: ModelCatalog = _models()
 	for device: DeviceDefinition in _load_devices():
+		var model: ModelCatalog.Model = catalog.for_teardown(device.id)
+		assert_true(model != null, "%s : une fiche" % device.id)
+		if model == null:
+			continue
 		var state: DisassemblyState = DisassemblyState.new(device)
 		DisassemblyFixture.replace_part(state, device.component_for_role("battery").id)
-		var removed: PackedStringArray = state.removed_ids()
-		removed.sort()
-		assert_true(removed.size() >= 3, "%s : changer la batterie demande plusieurs gestes" % device.id)
-		routes[device.id] = ",".join(removed)
-	var seen: PackedStringArray = PackedStringArray()
-	for device_id: String in routes:
-		assert_true(routes[device_id] not in seen, "%s : même chemin qu'un autre modèle" % device_id)
-		seen.append(routes[device_id])
+		assert_true(state.removed_ids().size() >= 3, "%s : changer la batterie demande plusieurs gestes" % device.id)
+		var through_the_back: bool = false
+		for id: String in state.removed_ids():
+			if device.get_component(id).face == "back":
+				through_the_back = true
+		if model.opens_from == "screen_or_back":
+			assert_true(through_the_back, "%s s'ouvre des deux côtés : la batterie passe par le dos" % device.id)
+			assert_true(state.is_removed("back_glass"), "%s : le verre arrière est déposé" % device.id)
+		else:
+			assert_false(through_the_back, "%s s'ouvre par l'écran : la batterie ne passe pas par le dos" % device.id)
+
+
+## Deux modèles ne sont jamais le même appareil recopié : leurs pièces diffèrent, ne serait-ce
+## que par le port de charge.
+func test_no_two_models_share_the_same_teardown() -> void:
+	var seen: Dictionary[String, String] = {}
+	for device: DeviceDefinition in _load_devices():
+		var ids: PackedStringArray = device.component_ids()
+		ids.sort()
+		var signature: String = ",".join(ids)
+		assert_false(seen.has(signature), "%s est la copie de %s" % [device.id, seen.get(signature, "")])
+		seen[signature] = device.id
