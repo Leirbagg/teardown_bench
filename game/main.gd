@@ -3,6 +3,7 @@ extends Control
 ## Enchaînement des écrans : accueil client → réparation → client suivant… → bilan.
 ## Suit les signaux de WorkDay ; le temps de jeu est transmis à core/ à chaque frame.
 
+const MODEL_SELECT_SCREEN: PackedScene = preload("res://game/ui/model_select_screen.tscn")
 const CUSTOMER_SCREEN: PackedScene = preload("res://game/ui/customer_screen.tscn")
 const WORKBENCH: PackedScene = preload("res://game/workbench/workbench.tscn")
 const DAY_REPORT_SCREEN: PackedScene = preload("res://game/ui/day_report_screen.tscn")
@@ -45,14 +46,33 @@ func _ready() -> void:
 	if resumed != null:
 		_begin_day(resumed)
 	else:
-		start_new_day()
+		show_model_select()
 
 
-func start_new_day() -> void:
+## Choix du modèle de la journée. Une journée reprise depuis une sauvegarde ne repasse pas par
+## là : son modèle est déjà décidé.
+func show_model_select() -> ModelSelectScreen:
+	var screen: ModelSelectScreen = _set_screen(MODEL_SELECT_SCREEN) as ModelSelectScreen
+	screen.setup(_catalog.models)
+	screen.model_chosen.connect(_on_model_chosen)
+	return screen
+
+
+func _on_model_chosen(model_id: String) -> void:
+	var model: ModelCatalog.Model = _catalog.models.find(model_id)
+	var device: DeviceDefinition = _catalog.find_device(model.teardown) if model != null else null
+	if device == null:
+		_show_error(["[unknown_ref] modèle '%s' : aucun démontage à ouvrir" % model_id])
+		return
+	start_new_day(device)
+
+
+## Une journée entière sur le modèle choisi : ce sont les pannes qui varient, pas l'appareil.
+func start_new_day(device: DeviceDefinition) -> void:
 	var rng: RandomNumberGenerator = RandomNumberGenerator.new()
 	rng.randomize()
 	var errors: Array[String] = []
-	var jobs: Array[RepairJob] = DayGenerator.generate(_catalog.devices, _catalog.faults, workshop.max_tier(), rng, errors)
+	var jobs: Array[RepairJob] = DayGenerator.generate([device], _catalog.faults, workshop.max_tier(), rng, errors)
 	if not errors.is_empty():
 		_show_error(errors)
 		return
@@ -104,7 +124,8 @@ func _on_day_completed(report: DayReport) -> void:
 	_save()
 	var screen: DayReportScreen = _set_screen(DAY_REPORT_SCREEN) as DayReportScreen
 	screen.setup(report, workshop)
-	screen.new_day_pressed.connect(start_new_day)
+	# Le lendemain, on rechoisit : c'est là que le joueur change de modèle.
+	screen.new_day_pressed.connect(func() -> void: show_model_select())
 
 
 ## Remplace l'écran courant. L'ancien est libéré en fin de frame : il peut être à l'origine

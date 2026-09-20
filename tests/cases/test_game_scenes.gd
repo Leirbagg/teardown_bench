@@ -21,7 +21,7 @@ func _fresh_main() -> Main:
 
 ## Journée déterministe sur un appareil choisi : depuis que les deux modèles tombent au hasard,
 ## un test qui nomme une pièce doit dire sur quel appareil il travaille.
-func _main_on(device_id: String, fault_id: String) -> Main:
+func _main_on(device_id: String, fault_id: String, customers: int = 2) -> Main:
 	var main: Main = _fresh_main()
 	var errors: Array[String] = []
 	var catalog: DataCatalog = DataCatalog.load_manifest(DataCatalog.MANIFEST_PATH, errors)
@@ -32,10 +32,29 @@ func _main_on(device_id: String, fault_id: String) -> Main:
 			device = candidate
 	assert_true(device != null, "appareil '%s' du catalogue" % device_id)
 	var faults: Array[FaultDefinition] = [catalog.find_fault(fault_id)]
-	var jobs: Array[RepairJob] = [RepairJob.create("job_1", device, faults, "Complaint.", errors)]
+	# Plusieurs clients : une journée d'un seul client n'a rien à reprendre après sauvegarde.
+	var jobs: Array[RepairJob] = []
+	for i: int in customers:
+		jobs.append(RepairJob.create("job_%d" % (i + 1), device, faults, "Complaint.", errors))
 	assert_no_errors(errors)
 	main._begin_day(WorkDay.new(jobs))
 	return main
+
+
+## Traverse l'écran de choix en prenant le premier modèle réellement démontable, comme le ferait
+## un joueur qui veut commencer tout de suite.
+func _choose_first_playable(main: Main) -> CustomerScreen:
+	var screen: ModelSelectScreen = main.current_screen as ModelSelectScreen
+	assert_true(screen != null, "on démarre sur le choix du modèle")
+	if screen == null:
+		return null
+	var errors: Array[String] = []
+	var catalog: ModelCatalog = ModelCatalog.load_from(ModelCatalog.PATH, errors)
+	assert_no_errors(errors)
+	var playable: Array[ModelCatalog.Model] = catalog.playable()
+	assert_false(playable.is_empty(), "au moins un modèle se joue")
+	screen.button_for(playable[0].id).pressed.emit()
+	return main.current_screen as CustomerScreen
 
 
 func _root() -> Window:
@@ -387,7 +406,7 @@ func test_solution_mode_repairs_from_a_damaged_state_and_marks_the_job_assisted(
 
 
 func test_solution_mode_can_be_stopped_to_take_over() -> void:
-	var main: Main = _fresh_main()
+	var main: Main = _main_on("ipone_13", "screen_cracked")
 	(main.current_screen as CustomerScreen).start_pressed.emit()
 	var workbench: Workbench = main.current_screen as Workbench
 	(workbench.get_node("%SolutionButton") as Button).pressed.emit()
@@ -408,6 +427,8 @@ func test_no_screen_is_wider_than_the_narrowest_phone() -> void:
 	var available: float = NARROWEST - 2.0 * Main.MIN_SAFE_MARGIN
 	var main: Main = _fresh_main()
 	var screens: Array[Control] = [main.current_screen]
+	_choose_first_playable(main)
+	screens.append(main.current_screen)
 	(main.current_screen as CustomerScreen).start_pressed.emit()
 	var workbench: Workbench = main.current_screen as Workbench
 	screens.append(workbench)
@@ -478,6 +499,7 @@ func test_a_long_press_opens_the_diagnostics_from_any_screen() -> void:
 	assert_true(main._diagnostics == null, "refermé")
 
 	# L'établi expose le même accès, sur le chrono.
+	_choose_first_playable(main)
 	(main.current_screen as CustomerScreen).start_pressed.emit()
 	assert_eq(main.current_screen.find_children("*", "LongPressLabel", true, false).size(), 1, "chrono de l'établi")
 	main.free()
@@ -510,7 +532,7 @@ func _finish_current_job(main: Main, seconds: float) -> void:
 
 
 func test_a_finished_client_pays_and_the_day_is_saved_then_resumed() -> void:
-	var main: Main = _fresh_main()
+	var main: Main = _main_on("ipone_13", "screen_cracked")
 	var job_count: int = main.day.jobs.size()
 	var money_before: int = main.workshop.money
 	_finish_current_job(main, 60.0)
@@ -533,26 +555,76 @@ func test_a_finished_client_pays_and_the_day_is_saved_then_resumed() -> void:
 
 
 func test_a_new_day_starts_after_the_last_client() -> void:
-	var main: Main = _fresh_main()
+	var main: Main = _main_on("ipone_13", "screen_cracked")
 	var day_before: int = main.workshop.day
 	while not main.day.is_over():
 		_finish_current_job(main, 30.0)
-	assert_true((main.current_screen as DayReportScreen) != null, "bilan de fin de journée")
+	var report: DayReportScreen = main.current_screen as DayReportScreen
+	assert_true(report != null, "bilan de fin de journée")
 	assert_eq(main.workshop.day, day_before + 1)
+	# Le lendemain repasse par le choix du modèle : on peut changer de téléphone.
+	report.new_day_pressed.emit()
+	assert_true((main.current_screen as ModelSelectScreen) != null, "on rechoisit un modèle")
+	assert_true(_choose_first_playable(main) != null, "puis le client suivant se présente")
 	main.free()
 
 	var next_launch: Main = MAIN_SCENE.instantiate() as Main
 	next_launch.save_path = TEST_SAVE_PATH
 	_root().add_child(next_launch)
 	assert_eq(next_launch.workshop.day, day_before + 1, "on reprend au jour suivant")
+	# La journée sauvegardée était terminée : on ne reprend rien, on rechoisit un modèle.
+	assert_true((next_launch.current_screen as ModelSelectScreen) != null, "retour au choix du modèle")
+	assert_true(_choose_first_playable(next_launch) != null, "puis le premier client arrive")
 	assert_true(next_launch.day.jobs.size() >= DayGenerator.MIN_CUSTOMERS, "une nouvelle journée est générée")
 	next_launch.free()
+
+
+## La gamme entière est présentée, mais on ne peut ouvrir que ce qui est démontable.
+func test_the_model_picker_shows_the_whole_line_up_and_opens_only_what_exists() -> void:
+	var main: Main = _fresh_main()
+	var screen: ModelSelectScreen = main.current_screen as ModelSelectScreen
+	assert_true(screen != null, "le jeu s'ouvre sur le choix du modèle")
+	var errors: Array[String] = []
+	var catalog: ModelCatalog = ModelCatalog.load_from(ModelCatalog.PATH, errors)
+	assert_no_errors(errors)
+
+	for model: ModelCatalog.Model in catalog.models:
+		var button: Button = screen.button_for(model.id)
+		assert_true(button != null, "%s : une ligne dans la liste" % model.id)
+		if button == null:
+			continue
+		assert_true(model.name in button.text, "%s : son nom est lisible" % model.id)
+		assert_eq(button.disabled, not model.is_playable(), "%s : ouvrable seulement s'il est démontable" % model.id)
+		assert_true(button.custom_minimum_size.y >= 48.0, "%s : cible tactile" % model.id)
+		if not model.is_playable():
+			assert_true("soon" in button.text, "%s : on dit pourquoi il ne s'ouvre pas" % model.id)
+
+	var chosen: Array[String] = []
+	screen.model_chosen.connect(func(id: String) -> void: chosen.append(id))
+	var playable: ModelCatalog.Model = catalog.playable()[0]
+	screen.button_for(playable.id).pressed.emit()
+	assert_eq(chosen, [playable.id] as Array[String], "choisir un modèle l'annonce")
+	var customer: CustomerScreen = main.current_screen as CustomerScreen
+	assert_true(customer != null, "et le premier client se présente")
+	assert_eq(main.day.jobs[0].device.id, playable.teardown, "la journée porte sur le modèle choisi")
+	main.free()
+
+
+## Une journée ne mélange pas les modèles : on a choisi un téléphone, on le garde.
+func test_a_day_stays_on_the_chosen_model() -> void:
+	var main: Main = _fresh_main()
+	_choose_first_playable(main)
+	var first: String = main.day.jobs[0].device.id
+	for job: RepairJob in main.day.jobs:
+		assert_eq(job.device.id, first, "tous les clients apportent le même modèle")
+	main.free()
 
 
 # --- Enchaînement complet ---
 
 func test_main_plays_a_full_day_through_screen_signals() -> void:
 	var main: Main = _fresh_main()
+	_choose_first_playable(main)
 	assert_true(main.day != null, "journée générée depuis data/")
 	if main.day == null:
 		main.free()

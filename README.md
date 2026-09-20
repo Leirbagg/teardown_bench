@@ -61,7 +61,11 @@ godot --headless --path . --script res://tests/run_tests.gd   # suite de tests
 godot --headless --path . --script res://tests/run_tests.gd -- scoring   # une suite (fragment de nom)
 ```
 
-Un appui long sur le compteur de clients (accueil) ou sur le chrono (établi) ouvre l'écran de
+Le jeu s'ouvre sur le **choix du modèle** : la gamme entière, groupée par famille de démontage.
+Seuls les modèles dont le démontage existe s'ouvrent ; les autres se lisent en attendant.
+
+Un appui long sur le résumé (choix du modèle), le compteur de clients (accueil) ou le chrono
+(établi) ouvre l'écran de
 diagnostic : taille de la vue, zone sûre, marges appliquées, densité de l'écran. De quoi cerner
 un souci d'affichage sur un vrai téléphone sans avoir à le décrire.
 
