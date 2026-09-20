@@ -620,12 +620,14 @@
         "direction_deg": 90
       },
       "requires": [
-        "display"
+        "display",
+        "loudspeaker"
       ],
       "covered_by": [
-        "display"
+        "display",
+        "loudspeaker"
       ],
-      "hint": "Pull the stretch-release tab slowly and flat, or it snaps.",
+      "hint": "The loudspeaker comes off first: it sits over the battery adhesive.",
       "visual": {
         "rect": [
           140,
@@ -644,12 +646,14 @@
         "direction_deg": 90
       },
       "requires": [
-        "display"
+        "display",
+        "loudspeaker"
       ],
       "covered_by": [
-        "display"
+        "display",
+        "loudspeaker"
       ],
-      "hint": "Pull the stretch-release tab slowly and flat, or it snaps.",
+      "hint": "The loudspeaker comes off first: it sits over the battery adhesive.",
       "visual": {
         "rect": [
           90,
@@ -675,7 +679,7 @@
         "display",
         "loudspeaker"
       ],
-      "hint": "Pull the stretch-release tab slowly and flat, or it snaps.",
+      "hint": "The loudspeaker comes off first: it sits over the battery adhesive.",
       "visual": {
         "rect": [
           140,
@@ -694,12 +698,14 @@
         "direction_deg": 270
       },
       "requires": [
-        "display"
+        "display",
+        "loudspeaker"
       ],
       "covered_by": [
-        "display"
+        "display",
+        "loudspeaker"
       ],
-      "hint": "Pull the stretch-release tab slowly and flat, or it snaps.",
+      "hint": "The loudspeaker comes off first: it sits over the battery adhesive.",
       "visual": {
         "rect": [
           90,
@@ -817,6 +823,35 @@
       }
     },
     {
+      "id": "haptic_bracket",
+      "kind": "cover",
+      "face": "front",
+      "gesture": "pull",
+      "gesture_params": {
+        "direction_deg": 90
+      },
+      "requires": [
+        "display",
+        "haptic_screw_1",
+        "haptic_screw_2",
+        "haptic_screw_3"
+      ],
+      "covered_by": [
+        "display"
+      ],
+      "replaceable": true,
+      "part_price": 3,
+      "hint": "Lift the bracket, then shift the motor aside to reach its cable underneath.",
+      "visual": {
+        "rect": [
+          8,
+          288,
+          58,
+          22
+        ]
+      }
+    },
+    {
       "id": "haptic_connector",
       "kind": "connector",
       "face": "front",
@@ -826,15 +861,17 @@
       },
       "requires": [
         "display",
+        "haptic_bracket",
         "battery_connector"
       ],
       "covered_by": [
-        "display"
+        "display",
+        "haptic_bracket"
       ],
       "force_breaks": [
         "haptic_motor"
       ],
-      "hint": "Unplug the vibration motor cable.",
+      "hint": "The motor's cable hides under its bracket: unplug it once the bracket is off.",
       "visual": {
         "rect": [
           26,
@@ -852,9 +889,7 @@
       "gesture": "pull",
       "requires": [
         "display",
-        "haptic_screw_1",
-        "haptic_screw_2",
-        "haptic_screw_3",
+        "haptic_bracket",
         "haptic_connector"
       ],
       "covered_by": [

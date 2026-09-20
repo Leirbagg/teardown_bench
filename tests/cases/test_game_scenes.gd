@@ -96,7 +96,12 @@ func test_device_view_hits_topmost_visible_part() -> void:
 	assert_eq(view.component_at(Vector2(-10, -10)), "")
 	DisassemblyFixture.remove_with_prerequisites(state, "display")
 	assert_eq(view.component_at(_center_of(view, "battery")), "battery")
-	assert_eq(view.component_at(_center_of(view, "battery_tab_top_left")), "battery_tab_top_left", "languette au-dessus de la batterie")
+	# Le haut-parleur passe par-dessus les languettes de batterie : le guide le dépose avant elles.
+	assert_true(view.component_at(_center_of(view, "battery_tab_top_left")) != "battery_tab_top_left",
+		"languette encore couverte par le haut-parleur")
+	DisassemblyFixture.remove_with_prerequisites(state, "loudspeaker")
+	assert_eq(view.component_at(_center_of(view, "battery_tab_top_left")), "battery_tab_top_left",
+		"haut-parleur retiré : la languette se touche")
 	assert_true(view.component_at(_center_of(view, "pentalobe_left")) != "pentalobe_left", "vis retirée : plus touchable")
 	view.face = "back"
 	assert_eq(view.component_at(_center_of(view, "battery")), "", "dos scellé : rien à toucher")
