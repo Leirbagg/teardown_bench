@@ -250,3 +250,71 @@ func test_a_card_without_a_family_is_rejected() -> void:
 	var catalog: ModelCatalog = ModelCatalog.load_from("res://tests/fixtures/models_bad_family.json", errors)
 	assert_has_code(errors, "unknown_ref")
 	assert_true(catalog == null, "catalogue refusé")
+
+
+func _device(device_id: String) -> DeviceDefinition:
+	for device: DeviceDefinition in _load_devices():
+		if device.id == device_id:
+			return device
+	return null
+
+
+## Le 14 s'ouvre des deux côtés : la batterie se débranche au dos, et comme les nappes d'écran
+## l'exigent, une réparation d'écran commence forcément par retourner l'appareil.
+func test_the_14_makes_you_flip_the_phone_before_touching_the_screen() -> void:
+	var device: DeviceDefinition = _device("ipone_14")
+	assert_true(device != null, "ipone_14 présent")
+	if device == null:
+		return
+	assert_eq(device.get_component("battery_connector").face, "back", "la batterie se débranche au dos")
+	assert_eq(device.get_component("display_connector").face, "front", "les nappes d'écran sont à l'avant")
+	assert_true("battery_connector" in device.get_component("display_connector").requires,
+		"on débranche la batterie avant la nappe d'écran")
+
+	# Rabattre l'écran ne demande rien ; c'est le remplacer qui oblige à passer par le dos,
+	# puisqu'il faut d'abord débrancher ses nappes, donc la batterie.
+	var opened: DisassemblyState = DisassemblyState.new(device)
+	DisassemblyFixture.remove_with_prerequisites(opened, "display")
+	assert_false(opened.is_removed("back_glass"), "ouvrir l'écran seul n'exige pas le dos")
+
+	var state: DisassemblyState = DisassemblyState.new(device)
+	DisassemblyFixture.replace_part(state, "display")
+	assert_true(state.is_removed("back_glass"), "remplacer l'écran a exigé d'ouvrir le dos")
+	assert_true(state.is_removed("back_shield"), "et de déposer la plaque")
+	assert_true(state.is_removed("battery_connector"), "pour débrancher la batterie")
+
+
+## L'x se démonte entièrement par l'avant, mais sa carte mère est repliée en deux étages.
+func test_the_x_hides_its_board_under_a_second_layer() -> void:
+	var device: DeviceDefinition = _device("ipone_x")
+	assert_true(device != null, "ipone_x présent")
+	if device == null:
+		return
+	for component: ComponentDefinition in device.components:
+		assert_eq(component.face, "front", "%s : tout passe par l'avant sur ce modèle" % component.id)
+	assert_true("upper_board" in device.get_component("logic_board").requires,
+		"l'étage supérieur part avant la carte mère")
+	assert_true("upper_board" in device.get_component("logic_board").covered_by,
+		"et la cache tant qu'il est en place")
+	var tabs: int = 0
+	for component: ComponentDefinition in device.components:
+		if component.id.begins_with("battery_tab"):
+			tabs += 1
+	assert_eq(tabs, 2, "deux languettes de batterie, là où le 13 en a quatre")
+
+
+## Trois modèles jouables, trois procédures : changer la batterie ne demande pas les mêmes
+## gestes d'un modèle à l'autre. C'est ce que le joueur doit sentir en choisissant.
+func test_changing_the_battery_is_a_different_job_on_each_model() -> void:
+	var routes: Dictionary[String, String] = {}
+	for device: DeviceDefinition in _load_devices():
+		var state: DisassemblyState = DisassemblyState.new(device)
+		DisassemblyFixture.replace_part(state, device.component_for_role("battery").id)
+		var removed: PackedStringArray = state.removed_ids()
+		removed.sort()
+		assert_true(removed.size() >= 3, "%s : changer la batterie demande plusieurs gestes" % device.id)
+		routes[device.id] = ",".join(removed)
+	var seen: PackedStringArray = PackedStringArray()
+	for device_id: String in routes:
+		assert_true(routes[device_id] not in seen, "%s : même chemin qu'un autre modèle" % device_id)
+		seen.append(routes[device_id])

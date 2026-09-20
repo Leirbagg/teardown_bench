@@ -61,7 +61,7 @@
       "family_label": "Stacked-board OLED",
       "opens_from": "screen",
       "port": "lightning",
-      "teardown": "",
+      "teardown": "ipone_x",
       "verified": true,
       "note": "Folded two-layer logic board: the shield comes off before anything else."
     },
@@ -271,7 +271,7 @@
       "family_label": "Two-way chassis",
       "opens_from": "screen_or_back",
       "port": "lightning",
-      "teardown": "",
+      "teardown": "ipone_14",
       "verified": true,
       "note": "Redesigned frame: the back glass comes off too, so most repairs go in from the back."
     },

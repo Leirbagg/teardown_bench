@@ -12,7 +12,8 @@ func _phone_state() -> DisassemblyState:
 	var errors: Array[String] = []
 	var catalog: DataCatalog = DataCatalog.load_manifest(DataCatalog.MANIFEST_PATH, errors)
 	assert_no_errors(errors)
-	return DisassemblyState.new(catalog.devices[0])
+	# Nommé, pas pris au hasard : le catalogue contient plusieurs modèles, aux pièces différentes.
+	return DisassemblyState.new(catalog.find_device("ipone_13"))
 
 
 func _mat(state: DisassemblyState) -> PartsMat:

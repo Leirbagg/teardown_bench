@@ -32,7 +32,7 @@ func _catalog_day(catalog: DataCatalog, fault_ids: Array[String]) -> WorkDay:
 		var errors: Array[String] = []
 		var faults: Array[FaultDefinition] = [catalog.find_fault(fault_ids[i])]
 		assert_true(faults[0] != null, "panne '%s' du catalogue" % fault_ids[i])
-		jobs.append(RepairJob.create("job_%d" % (i + 1), catalog.devices[0], faults, "Complaint.", errors))
+		jobs.append(RepairJob.create("job_%d" % (i + 1), catalog.find_device("ipone_13"), faults, "Complaint.", errors))
 		assert_no_errors(errors)
 	return WorkDay.new(jobs)
 
@@ -269,6 +269,7 @@ func test_sensors_left_on_the_old_screen_cost_a_new_part_and_a_star() -> void:
 	var report: RepairReport = session.report()
 	assert_eq(report.broken_parts, PackedStringArray(["front_sensors"]))
 	assert_true("front_sensors" in report.replaced_parts, "il a fallu en racheter")
-	assert_eq(report.parts_cost, catalog.devices[0].get_component("display").part_price
-		+ catalog.devices[0].get_component("front_sensors").part_price, "l'écran et les capteurs")
+	var phone: DeviceDefinition = catalog.find_device("ipone_13")
+	assert_eq(report.parts_cost, phone.get_component("display").part_price
+		+ phone.get_component("front_sensors").part_price, "l'écran et les capteurs")
 	assert_eq(report.stars, RepairPricing.MAX_STARS - 2, "la perte et le test final raté")

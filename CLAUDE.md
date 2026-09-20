@@ -72,9 +72,10 @@ toujours, et rien d'autre ne doit évoquer une marque.
 - Un **nouveau** `class_name` n'est connu qu'après `godot --headless --import` : sans ça, les
   tests échouent sur des erreurs d'analyse (`Identifier "X" not declared`) qui ressemblent à du
   code cassé alors que seul le cache de classes est en retard.
-- La journée est tirée au hasard parmi **tous** les appareils : un test qui nomme une pièce
-  (`pentalobe_left`, `connector_cover`…) doit choisir son appareil — voir `_main_on()` dans
-  `tests/cases/test_game_scenes.gd`. Sinon il passe une fois sur deux, selon le modèle tiré.
+- Le catalogue contient plusieurs modèles, aux pièces différentes : un test qui nomme une pièce
+  (`pentalobe_left`, `connector_cover`…) doit **nommer son appareil**, avec `find_device("ipone_13")`
+  ou `_main_on()` dans `tests/cases/test_game_scenes.gd`. Ni `devices[0]`, qui dépend de l'ordre du
+  manifeste, ni une journée tirée au hasard.
 - Les ressources chargées avec `load()` au runtime ne sont pas exportées dans l'APK
   si rien ne les référence : les lister dans `data/preload_manifest.json`.
 - Les touchers (`InputEventScreenTouch`/`ScreenDrag`) sont routés par l'interface vers
