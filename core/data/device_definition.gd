@@ -14,6 +14,21 @@ class SoftwareTest:
 	var after: PackedStringArray
 
 
+## Séquence exacte d'un guide public : l'ordre dans lequel un réparateur retire les pièces
+## pour atteindre une pièce donnée. Le graphe autorise d'autres ordres ; celui-ci est celui
+## qu'on montre et qu'on peut suivre pas à pas.
+class Procedure:
+	extends RefCounted
+	var id: String
+	var label: String
+	## Rôle de la pièce qu'on vient remplacer.
+	var target_role: String
+	## Guide dont la séquence est tirée.
+	var source: String
+	## Ids des composants à retirer, dans l'ordre du guide.
+	var steps: PackedStringArray
+
+
 ## Élément purement visuel (carte mère, caméra…), ignoré par les règles.
 class Decoration:
 	extends RefCounted
@@ -34,6 +49,7 @@ var faces: PackedStringArray
 ## Dans l'ordre du fichier.
 var components: Array[ComponentDefinition] = []
 var software_tests: Array[SoftwareTest] = []
+var procedures: Array[Procedure] = []
 ## Dans l'ordre du fichier, qui est l'ordre de dessin.
 var decorations: Array[Decoration] = []
 
@@ -65,6 +81,14 @@ static func from_dict(data: Dictionary) -> DeviceDefinition:
 		test.roles = PackedStringArray(raw["roles"])
 		test.after = PackedStringArray(raw["after"])
 		device.software_tests.append(test)
+	for raw: Dictionary in data.get("procedures", []):
+		var procedure: Procedure = Procedure.new()
+		procedure.id = raw["id"]
+		procedure.label = raw.get("label", "")
+		procedure.target_role = raw["target_role"]
+		procedure.source = raw.get("source", "")
+		procedure.steps = PackedStringArray(raw["steps"])
+		device.procedures.append(procedure)
 	for raw: Dictionary in data.get("decorations", []):
 		var decoration: Decoration = Decoration.new()
 		decoration.id = raw["id"]
@@ -94,6 +118,14 @@ func component_for_role(role: String) -> ComponentDefinition:
 ## Pièces montées sur ce composant : elles partent avec lui si on le remplace.
 func parts_mounted_on(component_id: String) -> PackedStringArray:
 	return _mounted_on.get(component_id, PackedStringArray())
+
+
+## Procédure menant à la pièce de ce rôle, null s'il n'y en a pas.
+func procedure_for_role(role: String) -> Procedure:
+	for procedure: Procedure in procedures:
+		if procedure.target_role == role:
+			return procedure
+	return null
 
 
 func component_ids() -> PackedStringArray:

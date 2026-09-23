@@ -68,7 +68,7 @@ func test_mvp_content_is_present() -> void:
 	for fault: FaultDefinition in _load_faults():
 		fault_ids.append(fault.id)
 	assert_true("ipone_13" in device_ids, "ipone_13 présent")
-	for fault_id: String in ["screen_cracked", "battery_dead", "charge_port_faulty"]:
+	for fault_id: String in ["screen_cracked", "battery_dead", "haptic_dead"]:
 		assert_true(fault_id in fault_ids, "%s présent" % fault_id)
 
 
@@ -259,75 +259,6 @@ func _device(device_id: String) -> DeviceDefinition:
 	return null
 
 
-## Le 14 s'ouvre des deux côtés : la batterie se débranche au dos, et comme les nappes d'écran
-## l'exigent, une réparation d'écran commence forcément par retourner l'appareil.
-func test_the_14_makes_you_flip_the_phone_before_touching_the_screen() -> void:
-	var device: DeviceDefinition = _device("ipone_14")
-	assert_true(device != null, "ipone_14 présent")
-	if device == null:
-		return
-	assert_eq(device.get_component("battery_connector").face, "back", "la batterie se débranche au dos")
-	assert_eq(device.get_component("display_connector").face, "front", "les nappes d'écran sont à l'avant")
-	assert_true("battery_connector" in device.get_component("display_connector").requires,
-		"on débranche la batterie avant la nappe d'écran")
-
-	# Rabattre l'écran ne demande rien ; c'est le remplacer qui oblige à passer par le dos,
-	# puisqu'il faut d'abord débrancher ses nappes, donc la batterie.
-	var opened: DisassemblyState = DisassemblyState.new(device)
-	DisassemblyFixture.remove_with_prerequisites(opened, "display")
-	assert_false(opened.is_removed("back_glass"), "ouvrir l'écran seul n'exige pas le dos")
-
-	var state: DisassemblyState = DisassemblyState.new(device)
-	DisassemblyFixture.replace_part(state, "display")
-	assert_true(state.is_removed("back_glass"), "remplacer l'écran a exigé d'ouvrir le dos")
-	assert_true(state.is_removed("back_shield"), "et de déposer la plaque")
-	assert_true(state.is_removed("battery_connector"), "pour débrancher la batterie")
-
-
-## L'x se démonte entièrement par l'avant, mais sa carte mère est repliée en deux étages.
-func test_the_x_hides_its_board_under_a_second_layer() -> void:
-	var device: DeviceDefinition = _device("ipone_x")
-	assert_true(device != null, "ipone_x présent")
-	if device == null:
-		return
-	for component: ComponentDefinition in device.components:
-		assert_eq(component.face, "front", "%s : tout passe par l'avant sur ce modèle" % component.id)
-	assert_true("upper_board" in device.get_component("logic_board").requires,
-		"l'étage supérieur part avant la carte mère")
-	assert_true("upper_board" in device.get_component("logic_board").covered_by,
-		"et la cache tant qu'il est en place")
-	var tabs: int = 0
-	for component: ComponentDefinition in device.components:
-		if component.id.begins_with("battery_tab"):
-			tabs += 1
-	assert_eq(tabs, 2, "deux languettes de batterie, là où le 13 en a quatre")
-
-
-## La route vers la batterie découle de la façon dont l'appareil s'ouvre : par l'avant sur un
-## châssis d'une seule pièce, par le dos sur un châssis qui se démonte des deux côtés. Deux
-## modèles d'une même génération de châssis partagent légitimement ce chemin — le 14 et le 15
-## le font, et le jeu ne doit pas prétendre le contraire.
-func test_the_battery_route_matches_how_the_model_opens() -> void:
-	var catalog: ModelCatalog = _models()
-	for device: DeviceDefinition in _load_devices():
-		var model: ModelCatalog.Model = catalog.for_teardown(device.id)
-		assert_true(model != null, "%s : une fiche" % device.id)
-		if model == null:
-			continue
-		var state: DisassemblyState = DisassemblyState.new(device)
-		DisassemblyFixture.replace_part(state, device.component_for_role("battery").id)
-		assert_true(state.removed_ids().size() >= 3, "%s : changer la batterie demande plusieurs gestes" % device.id)
-		var through_the_back: bool = false
-		for id: String in state.removed_ids():
-			if device.get_component(id).face == "back":
-				through_the_back = true
-		if model.opens_from == "screen_or_back":
-			assert_true(through_the_back, "%s s'ouvre des deux côtés : la batterie passe par le dos" % device.id)
-			assert_true(state.is_removed("back_glass"), "%s : le verre arrière est déposé" % device.id)
-		else:
-			assert_false(through_the_back, "%s s'ouvre par l'écran : la batterie ne passe pas par le dos" % device.id)
-
-
 ## Deux modèles ne sont jamais le même appareil recopié : leurs pièces diffèrent, ne serait-ce
 ## que par le port de charge.
 func test_no_two_models_share_the_same_teardown() -> void:
@@ -346,3 +277,33 @@ func test_every_playable_model_cites_the_guide_it_was_checked_against() -> void:
 	for model: ModelCatalog.Model in _models().playable():
 		assert_false(model.source.is_empty(), "%s : aucune source citée" % model.id)
 		assert_true(model.source.begins_with("https://"), "%s : source consultable" % model.id)
+
+
+# --- Procédures des guides ---
+
+## Le cœur de la fidélité : la séquence exacte du guide doit se jouer telle quelle sur notre
+## graphe. Si elle force une pièce ou bute sur une pièce cachée, c'est notre modèle qui est faux.
+func test_every_guide_procedure_plays_on_the_graph() -> void:
+	for device: DeviceDefinition in _load_devices():
+		assert_false(device.procedures.is_empty(), "%s : aucune procédure de guide" % device.id)
+		assert_no_errors(ProcedureCheck.errors_for_device(device), device.id)
+
+
+## Chaque procédure cite son guide et vise un rôle réparable.
+func test_every_procedure_cites_its_guide() -> void:
+	for device: DeviceDefinition in _load_devices():
+		for procedure: DeviceDefinition.Procedure in device.procedures:
+			var where: String = "%s/%s" % [device.id, procedure.id]
+			assert_true(procedure.source.begins_with("https://"), "%s : guide cité" % where)
+			assert_false(procedure.label.is_empty(), "%s : un intitulé lisible" % where)
+			assert_true(procedure.steps.size() >= 10, "%s : %d étapes, c'est trop peu" % [where, procedure.steps.size()])
+			assert_true(device.component_for_role(procedure.target_role) != null, "%s : rôle existant" % where)
+
+
+## Une panne réparable doit avoir sa procédure : sinon le joueur n'a aucun guide à suivre.
+func test_every_fault_has_a_procedure_on_the_devices_it_applies_to() -> void:
+	for fault: FaultDefinition in _load_faults():
+		for device: DeviceDefinition in _load_devices():
+			if fault.applies_to(device):
+				assert_true(device.procedure_for_role(fault.target_role) != null,
+					"%s sur %s : aucune procédure pour le rôle '%s'" % [fault.id, device.id, fault.target_role])

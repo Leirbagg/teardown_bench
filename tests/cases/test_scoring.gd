@@ -257,19 +257,24 @@ func test_sensors_left_on_the_old_screen_cost_a_new_part_and_a_star() -> void:
 	for attached: String in state.device.get_component("display").replace_requires:
 		DisassemblyFixture.remove_with_prerequisites(state, attached)
 	assert_eq(state.replace("display").outcome, DisassemblyResult.Outcome.REPLACED)
-	assert_true(state.is_broken("front_sensors"), "les capteurs sont partis avec l'ancien écran")
+	# Deux pièces sont collées à l'écran sur ce modèle : l'étrier et le bloc capteurs.
+	assert_true(state.is_broken("front_sensor_assembly"), "les capteurs sont partis avec l'ancien écran")
+	assert_true(state.is_broken("sensor_bracket"), "leur étrier aussi")
 
 	DisassemblyFixture.reassemble(state)
 	assert_false(session.run_final_test().is_passed(), "sans capteurs, l'appareil ne passe pas les appels")
 
-	DisassemblyFixture.replace_part(state, "front_sensors")
+	DisassemblyFixture.replace_part(state, "sensor_bracket")
+	DisassemblyFixture.replace_part(state, "front_sensor_assembly")
 	DisassemblyFixture.reassemble(state)
 	assert_true(session.run_final_test().is_passed(), "des capteurs neufs terminent la réparation")
 
 	var report: RepairReport = session.report()
-	assert_eq(report.broken_parts, PackedStringArray(["front_sensors"]))
-	assert_true("front_sensors" in report.replaced_parts, "il a fallu en racheter")
+	assert_eq(report.broken_parts, PackedStringArray(["sensor_bracket", "front_sensor_assembly"]),
+		"deux pièces collées à l'écran partent avec lui")
+	assert_true("front_sensor_assembly" in report.replaced_parts, "il a fallu en racheter")
 	var phone: DeviceDefinition = catalog.find_device("ipone_13")
 	assert_eq(report.parts_cost, phone.get_component("display").part_price
-		+ phone.get_component("front_sensors").part_price, "l'écran et les capteurs")
-	assert_eq(report.stars, RepairPricing.MAX_STARS - 2, "la perte et le test final raté")
+		+ phone.get_component("sensor_bracket").part_price
+		+ phone.get_component("front_sensor_assembly").part_price, "l'écran, l'étrier et les capteurs")
+	assert_eq(report.stars, RepairPricing.MAX_STARS - 3, "deux pertes et un test final raté")

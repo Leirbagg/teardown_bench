@@ -22,6 +22,8 @@ const TIDY_GAP: float = 8.0
 ## Une pièce plus grande que ce ratio de l'appareil (un écran) est dessinée en transparence :
 ## les vis et caches posés dessus restent lisibles.
 const LARGE_PART_RATIO: float = 0.25
+## Au-delà de cette part de la hauteur du tapis, ranger la pièce mangerait toute une rangée.
+const TALL_PART_RATIO: float = 0.5
 const LARGE_PART_ALPHA: float = 0.35
 
 ## "" si rien n'est sélectionné.
@@ -126,13 +128,22 @@ func tidy() -> void:
 		if pen.x + origin.size.x > size.x - TIDY_GAP:
 			pen = Vector2(TIDY_GAP, pen.y + row_height + TIDY_GAP)
 			row_height = 0.0
+		if pen.y + origin.size.y > size.y - TIDY_GAP:
+			# Plus de rangée disponible : mieux vaut la laisser où elle est que l'écraser en bas.
+			_offsets.erase(id)
+			continue
 		_offsets[id] = _clamped_offset(id, pen - origin.position)
 		pen.x += origin.size.x + TIDY_GAP
 		row_height = maxf(row_height, origin.size.y)
 	queue_redraw()
 
 
+## Une pièce est « grande » si elle occupe une bonne part du tapis, ou si elle mangerait une
+## rangée entière : une bande d'adhésif court sur toute la hauteur de l'appareil, et la ranger
+## repousserait tout le reste hors du tapis.
 func _is_large(rect: Rect2) -> bool:
+	if rect.size.x > size.x - 2.0 * TIDY_GAP or rect.size.y > size.y * TALL_PART_RATIO:
+		return true
 	return rect.get_area() > _mapped_bounds_area() * LARGE_PART_RATIO
 
 

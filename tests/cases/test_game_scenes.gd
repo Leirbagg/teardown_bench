@@ -120,10 +120,10 @@ func test_device_view_receives_touches_through_gui_input() -> void:
 	view._gui_input(_touch(start, true))
 	for step: int in range(1, 11):
 		var drag: InputEventScreenDrag = InputEventScreenDrag.new()
-		drag.position = start + Vector2(10.0 * step, 0)
+		drag.position = start + Vector2(0, 10.0 * step)
 		view._gui_input(drag)
-	view._gui_input(_touch(start + Vector2(100, 0), false))
-	assert_eq(completed, ["battery_connector"] as Array[String], "tirer vers la droite débranche la batterie")
+	view._gui_input(_touch(start + Vector2(0, 100), false))
+	assert_eq(completed, ["battery_connector"] as Array[String], "tirer vers le bas débranche la batterie")
 	view.free()
 
 
@@ -134,34 +134,29 @@ func _touch(position: Vector2, pressed: bool) -> InputEventScreenTouch:
 	return touch
 
 
-## Le joint entoure l'écran : on le chauffe sur ses bords, on touche l'écran au milieu.
-func test_the_seal_is_only_touchable_on_its_band() -> void:
+## Le guide chauffe bord par bord : quatre bandes d'adhésif, et l'écran au milieu.
+func test_each_edge_of_the_seal_is_its_own_band() -> void:
 	var state: DisassemblyState = _ipone_13_state()
 	var view: DeviceView = _device_view(state)
 	var screen: Rect2 = view.view_rect(state.device.get_component("display"))
 	assert_eq(view.component_at(screen.get_center()), "display", "au milieu : l'écran")
-	var on_band: Vector2 = Vector2(screen.get_center().x, screen.position.y + 4.0)
-	assert_eq(view.component_at(on_band), "display_adhesive", "sur le bord : le joint")
-	var seal: ComponentDefinition = state.device.get_component("display_adhesive")
-	assert_true(PartPainter.frame_thickness(seal, view.view_rect(seal)) > 0.0, "dessiné en cadre")
+	for edge: String in ["bottom", "right", "top", "left"]:
+		var band: ComponentDefinition = state.device.get_component("display_adhesive_%s" % edge)
+		assert_true(band != null, "bande '%s' présente" % edge)
+		assert_eq(band.gesture, "hold", "on la chauffe")
+		assert_eq(view.component_at(view.view_rect(band).get_center()), band.id,
+			"la bande '%s' se touche sur son bord" % edge)
 	view.free()
 
 
-## Pilier 2 : viser une pièce en plein centre ne doit jamais attraper sa voisine, même si la
-## zone agrandie de la voisine, dessinée par-dessus, recouvre le doigt.
+## Pilier 2 : viser une pièce en plein centre ne doit jamais attraper sa voisine.
 func test_touching_a_part_squarely_never_picks_its_overlapping_neighbour() -> void:
 	var state: DisassemblyState = _ipone_13_state()
 	var view: DeviceView = _device_view(state)
 	DisassemblyFixture.remove_with_prerequisites(state, "connector_cover")
-	var battery_connector: Rect2 = view.view_rect(state.device.get_component("battery_connector"))
-	var display_connector: Rect2 = view.view_rect(state.device.get_component("display_connector"))
-	assert_true(DeviceView._touch_rect(display_connector).has_point(battery_connector.get_center()),
-		"préparation : les zones de toucher se chevauchent")
-	assert_eq(view.component_at(battery_connector.get_center()), "battery_connector")
-	assert_eq(view.component_at(display_connector.get_center()), "display_connector")
-	var between_but_closer_to_battery: Vector2 = battery_connector.get_center().lerp(display_connector.get_center(), 0.3)
-	if not battery_connector.has_point(between_but_closer_to_battery) and not display_connector.has_point(between_but_closer_to_battery):
-		assert_eq(view.component_at(between_but_closer_to_battery), "battery_connector", "hors des pièces : la plus proche")
+	for id: String in ["battery_connector", "display_connector"]:
+		var rect: Rect2 = view.view_rect(state.device.get_component(id))
+		assert_eq(view.component_at(rect.get_center()), id, "%s visé en plein centre" % id)
 	view.free()
 
 
@@ -176,16 +171,16 @@ func test_an_unplugged_connector_stays_next_to_its_socket_and_plugs_back() -> vo
 	assert_true(view.is_unplugged("battery_connector"))
 	var socket: Rect2 = view.view_rect(state.device.get_component("battery_connector"))
 	var plug: Rect2 = view.unplugged_rect("battery_connector")
-	assert_true(plug.position.x > socket.position.x, "tiré dans le sens du débranchement")
+	assert_true(plug.position.y > socket.position.y, "tiré dans le sens du débranchement")
 	assert_eq(view.component_at(plug.get_center()), "battery_connector", "touchable à sa place")
 
 	var start: Vector2 = plug.get_center()
 	view._gui_input(_touch(start, true))
 	for step: int in range(1, 11):
 		var drag: InputEventScreenDrag = InputEventScreenDrag.new()
-		drag.position = start + Vector2(-10.0 * step, 0)
+		drag.position = start + Vector2(0, -10.0 * step)
 		view._gui_input(drag)
-	view._gui_input(_touch(start + Vector2(-100, 0), false))
+	view._gui_input(_touch(start + Vector2(0, -100), false))
 	assert_eq(completed, ["battery_connector"] as Array[String], "ramener la nappe vers son socle la rebranche")
 	view.free()
 
@@ -218,8 +213,11 @@ func test_ghost_finger_completes_every_gesture_kind() -> void:
 		completed.append(id)
 		state.commit_remove(id))
 	view.gesture_step.connect(func(_id: String, _step: int, _count: int) -> void: steps[0] += 1)
-	var ids: Array[String] = ["pentalobe_left", "pentalobe_right", "display_adhesive", "display", "cover_screw_1",
-		"cover_screw_2", "cover_screw_3", "connector_cover", "battery_connector"]
+	var ids: Array[String] = ["pentalobe_left", "pentalobe_right",
+		"display_adhesive_bottom", "display_adhesive_right", "display_adhesive_top",
+		"display_adhesive_left", "display",
+		"connector_cover_screw_1", "connector_cover_screw_2", "connector_cover_screw_3",
+		"connector_cover", "battery_connector"]
 	for i: int in ids.size():
 		var id: String = ids[i]
 		var gesture: String = state.device.get_component(id).gesture
@@ -231,7 +229,7 @@ func test_ghost_finger_completes_every_gesture_kind() -> void:
 			view._process(1.0 / 60.0)
 		assert_false(view.is_ghost_running(), "%s (%s) : geste fantôme terminé" % [id, gesture])
 		assert_true(state.is_removed(id), "%s (%s) : pièce retirée" % [id, gesture])
-	assert_eq(completed.size(), 9)
+	assert_eq(completed.size(), ids.size())
 	assert_true(steps[0] > 9, "des crans pendant les gestes")
 	view.free()
 
@@ -241,11 +239,11 @@ func test_ghost_can_be_finished_early_or_stopped() -> void:
 	var view: DeviceView = _device_view(state)
 	var completed: Array[String] = []
 	view.gesture_completed.connect(func(id: String) -> void: completed.append(id))
-	view.start_ghost("display_adhesive", 2.0)
+	view.start_ghost("display_adhesive_top", 2.0)
 	view._process(0.1)
 	view.finish_ghost()
 	assert_false(view.is_ghost_running())
-	assert_eq(completed, ["display_adhesive"] as Array[String], "fin immédiate, geste réussi")
+	assert_eq(completed, ["display_adhesive_top"] as Array[String], "fin immédiate, geste réussi")
 	view.start_ghost("pentalobe_left")
 	view._process(0.1)
 	view.stop_ghost()
@@ -341,7 +339,7 @@ func test_workbench_closes_the_open_display_or_explains_what_to_reconnect() -> v
 	assert_eq(state.broken_ids(), PackedStringArray(), "sans pénalité")
 	for id: String in ["display_connector", "battery_connector", "connector_cover"]:
 		assert_eq(state.commit_install(id).outcome, DisassemblyResult.Outcome.INSTALLED, "préparation : " + id)
-	for screw: String in ["cover_screw_1", "cover_screw_2", "cover_screw_3"]:
+	for screw: String in ["connector_cover_screw_1", "connector_cover_screw_2", "connector_cover_screw_3"]:
 		state.commit_install(screw)
 	view.gesture_completed.emit("display")
 	assert_false(state.is_removed("display"), "tout rebranché : l'écran se referme")
@@ -412,7 +410,7 @@ func test_solution_mode_repairs_from_a_damaged_state_and_marks_the_job_assisted(
 
 	assert_true(session.is_completed(), "test final réussi à la fin de la démo")
 	assert_eq(session.state.broken_ids(), PackedStringArray(), "l'écran cassé a été remplacé")
-	assert_true(captions.any(func(caption: String) -> bool: return caption.begins_with("Always disconnect the battery first")),
+	assert_true(captions.any(func(caption: String) -> bool: return caption.begins_with("Disconnect the battery before anything else")),
 		"les explications viennent des hints")
 	assert_true(captions.all(func(caption: String) -> bool: return not caption.is_empty()))
 	assert_true(main.day.report().jobs[0].assisted)
@@ -682,7 +680,7 @@ func _play_repair(workbench: Workbench) -> void:
 	assert_false(workbench.session.is_completed(), "appareil ouvert : pas de fin")
 	DisassemblyFixture.replace_part(state, screen)
 	assert_true(screen in state.replaced_ids(), "nappes débranchées, capteurs transférés → écran remplacé")
-	assert_false(state.is_broken("front_sensors"), "les capteurs n'ont pas été perdus en route")
+	assert_false(state.is_broken("front_sensor_assembly"), "les capteurs n'ont pas été perdus en route")
 	DisassemblyFixture.repair_faults(state, workbench.session.job.faults)
 	(workbench.get_node("%FinalTestButton") as Button).pressed.emit()
 	assert_true(workbench.session.is_completed(), "réparation terminée")
@@ -693,16 +691,17 @@ func _play_repair(workbench: Workbench) -> void:
 func test_front_sensors_travel_with_the_open_screen() -> void:
 	var state: DisassemblyState = _ipone_13_state()
 	var view: DeviceView = _device_view(state)
-	var sensors: ComponentDefinition = state.device.get_component("front_sensors")
+	var sensors: ComponentDefinition = state.device.get_component("front_sensor_assembly")
 	var closed: Rect2 = view.view_rect(sensors)
 	DisassemblyFixture.remove_with_prerequisites(state, "display")
+	DisassemblyFixture.remove_with_prerequisites(state, "sensor_bracket")
 	_settle(view)
 	assert_true(view.is_open_tethered("display"), "préparation : écran rabattu sur le côté")
 
 	var opened: Rect2 = view.view_rect(sensors)
 	assert_true(absf(opened.get_center().x - closed.get_center().x) > 20.0, "les capteurs ont suivi le panneau")
 	assert_true(view.open_panel_rect("display").grow(8.0).encloses(opened), "posés sur le panneau ouvert")
-	assert_eq(view.component_at(opened.get_center()), "front_sensors", "et se touchent là où on les voit")
+	assert_eq(view.component_at(opened.get_center()), "front_sensor_assembly", "et se touchent là où on les voit")
 	assert_eq(view.component_at(view.open_panel_rect("display").position + Vector2(4.0, 4.0)), "display",
 		"le reste du panneau referme toujours l'écran")
 	view.free()

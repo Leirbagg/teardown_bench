@@ -43,9 +43,8 @@ Détails : [GDD](GDD.md) · [schéma des données et règles](docs/data_schema.m
 ## État
 
 MVP jouable sur téléphone : la gamme entière est fichée, de l'*ipone x* à l'*ipone 17 pro max*
-(30 modèles, 8 familles de démontage), dont **5 démontables** : l'*ipone x* (carte mère repliée en
-deux étages), l'*ipone 11* (dalle LCD, carte à plat), l'*ipone 13*, et les châssis qui s'ouvrent des
-deux côtés, *ipone 14* et *ipone 15* en USB-C — 4 pannes (écran,
+(30 modèles), dont **1 démontable**, l'*ipone 13* : 43 pièces et 4 procédures recoupées pas à pas
+sur les guides publics — 4 pannes (écran,
 batterie, port de charge, capteurs frontaux), journées de 2 à 3 clients, économie (prix des pannes,
 coût des pièces, note en étoiles, réputation) et sauvegarde après chaque client. Pas encore de
 stock à acheter, d'upgrades d'outils ni de monétisation (voir « Hors périmètre » dans le GDD).

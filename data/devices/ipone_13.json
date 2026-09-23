@@ -7,6 +7,1162 @@
     "front",
     "back"
   ],
+  "components": [
+    {
+      "id": "pentalobe_left",
+      "kind": "screw",
+      "face": "front",
+      "gesture": "rotate",
+      "gesture_params": {
+        "turns": 1.5
+      },
+      "requires": [],
+      "covered_by": [],
+      "hint": "Two 6.8 mm pentalobe screws sit either side of the port.",
+      "screw_type": "pentalobe",
+      "length_mm": 6.8,
+      "visual": {
+        "rect": [
+          56,
+          356,
+          8,
+          8
+        ]
+      }
+    },
+    {
+      "id": "pentalobe_right",
+      "kind": "screw",
+      "face": "front",
+      "gesture": "rotate",
+      "gesture_params": {
+        "turns": 1.5
+      },
+      "requires": [],
+      "covered_by": [],
+      "hint": "Two 6.8 mm pentalobe screws sit either side of the port.",
+      "screw_type": "pentalobe",
+      "length_mm": 6.8,
+      "visual": {
+        "rect": [
+          116,
+          356,
+          8,
+          8
+        ]
+      }
+    },
+    {
+      "id": "display_adhesive_bottom",
+      "kind": "adhesive",
+      "face": "front",
+      "gesture": "hold",
+      "gesture_params": {
+        "duration_s": 2.5
+      },
+      "requires": [],
+      "covered_by": [],
+      "hint": "Heat the bottom edge first: that is where the pick goes in.",
+      "visual": {
+        "rect": [
+          4,
+          344,
+          172,
+          20
+        ]
+      }
+    },
+    {
+      "id": "display_adhesive_right",
+      "kind": "adhesive",
+      "face": "front",
+      "gesture": "hold",
+      "gesture_params": {
+        "duration_s": 2.5
+      },
+      "requires": [],
+      "covered_by": [],
+      "hint": "Heat the right edge and slide the pick along it.",
+      "visual": {
+        "rect": [
+          156,
+          4,
+          20,
+          360
+        ]
+      }
+    },
+    {
+      "id": "display_adhesive_top",
+      "kind": "adhesive",
+      "face": "front",
+      "gesture": "hold",
+      "gesture_params": {
+        "duration_s": 2.5
+      },
+      "requires": [],
+      "covered_by": [],
+      "hint": "Heat the top edge, then work the pick around the corner.",
+      "visual": {
+        "rect": [
+          4,
+          4,
+          172,
+          20
+        ]
+      }
+    },
+    {
+      "id": "display_adhesive_left",
+      "kind": "adhesive",
+      "face": "front",
+      "gesture": "hold",
+      "gesture_params": {
+        "duration_s": 2.5
+      },
+      "requires": [],
+      "covered_by": [],
+      "hint": "Heat the left edge last: the hinge side opens there.",
+      "visual": {
+        "rect": [
+          4,
+          4,
+          20,
+          360
+        ]
+      }
+    },
+    {
+      "id": "display",
+      "kind": "module",
+      "face": "front",
+      "gesture": "pry",
+      "gesture_params": {
+        "perimeter_ratio": 1.0
+      },
+      "requires": [
+        "pentalobe_left",
+        "pentalobe_right",
+        "display_adhesive_bottom",
+        "display_adhesive_right",
+        "display_adhesive_top",
+        "display_adhesive_left"
+      ],
+      "covered_by": [],
+      "role": "screen",
+      "replaceable": true,
+      "replace_requires": [
+        "display_connector",
+        "sensor_connector"
+      ],
+      "hint": "Swing the display up from the right, like the front cover of a book.",
+      "part_price": 185,
+      "visual": {
+        "rect": [
+          4,
+          4,
+          172,
+          360
+        ],
+        "hinge": "right"
+      }
+    },
+    {
+      "id": "connector_cover_screw_1",
+      "kind": "screw",
+      "face": "front",
+      "gesture": "rotate",
+      "gesture_params": {
+        "turns": 0.5
+      },
+      "requires": [
+        "display"
+      ],
+      "covered_by": [
+        "display"
+      ],
+      "hint": "Three 1.3 mm Phillips screws hold the battery and display connector cover.",
+      "screw_type": "phillips",
+      "length_mm": 1.3,
+      "visual": {
+        "rect": [
+          14,
+          150,
+          8,
+          8
+        ]
+      }
+    },
+    {
+      "id": "connector_cover_screw_2",
+      "kind": "screw",
+      "face": "front",
+      "gesture": "rotate",
+      "gesture_params": {
+        "turns": 0.5
+      },
+      "requires": [
+        "display"
+      ],
+      "covered_by": [
+        "display"
+      ],
+      "hint": "Three 1.3 mm Phillips screws hold the battery and display connector cover.",
+      "screw_type": "phillips",
+      "length_mm": 1.3,
+      "visual": {
+        "rect": [
+          44,
+          150,
+          8,
+          8
+        ]
+      }
+    },
+    {
+      "id": "connector_cover_screw_3",
+      "kind": "screw",
+      "face": "front",
+      "gesture": "rotate",
+      "gesture_params": {
+        "turns": 0.5
+      },
+      "requires": [
+        "display"
+      ],
+      "covered_by": [
+        "display"
+      ],
+      "hint": "Three 1.3 mm Phillips screws hold the battery and display connector cover.",
+      "screw_type": "phillips",
+      "length_mm": 1.3,
+      "visual": {
+        "rect": [
+          30,
+          184,
+          8,
+          8
+        ]
+      }
+    },
+    {
+      "id": "connector_cover",
+      "kind": "cover",
+      "face": "front",
+      "gesture": "pull",
+      "gesture_params": {
+        "direction_deg": 90
+      },
+      "requires": [
+        "display",
+        "connector_cover_screw_1",
+        "connector_cover_screw_2",
+        "connector_cover_screw_3"
+      ],
+      "covered_by": [
+        "display"
+      ],
+      "replaceable": true,
+      "hint": "One cover for both connectors: the battery is underneath it.",
+      "part_price": 4,
+      "visual": {
+        "rect": [
+          10,
+          146,
+          52,
+          48
+        ]
+      }
+    },
+    {
+      "id": "battery_connector",
+      "kind": "connector",
+      "face": "front",
+      "gesture": "pull",
+      "gesture_params": {
+        "direction_deg": 270
+      },
+      "requires": [
+        "display",
+        "connector_cover"
+      ],
+      "covered_by": [
+        "display",
+        "connector_cover"
+      ],
+      "hint": "Disconnect the battery before anything else on the board.",
+      "visual": {
+        "rect": [
+          14,
+          198,
+          24,
+          14
+        ],
+        "cable_to": "battery"
+      }
+    },
+    {
+      "id": "display_connector",
+      "kind": "connector",
+      "face": "front",
+      "gesture": "pull",
+      "gesture_params": {
+        "direction_deg": 180
+      },
+      "requires": [
+        "display",
+        "connector_cover",
+        "battery_connector"
+      ],
+      "covered_by": [
+        "display",
+        "connector_cover"
+      ],
+      "force_breaks": [
+        "display"
+      ],
+      "hint": "With the battery out of the circuit, the display cable is safe.",
+      "visual": {
+        "rect": [
+          40,
+          198,
+          24,
+          14
+        ],
+        "cable_to": "display"
+      }
+    },
+    {
+      "id": "sensor_cover_screw_1",
+      "kind": "screw",
+      "face": "front",
+      "gesture": "rotate",
+      "gesture_params": {
+        "turns": 0.5
+      },
+      "requires": [
+        "display"
+      ],
+      "covered_by": [
+        "display"
+      ],
+      "hint": "Three different screws hold the front sensor connector cover: 1.7 and 1.3 Phillips, 1.8 Y000.",
+      "screw_type": "phillips",
+      "length_mm": 1.7,
+      "visual": {
+        "rect": [
+          20,
+          26,
+          8,
+          8
+        ]
+      }
+    },
+    {
+      "id": "sensor_cover_screw_2",
+      "kind": "screw",
+      "face": "front",
+      "gesture": "rotate",
+      "gesture_params": {
+        "turns": 0.5
+      },
+      "requires": [
+        "display"
+      ],
+      "covered_by": [
+        "display"
+      ],
+      "hint": "Three different screws hold the front sensor connector cover: 1.7 and 1.3 Phillips, 1.8 Y000.",
+      "screw_type": "phillips",
+      "length_mm": 1.3,
+      "visual": {
+        "rect": [
+          48,
+          26,
+          8,
+          8
+        ]
+      }
+    },
+    {
+      "id": "sensor_cover_screw_3",
+      "kind": "screw",
+      "face": "front",
+      "gesture": "rotate",
+      "gesture_params": {
+        "turns": 0.5
+      },
+      "requires": [
+        "display"
+      ],
+      "covered_by": [
+        "display"
+      ],
+      "hint": "Three different screws hold the front sensor connector cover: 1.7 and 1.3 Phillips, 1.8 Y000.",
+      "screw_type": "tri_point",
+      "length_mm": 1.8,
+      "visual": {
+        "rect": [
+          34,
+          46,
+          8,
+          8
+        ]
+      }
+    },
+    {
+      "id": "sensor_cover",
+      "kind": "cover",
+      "face": "front",
+      "gesture": "pull",
+      "gesture_params": {
+        "direction_deg": 90
+      },
+      "requires": [
+        "display",
+        "sensor_cover_screw_1",
+        "sensor_cover_screw_2",
+        "sensor_cover_screw_3"
+      ],
+      "covered_by": [
+        "display"
+      ],
+      "replaceable": true,
+      "hint": "Lift the cover over the front sensor connector.",
+      "part_price": 4,
+      "visual": {
+        "rect": [
+          16,
+          22,
+          44,
+          34
+        ]
+      }
+    },
+    {
+      "id": "sensor_connector",
+      "kind": "connector",
+      "face": "front",
+      "gesture": "pull",
+      "gesture_params": {
+        "direction_deg": 180
+      },
+      "requires": [
+        "display",
+        "sensor_cover",
+        "battery_connector"
+      ],
+      "covered_by": [
+        "display",
+        "sensor_cover"
+      ],
+      "force_breaks": [
+        "display"
+      ],
+      "hint": "Unplug the front sensors: the screen is now free.",
+      "visual": {
+        "rect": [
+          22,
+          32,
+          26,
+          12
+        ],
+        "cable_to": "display"
+      }
+    },
+    {
+      "id": "sensor_bracket_screw_1",
+      "kind": "screw",
+      "face": "front",
+      "gesture": "rotate",
+      "gesture_params": {
+        "turns": 0.5
+      },
+      "requires": [
+        "display"
+      ],
+      "covered_by": [
+        "display"
+      ],
+      "hint": "Three 1.4 mm Y000 screws hold the front sensor bracket to the screen.",
+      "screw_type": "tri_point",
+      "length_mm": 1.4,
+      "visual": {
+        "rect": [
+          64,
+          14,
+          8,
+          8
+        ]
+      }
+    },
+    {
+      "id": "sensor_bracket_screw_2",
+      "kind": "screw",
+      "face": "front",
+      "gesture": "rotate",
+      "gesture_params": {
+        "turns": 0.5
+      },
+      "requires": [
+        "display"
+      ],
+      "covered_by": [
+        "display"
+      ],
+      "hint": "Three 1.4 mm Y000 screws hold the front sensor bracket to the screen.",
+      "screw_type": "tri_point",
+      "length_mm": 1.4,
+      "visual": {
+        "rect": [
+          108,
+          14,
+          8,
+          8
+        ]
+      }
+    },
+    {
+      "id": "sensor_bracket_screw_3",
+      "kind": "screw",
+      "face": "front",
+      "gesture": "rotate",
+      "gesture_params": {
+        "turns": 0.5
+      },
+      "requires": [
+        "display"
+      ],
+      "covered_by": [
+        "display"
+      ],
+      "hint": "Three 1.4 mm Y000 screws hold the front sensor bracket to the screen.",
+      "screw_type": "tri_point",
+      "length_mm": 1.4,
+      "visual": {
+        "rect": [
+          86,
+          40,
+          8,
+          8
+        ]
+      }
+    },
+    {
+      "id": "sensor_bracket",
+      "kind": "cover",
+      "face": "front",
+      "gesture": "pull",
+      "gesture_params": {
+        "direction_deg": 270
+      },
+      "requires": [
+        "display",
+        "sensor_bracket_screw_1",
+        "sensor_bracket_screw_2",
+        "sensor_bracket_screw_3"
+      ],
+      "covered_by": [
+        "display"
+      ],
+      "mounted_on": "display",
+      "replaceable": true,
+      "hint": "The bracket belongs to the screen: it moves over with the sensors.",
+      "part_price": 3,
+      "visual": {
+        "rect": [
+          60,
+          10,
+          60,
+          24
+        ]
+      }
+    },
+    {
+      "id": "front_sensor_adhesive",
+      "kind": "adhesive",
+      "face": "front",
+      "gesture": "hold",
+      "gesture_params": {
+        "duration_s": 3.0
+      },
+      "requires": [
+        "display",
+        "sensor_bracket"
+      ],
+      "covered_by": [
+        "display",
+        "sensor_bracket"
+      ],
+      "hint": "The sensor assembly is glued to the screen: warm it before lifting.",
+      "visual": {
+        "rect": [
+          62,
+          36,
+          56,
+          14
+        ]
+      }
+    },
+    {
+      "id": "ambient_light_connector",
+      "kind": "connector",
+      "face": "front",
+      "gesture": "pull",
+      "gesture_params": {
+        "direction_deg": 270
+      },
+      "requires": [
+        "display",
+        "sensor_bracket",
+        "front_sensor_adhesive"
+      ],
+      "covered_by": [
+        "display",
+        "sensor_bracket"
+      ],
+      "force_breaks": [
+        "front_sensor_assembly"
+      ],
+      "hint": "Disconnect the ambient light sensor.",
+      "visual": {
+        "rect": [
+          62,
+          52,
+          20,
+          12
+        ],
+        "cable_to": "front_sensor_assembly"
+      }
+    },
+    {
+      "id": "proximity_connector",
+      "kind": "connector",
+      "face": "front",
+      "gesture": "pull",
+      "gesture_params": {
+        "direction_deg": 270
+      },
+      "requires": [
+        "display",
+        "sensor_bracket",
+        "front_sensor_adhesive"
+      ],
+      "covered_by": [
+        "display",
+        "sensor_bracket"
+      ],
+      "force_breaks": [
+        "front_sensor_assembly"
+      ],
+      "hint": "Disconnect the proximity sensor, then swing it aside.",
+      "visual": {
+        "rect": [
+          84,
+          52,
+          20,
+          12
+        ],
+        "cable_to": "front_sensor_assembly"
+      }
+    },
+    {
+      "id": "microphone_connector",
+      "kind": "connector",
+      "face": "front",
+      "gesture": "pull",
+      "gesture_params": {
+        "direction_deg": 270
+      },
+      "requires": [
+        "display",
+        "sensor_bracket",
+        "front_sensor_adhesive"
+      ],
+      "covered_by": [
+        "display",
+        "sensor_bracket"
+      ],
+      "force_breaks": [
+        "front_sensor_assembly"
+      ],
+      "hint": "Disconnect the microphone: the last cable of the assembly.",
+      "visual": {
+        "rect": [
+          106,
+          52,
+          20,
+          12
+        ],
+        "cable_to": "front_sensor_assembly"
+      }
+    },
+    {
+      "id": "front_sensor_assembly",
+      "kind": "module",
+      "face": "front",
+      "gesture": "pull",
+      "gesture_params": {
+        "direction_deg": 270
+      },
+      "requires": [
+        "display",
+        "sensor_bracket",
+        "front_sensor_adhesive",
+        "ambient_light_connector",
+        "proximity_connector",
+        "microphone_connector"
+      ],
+      "covered_by": [
+        "display",
+        "sensor_bracket"
+      ],
+      "mounted_on": "display",
+      "role": "front_sensors",
+      "replaceable": true,
+      "hint": "Earpiece, ambient light, proximity and microphone in one assembly: move it to the new screen.",
+      "part_price": 52,
+      "visual": {
+        "rect": [
+          60,
+          66,
+          60,
+          22
+        ]
+      }
+    },
+    {
+      "id": "speaker_screw_1",
+      "kind": "screw",
+      "face": "front",
+      "gesture": "rotate",
+      "gesture_params": {
+        "turns": 0.5
+      },
+      "requires": [
+        "display"
+      ],
+      "covered_by": [
+        "display"
+      ],
+      "hint": "Four 1.7 mm Phillips screws hold the loudspeaker.",
+      "screw_type": "phillips",
+      "length_mm": 1.7,
+      "visual": {
+        "rect": [
+          116,
+          296,
+          8,
+          8
+        ]
+      }
+    },
+    {
+      "id": "speaker_screw_2",
+      "kind": "screw",
+      "face": "front",
+      "gesture": "rotate",
+      "gesture_params": {
+        "turns": 0.5
+      },
+      "requires": [
+        "display"
+      ],
+      "covered_by": [
+        "display"
+      ],
+      "hint": "Four 1.7 mm Phillips screws hold the loudspeaker.",
+      "screw_type": "phillips",
+      "length_mm": 1.7,
+      "visual": {
+        "rect": [
+          160,
+          296,
+          8,
+          8
+        ]
+      }
+    },
+    {
+      "id": "speaker_screw_3",
+      "kind": "screw",
+      "face": "front",
+      "gesture": "rotate",
+      "gesture_params": {
+        "turns": 0.5
+      },
+      "requires": [
+        "display"
+      ],
+      "covered_by": [
+        "display"
+      ],
+      "hint": "Four 1.7 mm Phillips screws hold the loudspeaker.",
+      "screw_type": "phillips",
+      "length_mm": 1.7,
+      "visual": {
+        "rect": [
+          116,
+          332,
+          8,
+          8
+        ]
+      }
+    },
+    {
+      "id": "speaker_screw_4",
+      "kind": "screw",
+      "face": "front",
+      "gesture": "rotate",
+      "gesture_params": {
+        "turns": 0.5
+      },
+      "requires": [
+        "display"
+      ],
+      "covered_by": [
+        "display"
+      ],
+      "hint": "Four 1.7 mm Phillips screws hold the loudspeaker.",
+      "screw_type": "phillips",
+      "length_mm": 1.7,
+      "visual": {
+        "rect": [
+          160,
+          332,
+          8,
+          8
+        ]
+      }
+    },
+    {
+      "id": "loudspeaker",
+      "kind": "module",
+      "face": "front",
+      "gesture": "pull",
+      "requires": [
+        "display",
+        "speaker_screw_1",
+        "speaker_screw_2",
+        "speaker_screw_3",
+        "speaker_screw_4"
+      ],
+      "covered_by": [
+        "display"
+      ],
+      "replaceable": true,
+      "hint": "The loudspeaker comes off before the battery adhesive: it sits over the tabs.",
+      "part_price": 16,
+      "visual": {
+        "rect": [
+          112,
+          292,
+          60,
+          50
+        ]
+      }
+    },
+    {
+      "id": "battery_tab_top_left",
+      "kind": "adhesive",
+      "face": "front",
+      "gesture": "pull",
+      "gesture_params": {
+        "direction_deg": 270
+      },
+      "requires": [
+        "display",
+        "loudspeaker"
+      ],
+      "covered_by": [
+        "display",
+        "loudspeaker"
+      ],
+      "hint": "Four stretch-release tabs, two at the bottom and two at the top: pull each slowly and flat.",
+      "visual": {
+        "rect": [
+          90,
+          76,
+          16,
+          12
+        ]
+      }
+    },
+    {
+      "id": "battery_tab_top_right",
+      "kind": "adhesive",
+      "face": "front",
+      "gesture": "pull",
+      "gesture_params": {
+        "direction_deg": 270
+      },
+      "requires": [
+        "display",
+        "loudspeaker"
+      ],
+      "covered_by": [
+        "display",
+        "loudspeaker"
+      ],
+      "hint": "Four stretch-release tabs, two at the bottom and two at the top: pull each slowly and flat.",
+      "visual": {
+        "rect": [
+          140,
+          76,
+          16,
+          12
+        ]
+      }
+    },
+    {
+      "id": "battery_tab_bottom_left",
+      "kind": "adhesive",
+      "face": "front",
+      "gesture": "pull",
+      "gesture_params": {
+        "direction_deg": 270
+      },
+      "requires": [
+        "display",
+        "loudspeaker"
+      ],
+      "covered_by": [
+        "display",
+        "loudspeaker"
+      ],
+      "hint": "Four stretch-release tabs, two at the bottom and two at the top: pull each slowly and flat.",
+      "visual": {
+        "rect": [
+          90,
+          268,
+          16,
+          12
+        ]
+      }
+    },
+    {
+      "id": "battery_tab_bottom_right",
+      "kind": "adhesive",
+      "face": "front",
+      "gesture": "pull",
+      "gesture_params": {
+        "direction_deg": 270
+      },
+      "requires": [
+        "display",
+        "loudspeaker"
+      ],
+      "covered_by": [
+        "display",
+        "loudspeaker"
+      ],
+      "hint": "Four stretch-release tabs, two at the bottom and two at the top: pull each slowly and flat.",
+      "visual": {
+        "rect": [
+          140,
+          268,
+          16,
+          12
+        ]
+      }
+    },
+    {
+      "id": "battery",
+      "kind": "module",
+      "face": "front",
+      "gesture": "pull",
+      "gesture_params": {
+        "direction_deg": 90
+      },
+      "requires": [
+        "display",
+        "battery_connector",
+        "battery_tab_top_left",
+        "battery_tab_top_right",
+        "battery_tab_bottom_left",
+        "battery_tab_bottom_right"
+      ],
+      "covered_by": [
+        "display"
+      ],
+      "role": "battery",
+      "replaceable": true,
+      "hint": "Lift the battery out flat once all four tabs are released.",
+      "part_price": 48,
+      "visual": {
+        "rect": [
+          70,
+          84,
+          100,
+          190
+        ]
+      }
+    },
+    {
+      "id": "haptic_screw_1",
+      "kind": "screw",
+      "face": "front",
+      "gesture": "rotate",
+      "gesture_params": {
+        "turns": 0.5
+      },
+      "requires": [
+        "display"
+      ],
+      "covered_by": [
+        "display"
+      ],
+      "hint": "Three 2.2 mm Phillips screws hold the haptic motor.",
+      "screw_type": "phillips",
+      "length_mm": 2.2,
+      "visual": {
+        "rect": [
+          11,
+          296,
+          8,
+          8
+        ]
+      }
+    },
+    {
+      "id": "haptic_screw_2",
+      "kind": "screw",
+      "face": "front",
+      "gesture": "rotate",
+      "gesture_params": {
+        "turns": 0.5
+      },
+      "requires": [
+        "display"
+      ],
+      "covered_by": [
+        "display"
+      ],
+      "hint": "Three 2.2 mm Phillips screws hold the haptic motor.",
+      "screw_type": "phillips",
+      "length_mm": 2.2,
+      "visual": {
+        "rect": [
+          55,
+          296,
+          8,
+          8
+        ]
+      }
+    },
+    {
+      "id": "haptic_screw_3",
+      "kind": "screw",
+      "face": "front",
+      "gesture": "rotate",
+      "gesture_params": {
+        "turns": 0.5
+      },
+      "requires": [
+        "display"
+      ],
+      "covered_by": [
+        "display"
+      ],
+      "hint": "Three 2.2 mm Phillips screws hold the haptic motor.",
+      "screw_type": "phillips",
+      "length_mm": 2.2,
+      "visual": {
+        "rect": [
+          33,
+          332,
+          8,
+          8
+        ]
+      }
+    },
+    {
+      "id": "haptic_bracket",
+      "kind": "cover",
+      "face": "front",
+      "gesture": "pull",
+      "gesture_params": {
+        "direction_deg": 90
+      },
+      "requires": [
+        "display",
+        "haptic_screw_1",
+        "haptic_screw_2",
+        "haptic_screw_3"
+      ],
+      "covered_by": [
+        "display"
+      ],
+      "replaceable": true,
+      "hint": "Lift the bracket, then shift the motor aside to reach its cable.",
+      "part_price": 3,
+      "visual": {
+        "rect": [
+          8,
+          288,
+          58,
+          22
+        ]
+      }
+    },
+    {
+      "id": "haptic_connector",
+      "kind": "connector",
+      "face": "front",
+      "gesture": "pull",
+      "gesture_params": {
+        "direction_deg": 0
+      },
+      "requires": [
+        "display",
+        "haptic_bracket",
+        "battery_connector"
+      ],
+      "covered_by": [
+        "display",
+        "haptic_bracket"
+      ],
+      "force_breaks": [
+        "haptic_motor"
+      ],
+      "hint": "The motor's cable hides under its bracket.",
+      "visual": {
+        "rect": [
+          26,
+          276,
+          18,
+          12
+        ],
+        "cable_to": "haptic_motor"
+      }
+    },
+    {
+      "id": "haptic_motor",
+      "kind": "module",
+      "face": "front",
+      "gesture": "pull",
+      "requires": [
+        "display",
+        "haptic_bracket",
+        "haptic_connector"
+      ],
+      "covered_by": [
+        "display"
+      ],
+      "role": "haptic",
+      "replaceable": true,
+      "hint": "The haptic motor gives the phone its click.",
+      "part_price": 22,
+      "visual": {
+        "rect": [
+          8,
+          292,
+          58,
+          50
+        ]
+      }
+    }
+  ],
   "software_tests": [
     {
       "id": "boot",
@@ -34,15 +1190,6 @@
       ]
     },
     {
-      "id": "charging",
-      "roles": [
-        "charge_port"
-      ],
-      "after": [
-        "boot"
-      ]
-    },
-    {
       "id": "call_audio",
       "roles": [
         "front_sensors"
@@ -50,1004 +1197,155 @@
       "after": [
         "boot"
       ]
+    },
+    {
+      "id": "vibration",
+      "roles": [
+        "haptic"
+      ],
+      "after": [
+        "boot"
+      ]
     }
   ],
-  "components": [
+  "procedures": [
     {
-      "id": "pentalobe_left",
-      "kind": "screw",
-      "face": "front",
-      "gesture": "rotate",
-      "gesture_params": {
-        "turns": 1.5
-      },
-      "requires": [],
-      "covered_by": [],
-      "hint": "Two pentalobe screws on the bottom edge lock the display in place.",
-      "screw_type": "pentalobe",
-      "length_mm": 6.8,
-      "visual": {
-        "rect": [
-          56,
-          356,
-          10,
-          10
-        ]
-      }
-    },
-    {
-      "id": "pentalobe_right",
-      "kind": "screw",
-      "face": "front",
-      "gesture": "rotate",
-      "gesture_params": {
-        "turns": 1.5
-      },
-      "requires": [],
-      "covered_by": [],
-      "hint": "Two pentalobe screws on the bottom edge lock the display in place.",
-      "screw_type": "pentalobe",
-      "length_mm": 6.8,
-      "visual": {
-        "rect": [
-          114,
-          356,
-          10,
-          10
-        ]
-      }
-    },
-    {
-      "id": "display_adhesive",
-      "kind": "adhesive",
-      "face": "front",
-      "gesture": "hold",
-      "gesture_params": {
-        "duration_s": 3.5
-      },
-      "requires": [],
-      "covered_by": [],
-      "hint": "Heat the seal all around the screen: it is glued on every edge.",
-      "visual": {
-        "rect": [
-          4,
-          4,
-          172,
-          360
-        ],
-        "frame_thickness": 4
-      }
-    },
-    {
-      "id": "display",
-      "kind": "module",
-      "face": "front",
-      "gesture": "pry",
-      "gesture_params": {
-        "perimeter_ratio": 1.0
-      },
-      "requires": [
+      "id": "screen",
+      "label": "Screen replacement",
+      "target_role": "screen",
+      "source": "https://www.ifixit.com/Guide/iPhone+13+Screen+Replacement/145897",
+      "steps": [
         "pentalobe_left",
         "pentalobe_right",
-        "display_adhesive"
-      ],
-      "covered_by": [],
-      "role": "screen",
-      "replaceable": true,
-      "replace_requires": [
-        "display_connector",
-        "sensor_connector"
-      ],
-      "hint": "Slide the pick all the way around the screen, then swing it open like a book.",
-      "part_price": 85,
-      "visual": {
-        "rect": [
-          4,
-          4,
-          172,
-          360
-        ],
-        "hinge": "right"
-      }
-    },
-    {
-      "id": "cover_screw_1",
-      "kind": "screw",
-      "face": "front",
-      "gesture": "rotate",
-      "gesture_params": {
-        "turns": 0.5
-      },
-      "requires": [
-        "display"
-      ],
-      "covered_by": [
-        "display"
-      ],
-      "hint": "Three tiny screws hold the connector cover.",
-      "screw_type": "phillips",
-      "length_mm": 1.3,
-      "visual": {
-        "rect": [
-          15,
-          153,
-          9,
-          9
-        ]
-      }
-    },
-    {
-      "id": "cover_screw_2",
-      "kind": "screw",
-      "face": "front",
-      "gesture": "rotate",
-      "gesture_params": {
-        "turns": 0.5
-      },
-      "requires": [
-        "display"
-      ],
-      "covered_by": [
-        "display"
-      ],
-      "hint": "Three tiny screws hold the connector cover.",
-      "screw_type": "phillips",
-      "length_mm": 1.3,
-      "visual": {
-        "rect": [
-          50,
-          153,
-          9,
-          9
-        ]
-      }
-    },
-    {
-      "id": "cover_screw_3",
-      "kind": "screw",
-      "face": "front",
-      "gesture": "rotate",
-      "gesture_params": {
-        "turns": 0.5
-      },
-      "requires": [
-        "display"
-      ],
-      "covered_by": [
-        "display"
-      ],
-      "hint": "Three tiny screws hold the connector cover.",
-      "screw_type": "phillips",
-      "length_mm": 1.3,
-      "visual": {
-        "rect": [
-          32,
-          183,
-          9,
-          9
-        ]
-      }
-    },
-    {
-      "id": "connector_cover",
-      "kind": "cover",
-      "face": "front",
-      "gesture": "pull",
-      "requires": [
+        "display_adhesive_bottom",
+        "display_adhesive_right",
+        "display_adhesive_top",
+        "display_adhesive_left",
         "display",
-        "cover_screw_1",
-        "cover_screw_2",
-        "cover_screw_3"
-      ],
-      "covered_by": [
-        "display"
-      ],
-      "replaceable": true,
-      "hint": "Lift the cover to reach the battery and display connectors.",
-      "part_price": 4,
-      "visual": {
-        "rect": [
-          12,
-          150,
-          50,
-          44
-        ]
-      }
-    },
-    {
-      "id": "battery_connector",
-      "kind": "connector",
-      "face": "front",
-      "gesture": "pull",
-      "gesture_params": {
-        "direction_deg": 0
-      },
-      "requires": [
-        "display",
-        "connector_cover"
-      ],
-      "covered_by": [
-        "display",
-        "connector_cover"
-      ],
-      "hint": "Always disconnect the battery first: a live connector can fry other parts.",
-      "visual": {
-        "rect": [
-          36,
-          158,
-          22,
-          12
-        ],
-        "cable_to": "battery"
-      }
-    },
-    {
-      "id": "display_connector",
-      "kind": "connector",
-      "face": "front",
-      "gesture": "pull",
-      "gesture_params": {
-        "direction_deg": 180
-      },
-      "requires": [
-        "display",
+        "connector_cover_screw_1",
+        "connector_cover_screw_2",
+        "connector_cover_screw_3",
         "connector_cover",
-        "battery_connector"
-      ],
-      "covered_by": [
-        "display",
-        "connector_cover"
-      ],
-      "force_breaks": [
-        "display"
-      ],
-      "hint": "With the battery out of the circuit, the display cable is safe to unplug.",
-      "visual": {
-        "rect": [
-          16,
-          174,
-          22,
-          14
-        ],
-        "cable_to": "display"
-      }
-    },
-    {
-      "id": "sensor_screw_1",
-      "kind": "screw",
-      "face": "front",
-      "gesture": "rotate",
-      "gesture_params": {
-        "turns": 0.5
-      },
-      "requires": [
-        "display"
-      ],
-      "covered_by": [
-        "display"
-      ],
-      "hint": "Three different screws hold the sensor cover: keep track of where each goes.",
-      "screw_type": "phillips",
-      "length_mm": 1.7,
-      "visual": {
-        "rect": [
-          17,
-          25,
-          8,
-          8
-        ]
-      }
-    },
-    {
-      "id": "sensor_screw_2",
-      "kind": "screw",
-      "face": "front",
-      "gesture": "rotate",
-      "gesture_params": {
-        "turns": 0.5
-      },
-      "requires": [
-        "display"
-      ],
-      "covered_by": [
-        "display"
-      ],
-      "hint": "Three different screws hold the sensor cover: keep track of where each goes.",
-      "screw_type": "phillips",
-      "length_mm": 1.3,
-      "visual": {
-        "rect": [
-          47,
-          25,
-          8,
-          8
-        ]
-      }
-    },
-    {
-      "id": "sensor_screw_3",
-      "kind": "screw",
-      "face": "front",
-      "gesture": "rotate",
-      "gesture_params": {
-        "turns": 0.5
-      },
-      "requires": [
-        "display"
-      ],
-      "covered_by": [
-        "display"
-      ],
-      "hint": "Three different screws hold the sensor cover: keep track of where each goes.",
-      "screw_type": "tri_point",
-      "length_mm": 1.8,
-      "visual": {
-        "rect": [
-          32,
-          44,
-          8,
-          8
-        ]
-      }
-    },
-    {
-      "id": "sensor_cover",
-      "kind": "cover",
-      "face": "front",
-      "gesture": "pull",
-      "gesture_params": {
-        "direction_deg": 90
-      },
-      "requires": [
-        "display",
-        "sensor_screw_1",
-        "sensor_screw_2",
-        "sensor_screw_3"
-      ],
-      "covered_by": [
-        "display"
-      ],
-      "replaceable": true,
-      "hint": "Swing the cover up to reach the front sensor cable.",
-      "part_price": 4,
-      "visual": {
-        "rect": [
-          14,
-          22,
-          44,
-          32
-        ]
-      }
-    },
-    {
-      "id": "sensor_connector",
-      "kind": "connector",
-      "face": "front",
-      "gesture": "pull",
-      "gesture_params": {
-        "direction_deg": 180
-      },
-      "requires": [
-        "display",
+        "battery_connector",
+        "display_connector",
+        "sensor_cover_screw_1",
+        "sensor_cover_screw_2",
+        "sensor_cover_screw_3",
         "sensor_cover",
-        "battery_connector"
-      ],
-      "covered_by": [
-        "display",
-        "sensor_cover"
-      ],
-      "force_breaks": [
-        "display"
-      ],
-      "hint": "Unplug the front sensor cable: the display is now free.",
-      "visual": {
-        "rect": [
-          22,
-          32,
-          26,
-          12
-        ],
-        "cable_to": "display"
-      }
-    },
-    {
-      "id": "front_sensors",
-      "kind": "module",
-      "face": "front",
-      "gesture": "pull",
-      "gesture_params": {
-        "direction_deg": 270
-      },
-      "requires": [
-        "display",
-        "sensor_cover",
-        "sensor_connector"
-      ],
-      "covered_by": [
-        "display"
-      ],
-      "mounted_on": "display",
-      "role": "front_sensors",
-      "replaceable": true,
-      "part_price": 22,
-      "hint": "Earpiece, proximity sensor and front camera sit on the screen itself: take them off the old one and fit them on the new.",
-      "visual": {
-        "rect": [
-          44,
-          16,
-          64,
-          22
-        ]
-      }
-    },
-    {
-      "id": "speaker_screw_1",
-      "kind": "screw",
-      "face": "front",
-      "gesture": "rotate",
-      "gesture_params": {
-        "turns": 0.5
-      },
-      "requires": [
-        "display"
-      ],
-      "covered_by": [
-        "display"
-      ],
-      "hint": "Four screws hold the loudspeaker.",
-      "screw_type": "phillips",
-      "length_mm": 1.7,
-      "visual": {
-        "rect": [
-          115,
-          295,
-          8,
-          8
-        ]
-      }
-    },
-    {
-      "id": "speaker_screw_2",
-      "kind": "screw",
-      "face": "front",
-      "gesture": "rotate",
-      "gesture_params": {
-        "turns": 0.5
-      },
-      "requires": [
-        "display"
-      ],
-      "covered_by": [
-        "display"
-      ],
-      "hint": "Four screws hold the loudspeaker.",
-      "screw_type": "phillips",
-      "length_mm": 1.7,
-      "visual": {
-        "rect": [
-          161,
-          295,
-          8,
-          8
-        ]
-      }
-    },
-    {
-      "id": "speaker_screw_3",
-      "kind": "screw",
-      "face": "front",
-      "gesture": "rotate",
-      "gesture_params": {
-        "turns": 0.5
-      },
-      "requires": [
-        "display"
-      ],
-      "covered_by": [
-        "display"
-      ],
-      "hint": "Four screws hold the loudspeaker.",
-      "screw_type": "phillips",
-      "length_mm": 1.7,
-      "visual": {
-        "rect": [
-          115,
-          331,
-          8,
-          8
-        ]
-      }
-    },
-    {
-      "id": "speaker_screw_4",
-      "kind": "screw",
-      "face": "front",
-      "gesture": "rotate",
-      "gesture_params": {
-        "turns": 0.5
-      },
-      "requires": [
-        "display"
-      ],
-      "covered_by": [
-        "display"
-      ],
-      "hint": "Four screws hold the loudspeaker.",
-      "screw_type": "phillips",
-      "length_mm": 1.7,
-      "visual": {
-        "rect": [
-          161,
-          331,
-          8,
-          8
-        ]
-      }
-    },
-    {
-      "id": "loudspeaker",
-      "kind": "module",
-      "face": "front",
-      "gesture": "pull",
-      "requires": [
-        "display",
-        "speaker_screw_1",
-        "speaker_screw_2",
-        "speaker_screw_3",
-        "speaker_screw_4"
-      ],
-      "covered_by": [
-        "display"
-      ],
-      "replaceable": true,
-      "hint": "The loudspeaker hides one of the battery's adhesive tabs.",
-      "part_price": 12,
-      "visual": {
-        "rect": [
-          112,
-          292,
-          60,
-          50
-        ]
-      }
-    },
-    {
-      "id": "battery_tab_top_right",
-      "kind": "adhesive",
-      "face": "front",
-      "gesture": "pull",
-      "gesture_params": {
-        "direction_deg": 90
-      },
-      "requires": [
-        "display",
-        "loudspeaker"
-      ],
-      "covered_by": [
-        "display",
-        "loudspeaker"
-      ],
-      "hint": "The loudspeaker comes off first: it sits over the battery adhesive.",
-      "visual": {
-        "rect": [
-          140,
-          76,
-          16,
-          12
-        ]
-      }
-    },
-    {
-      "id": "battery_tab_top_left",
-      "kind": "adhesive",
-      "face": "front",
-      "gesture": "pull",
-      "gesture_params": {
-        "direction_deg": 90
-      },
-      "requires": [
-        "display",
-        "loudspeaker"
-      ],
-      "covered_by": [
-        "display",
-        "loudspeaker"
-      ],
-      "hint": "The loudspeaker comes off first: it sits over the battery adhesive.",
-      "visual": {
-        "rect": [
-          90,
-          76,
-          16,
-          12
-        ]
-      }
-    },
-    {
-      "id": "battery_tab_bottom_right",
-      "kind": "adhesive",
-      "face": "front",
-      "gesture": "pull",
-      "gesture_params": {
-        "direction_deg": 270
-      },
-      "requires": [
-        "display",
-        "loudspeaker"
-      ],
-      "covered_by": [
-        "display",
-        "loudspeaker"
-      ],
-      "hint": "The loudspeaker comes off first: it sits over the battery adhesive.",
-      "visual": {
-        "rect": [
-          140,
-          282,
-          16,
-          12
-        ]
-      }
-    },
-    {
-      "id": "battery_tab_bottom_left",
-      "kind": "adhesive",
-      "face": "front",
-      "gesture": "pull",
-      "gesture_params": {
-        "direction_deg": 270
-      },
-      "requires": [
-        "display",
-        "loudspeaker"
-      ],
-      "covered_by": [
-        "display",
-        "loudspeaker"
-      ],
-      "hint": "The loudspeaker comes off first: it sits over the battery adhesive.",
-      "visual": {
-        "rect": [
-          90,
-          282,
-          16,
-          12
-        ]
-      }
+        "sensor_connector",
+        "sensor_bracket_screw_1",
+        "sensor_bracket_screw_2",
+        "sensor_bracket_screw_3",
+        "sensor_bracket",
+        "front_sensor_adhesive",
+        "ambient_light_connector",
+        "proximity_connector",
+        "microphone_connector",
+        "front_sensor_assembly"
+      ]
     },
     {
       "id": "battery",
-      "kind": "module",
-      "face": "front",
-      "gesture": "pull",
-      "requires": [
+      "label": "Battery replacement",
+      "target_role": "battery",
+      "source": "https://www.ifixit.com/Guide/iPhone+13+Battery+Replacement/145896",
+      "steps": [
+        "pentalobe_left",
+        "pentalobe_right",
+        "display_adhesive_bottom",
+        "display_adhesive_right",
+        "display_adhesive_top",
+        "display_adhesive_left",
         "display",
+        "connector_cover_screw_1",
+        "connector_cover_screw_2",
+        "connector_cover_screw_3",
+        "connector_cover",
         "battery_connector",
-        "battery_tab_top_right",
-        "battery_tab_top_left",
+        "display_connector",
+        "sensor_cover_screw_1",
+        "sensor_cover_screw_2",
+        "sensor_cover_screw_3",
+        "sensor_cover",
+        "sensor_connector",
+        "speaker_screw_1",
+        "speaker_screw_2",
+        "speaker_screw_3",
+        "speaker_screw_4",
+        "loudspeaker",
+        "battery_tab_bottom_left",
         "battery_tab_bottom_right",
-        "battery_tab_bottom_left"
-      ],
-      "covered_by": [
-        "display"
-      ],
-      "role": "battery",
-      "replaceable": true,
-      "hint": "Lift the battery out only once every tab is released: never pry a battery.",
-      "part_price": 35,
-      "visual": {
-        "rect": [
-          70,
-          84,
-          100,
-          200
-        ]
-      }
+        "battery_tab_top_left",
+        "battery_tab_top_right",
+        "battery"
+      ]
     },
     {
-      "id": "haptic_screw_1",
-      "kind": "screw",
-      "face": "front",
-      "gesture": "rotate",
-      "gesture_params": {
-        "turns": 0.75
-      },
-      "requires": [
-        "display"
-      ],
-      "covered_by": [
-        "display"
-      ],
-      "hint": "Three screws hold the vibration motor.",
-      "screw_type": "phillips",
-      "length_mm": 2.2,
-      "visual": {
-        "rect": [
-          11,
-          295,
-          8,
-          8
-        ]
-      }
-    },
-    {
-      "id": "haptic_screw_2",
-      "kind": "screw",
-      "face": "front",
-      "gesture": "rotate",
-      "gesture_params": {
-        "turns": 0.75
-      },
-      "requires": [
-        "display"
-      ],
-      "covered_by": [
-        "display"
-      ],
-      "hint": "Three screws hold the vibration motor.",
-      "screw_type": "phillips",
-      "length_mm": 2.2,
-      "visual": {
-        "rect": [
-          55,
-          295,
-          8,
-          8
-        ]
-      }
-    },
-    {
-      "id": "haptic_screw_3",
-      "kind": "screw",
-      "face": "front",
-      "gesture": "rotate",
-      "gesture_params": {
-        "turns": 0.75
-      },
-      "requires": [
-        "display"
-      ],
-      "covered_by": [
-        "display"
-      ],
-      "hint": "Three screws hold the vibration motor.",
-      "screw_type": "phillips",
-      "length_mm": 2.2,
-      "visual": {
-        "rect": [
-          33,
-          331,
-          8,
-          8
-        ]
-      }
-    },
-    {
-      "id": "haptic_bracket",
-      "kind": "cover",
-      "face": "front",
-      "gesture": "pull",
-      "gesture_params": {
-        "direction_deg": 90
-      },
-      "requires": [
+      "id": "haptic",
+      "label": "Haptic motor replacement",
+      "target_role": "haptic",
+      "source": "https://www.ifixit.com/Guide/iPhone+13+Taptic+Engine+Replacement/146281",
+      "steps": [
+        "pentalobe_left",
+        "pentalobe_right",
+        "display_adhesive_bottom",
+        "display_adhesive_right",
+        "display_adhesive_top",
+        "display_adhesive_left",
         "display",
+        "connector_cover_screw_1",
+        "connector_cover_screw_2",
+        "connector_cover_screw_3",
+        "connector_cover",
+        "battery_connector",
+        "display_connector",
+        "sensor_cover_screw_1",
+        "sensor_cover_screw_2",
+        "sensor_cover_screw_3",
+        "sensor_cover",
+        "sensor_connector",
         "haptic_screw_1",
         "haptic_screw_2",
-        "haptic_screw_3"
-      ],
-      "covered_by": [
-        "display"
-      ],
-      "replaceable": true,
-      "part_price": 3,
-      "hint": "Lift the bracket, then shift the motor aside to reach its cable underneath.",
-      "visual": {
-        "rect": [
-          8,
-          288,
-          58,
-          22
-        ]
-      }
-    },
-    {
-      "id": "haptic_connector",
-      "kind": "connector",
-      "face": "front",
-      "gesture": "pull",
-      "gesture_params": {
-        "direction_deg": 90
-      },
-      "requires": [
-        "display",
+        "haptic_screw_3",
         "haptic_bracket",
-        "battery_connector"
-      ],
-      "covered_by": [
-        "display",
-        "haptic_bracket"
-      ],
-      "force_breaks": [
+        "haptic_connector",
         "haptic_motor"
-      ],
-      "hint": "The motor's cable hides under its bracket: unplug it once the bracket is off.",
-      "visual": {
-        "rect": [
-          26,
-          276,
-          18,
-          12
-        ],
-        "cable_to": "haptic_motor"
-      }
+      ]
     },
     {
-      "id": "haptic_motor",
-      "kind": "module",
-      "face": "front",
-      "gesture": "pull",
-      "requires": [
+      "id": "front_sensors",
+      "label": "Front sensor assembly replacement",
+      "target_role": "front_sensors",
+      "source": "https://www.ifixit.com/Guide/iPhone+13+Screen+Replacement/145897",
+      "steps": [
+        "pentalobe_left",
+        "pentalobe_right",
+        "display_adhesive_bottom",
+        "display_adhesive_right",
+        "display_adhesive_top",
+        "display_adhesive_left",
         "display",
-        "haptic_bracket",
-        "haptic_connector"
-      ],
-      "covered_by": [
-        "display"
-      ],
-      "replaceable": true,
-      "hint": "Remove the vibration motor to reach the charging port flex.",
-      "part_price": 18,
-      "visual": {
-        "rect": [
-          8,
-          292,
-          58,
-          50
-        ]
-      }
-    },
-    {
-      "id": "port_screw_left",
-      "kind": "screw",
-      "face": "front",
-      "gesture": "rotate",
-      "gesture_params": {
-        "turns": 0.5
-      },
-      "requires": [
-        "display"
-      ],
-      "covered_by": [
-        "display"
-      ],
-      "hint": "Two small screws hold the charging port bracket.",
-      "screw_type": "phillips",
-      "length_mm": 1.3,
-      "visual": {
-        "rect": [
-          68,
-          316,
-          8,
-          8
-        ]
-      }
-    },
-    {
-      "id": "port_screw_right",
-      "kind": "screw",
-      "face": "front",
-      "gesture": "rotate",
-      "gesture_params": {
-        "turns": 0.5
-      },
-      "requires": [
-        "display"
-      ],
-      "covered_by": [
-        "display"
-      ],
-      "hint": "Two small screws hold the charging port bracket.",
-      "screw_type": "phillips",
-      "length_mm": 1.3,
-      "visual": {
-        "rect": [
-          104,
-          316,
-          8,
-          8
-        ]
-      }
-    },
-    {
-      "id": "port_adhesive",
-      "kind": "adhesive",
-      "face": "front",
-      "gesture": "hold",
-      "gesture_params": {
-        "duration_s": 2.0
-      },
-      "requires": [
-        "display",
-        "loudspeaker",
-        "haptic_motor"
-      ],
-      "covered_by": [
-        "display",
-        "loudspeaker",
-        "haptic_motor"
-      ],
-      "hint": "The charging flex is glued down: heat it before lifting.",
-      "visual": {
-        "rect": [
-          72,
-          304,
-          36,
-          10
-        ]
-      }
-    },
-    {
-      "id": "port_connector",
-      "kind": "connector",
-      "face": "front",
-      "gesture": "pull",
-      "gesture_params": {
-        "direction_deg": 180
-      },
-      "requires": [
-        "display",
-        "battery_connector"
-      ],
-      "covered_by": [
-        "display"
-      ],
-      "force_breaks": [
-        "charge_port"
-      ],
-      "hint": "Unplug the charging flex from the logic board.",
-      "visual": {
-        "rect": [
-          20,
-          244,
-          22,
-          12
-        ],
-        "cable_to": "charge_port"
-      }
-    },
-    {
-      "id": "charge_port",
-      "kind": "module",
-      "face": "front",
-      "gesture": "pull",
-      "gesture_params": {
-        "direction_deg": 270
-      },
-      "requires": [
-        "display",
-        "loudspeaker",
-        "haptic_motor",
-        "port_screw_left",
-        "port_screw_right",
-        "port_adhesive",
-        "port_connector"
-      ],
-      "covered_by": [
-        "display"
-      ],
-      "role": "charge_port",
-      "replaceable": true,
-      "hint": "Lift the charging port assembly out of the frame.",
-      "part_price": 25,
-      "visual": {
-        "rect": [
-          70,
-          328,
-          40,
-          28
-        ]
-      }
+        "connector_cover_screw_1",
+        "connector_cover_screw_2",
+        "connector_cover_screw_3",
+        "connector_cover",
+        "battery_connector",
+        "display_connector",
+        "sensor_cover_screw_1",
+        "sensor_cover_screw_2",
+        "sensor_cover_screw_3",
+        "sensor_cover",
+        "sensor_connector",
+        "sensor_bracket_screw_1",
+        "sensor_bracket_screw_2",
+        "sensor_bracket_screw_3",
+        "sensor_bracket",
+        "front_sensor_adhesive",
+        "ambient_light_connector",
+        "proximity_connector",
+        "microphone_connector",
+        "front_sensor_assembly"
+      ]
     }
   ],
   "decorations": [
@@ -1068,34 +1366,11 @@
       "kind": "board",
       "rect": [
         8,
-        16,
+        100,
         58,
-        256
+        170
       ],
       "label": "Board"
-    },
-    {
-      "id": "soc",
-      "face": "front",
-      "kind": "chip",
-      "rect": [
-        18,
-        104,
-        38,
-        36
-      ]
-    },
-    {
-      "id": "rear_camera_modules",
-      "face": "front",
-      "kind": "camera",
-      "rect": [
-        110,
-        12,
-        60,
-        60
-      ],
-      "label": "Cameras"
     },
     {
       "id": "notch",
@@ -1163,17 +1438,6 @@
         48,
         28,
         28
-      ]
-    },
-    {
-      "id": "flash",
-      "face": "back",
-      "kind": "lens",
-      "rect": [
-        56,
-        18,
-        10,
-        10
       ]
     },
     {

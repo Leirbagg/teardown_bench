@@ -1,0 +1,19 @@
+{
+  "schema_version": 1,
+  "id": "haptic_dead",
+  "tier": 1,
+  "target_role": "haptic",
+  "complaints": [
+    "It stopped vibrating, no buzz at all."
+  ],
+  "clues": [
+    {
+      "tool": "loupe",
+      "role": "haptic",
+      "clue": "burnt_coil",
+      "visible": "exposed"
+    }
+  ],
+  "target_time_s": 260,
+  "price": 79
+}

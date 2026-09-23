@@ -119,6 +119,24 @@ sont rattachés.
 - **Orphelin** : composant que rien ne requiert (ni `requires` ni `replace_requires`), non
   `replaceable` et sans rôle. Le retirer ne sert à rien, c'est une erreur.
 
+## Procédures (`components` + `procedures`)
+
+Un appareil porte, en plus de son graphe, la **séquence exacte** d'un guide public par pièce
+réparable. Le graphe dit ce qui est possible ; la procédure dit ce que fait le réparateur.
+
+```json
+"procedures": [
+  { "id": "battery", "label": "Battery replacement", "target_role": "battery",
+    "source": "https://www.ifixit.com/Guide/…",
+    "steps": ["pentalobe_left", "pentalobe_right", "display_adhesive_bottom", "…"] }
+]
+```
+
+`ProcedureCheck` rejoue chaque séquence sur le graphe : **chaque étape doit rendre `REMOVED`**
+(jamais forcé, jamais caché), la pièce visée doit être remplaçable à la fin, et rien ne doit
+casser en chemin. C'est la meilleure relecture automatique de nos données : si l'ordre du guide
+ne passe pas, c'est notre modélisation qui est fausse, pas le guide.
+
 ## Fiches de la gamme (`data/models.json`)
 
 Un seul fichier décrit **tous** les modèles, y compris ceux qu'on ne peut pas encore démonter :

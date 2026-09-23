@@ -1,17 +1,13 @@
 {
   "schema_version": 1,
   "devices": [
-    "res://data/devices/ipone_x.json",
-    "res://data/devices/ipone_11.json",
-    "res://data/devices/ipone_13.json",
-    "res://data/devices/ipone_14.json",
-    "res://data/devices/ipone_15.json"
+    "res://data/devices/ipone_13.json"
   ],
   "faults": [
     "res://data/faults/screen_cracked.json",
     "res://data/faults/battery_dead.json",
-    "res://data/faults/charge_port_faulty.json",
-    "res://data/faults/front_sensors_dead.json"
+    "res://data/faults/front_sensors_dead.json",
+    "res://data/faults/haptic_dead.json"
   ],
   "models": [
     "res://data/models.json"

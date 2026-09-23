@@ -61,10 +61,10 @@
       "family_label": "Stacked-board OLED",
       "opens_from": "screen",
       "port": "lightning",
-      "teardown": "ipone_x",
+      "teardown": "",
       "verified": true,
       "note": "Folded two-layer logic board: the shield comes off before anything else.",
-      "source": "https://www.ifixit.com/Guide/iPhone+X+Battery+Replacement/103390"
+      "source": ""
     },
     {
       "id": "ipone_xr",
@@ -121,10 +121,10 @@
       "family_label": "Single-layer LCD",
       "opens_from": "screen",
       "port": "lightning",
-      "teardown": "ipone_11",
+      "teardown": "",
       "verified": true,
       "note": "Thicker LCD panel and a flat board: roomier inside than the OLED models.",
-      "source": "https://www.ifixit.com/Guide/iPhone+11+Battery+Replacement/127450"
+      "source": ""
     },
     {
       "id": "ipone_11_pro",
@@ -286,10 +286,10 @@
       "family_label": "Two-way chassis",
       "opens_from": "screen_or_back",
       "port": "lightning",
-      "teardown": "ipone_14",
+      "teardown": "",
       "verified": true,
       "note": "Redesigned frame: the back glass comes off too, so most repairs go in from the back.",
-      "source": "https://www.ifixit.com/Guide/iPhone+14+Battery+Replacement/152966"
+      "source": ""
     },
     {
       "id": "ipone_14_plus",
@@ -346,10 +346,10 @@
       "family_label": "Two-way chassis, USB-C",
       "opens_from": "screen_or_back",
       "port": "usb_c",
-      "teardown": "ipone_15",
+      "teardown": "",
       "verified": true,
       "note": "Same two-way frame as the 14, now with a USB-C port board.",
-      "source": "https://www.ifixit.com/Guide/iPhone+15+Battery+Replacement/165733"
+      "source": ""
     },
     {
       "id": "ipone_15_plus",
