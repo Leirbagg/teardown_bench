@@ -5,7 +5,7 @@ extends RefCounted
 ##
 ## Règles (docs/data_schema.md) :
 ## - Un rôle est opérationnel si son composant est en place et que ses connecteurs directs
-##   (requires de kind "connector") sont branchés.
+##   (requires et replace_requires de kind "connector") sont branchés.
 ## - Un rôle est en panne s'il porte une panne non résolue ou si son composant est cassé.
 ## - Une panne est résolue au premier remplacement du composant de son rôle.
 ## - Un test est BLOCKED si un test de `after` n'est pas PASS, DISCONNECTED si un de ses
@@ -64,7 +64,8 @@ func is_role_operational(role: String) -> bool:
 	var component: ComponentDefinition = device.component_for_role(role)
 	if component == null or state.is_removed(component.id):
 		return false
-	for requirement: String in component.requires:
+	# Ses propres nappes comptent aussi : un écran reposé mais pas rebranché n'affiche rien.
+	for requirement: String in component.requires + component.replace_requires:
 		if device.get_component(requirement).kind == "connector" and state.is_removed(requirement):
 			return false
 	return true

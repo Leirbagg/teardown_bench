@@ -307,7 +307,7 @@
       "face": "front",
       "gesture": "pull",
       "gesture_params": {
-        "direction_deg": 180
+        "direction_deg": 0
       },
       "requires": [
         "display",

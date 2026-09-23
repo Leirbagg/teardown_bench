@@ -432,13 +432,13 @@ func is_cable_away(component_id: String) -> bool:
 	return _state.is_removed(target_id) and not is_open_tethered(target_id)
 
 
-## Position d'un connecteur débranché, décalée dans le sens où on l'a tiré.
+## Position d'un connecteur débranché, décalée dans le sens où on l'a tiré. Quand sa pièce est
+## partie sur le tapis, la nappe est partie avec elle : il ne reste que le socle.
 func unplugged_rect(component_id: String) -> Rect2:
 	var component: ComponentDefinition = _state.device.get_component(component_id)
 	var socket: Rect2 = view_rect(component)
 	if is_cable_away(component_id):
-		# La pièce est sur le tapis : sa nappe descend avec elle, hors de l'appareil.
-		return Rect2(Vector2(socket.position.x, lerpf(socket.position.y, size.y - socket.size.y, 0.75)), socket.size)
+		return socket
 	var direction: Vector2 = Vector2.from_angle(-deg_to_rad(float(component.gesture_params.get("direction_deg", 270.0))))
 	return Rect2(socket.position + direction * UNPLUG_OFFSET * _scale(), socket.size)
 
@@ -611,8 +611,10 @@ func _draw() -> void:
 		elif is_unplugged(component.id):
 			# Le socle ne bouge pas : c'est la nappe qui se débranche et s'écarte.
 			_painter.draw_socket(self, view_rect(component), PartPainter.kind_color(component.kind))
-			_draw_loose_cable(component)
-			_painter.draw_part(self, component, unplugged_rect(component.id), PartPainter.kind_color(component.kind))
+			if not is_cable_away(component.id):
+				_draw_loose_cable(component)
+				_painter.draw_part(self, component, unplugged_rect(component.id),
+					PartPainter.kind_color(component.kind))
 	for effect: Effect in _effects:
 		_draw_effect(effect)
 	draw_set_transform(Vector2.ZERO)

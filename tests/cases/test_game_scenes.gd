@@ -185,21 +185,36 @@ func test_an_unplugged_connector_stays_next_to_its_socket_and_plugs_back() -> vo
 	view.free()
 
 
-## Une nappe suit sa pièce : l'écran parti sur le tapis, sa nappe quitte le socle et s'estompe.
-func test_a_cable_follows_its_part_to_the_mat() -> void:
+## Une nappe appartient à sa pièce : l'écran parti sur le tapis, plus rien ne pend sur
+## l'appareil — seul le socle vide reste, et c'est là qu'on rebranche. Dès que l'écran revient,
+## la nappe réapparaît écartée de son socle.
+func test_a_cable_vanishes_with_its_part_and_comes_back_with_it() -> void:
 	var state: DisassemblyState = _ipone_13_state()
 	var view: DeviceView = _device_view(state)
+	var cable: ComponentDefinition = state.device.get_component("display_connector")
 	DisassemblyFixture.remove_with_prerequisites(state, "display_connector")
 	_settle(view)
 	assert_true(view.is_unplugged("display_connector"), "écran rabattu : la nappe pend près de son socle")
 	assert_false(view.is_cable_away("display_connector"))
-	var near_socket: Rect2 = view.unplugged_rect("display_connector")
+	assert_true(view.unplugged_rect("display_connector").position.distance_to(view.view_rect(cable).position) > 1.0,
+		"écartée de son socle")
+
 	DisassemblyFixture.remove_with_prerequisites(state, "sensor_connector")
 	_settle(view)
 	assert_true(view.is_cable_away("display_connector"), "écran détaché : la nappe part avec lui")
-	var away: Rect2 = view.unplugged_rect("display_connector")
-	assert_true(away.position.y > near_socket.position.y + 40.0, "tirée vers le tapis")
-	assert_eq(view.component_at(away.get_center()), "display_connector", "toujours rebranchable")
+	assert_eq(view.unplugged_rect("display_connector"), view.view_rect(cable),
+		"plus rien ne dépasse du socle : la nappe est partie avec l'écran")
+	assert_eq(view.component_at(view.view_rect(cable).get_center()), "display_connector",
+		"le socle vide reste le point où l'on rebranche")
+
+	# L'écran revient : sa nappe se remontre, écartée du socle, prête à être rebranchée.
+	assert_eq(state.commit_install("display_connector").outcome, DisassemblyResult.Outcome.INSTALLED)
+	assert_eq(state.commit_install("sensor_connector").outcome, DisassemblyResult.Outcome.INSTALLED)
+	assert_eq(state.commit_remove("display_connector").outcome, DisassemblyResult.Outcome.REMOVED)
+	_settle(view)
+	assert_false(view.is_cable_away("display_connector"), "l'écran est de nouveau tenu : la nappe revient")
+	assert_true(view.unplugged_rect("display_connector").position.distance_to(view.view_rect(cable).position) > 1.0,
+		"de nouveau écartée de son socle")
 	view.free()
 
 
