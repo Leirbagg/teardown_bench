@@ -155,7 +155,7 @@
         "display_connector",
         "sensor_connector"
       ],
-      "hint": "Swing the display up from the right, like the front cover of a book.",
+      "hint": "Lift the right edge and swing the display over to the left, like a book cover.",
       "part_price": 185,
       "visual": {
         "rect": [
@@ -164,7 +164,7 @@
           172,
           360
         ],
-        "hinge": "right"
+        "hinge": "left"
       }
     },
     {

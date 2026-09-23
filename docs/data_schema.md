@@ -132,6 +132,12 @@ réparable. Le graphe dit ce qui est possible ; la procédure dit ce que fait le
 ]
 ```
 
+**Piège de lecture des guides** : « swing the display up from the right side » décrit le bord
+qu'on **soulève**, pas le côté où le panneau se pose. Comme une couverture de livre, on soulève
+le bord droit et elle bascule à gauche : `visual.hinge` vaut alors `left`. Quand le guide dit
+« swings open **over/to** the left », c'est l'inverse : le panneau se pose à gauche, donc
+`hinge` vaut `left` aussi. Dans le doute, se demander de quel côté l'écran finit posé.
+
 `ProcedureCheck` rejoue chaque séquence sur le graphe : **chaque étape doit rendre `REMOVED`**
 (jamais forcé, jamais caché), la pièce visée doit être remplaçable à la fin, et rien ne doit
 casser en chemin. C'est la meilleure relecture automatique de nos données : si l'ordre du guide
