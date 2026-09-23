@@ -13,12 +13,13 @@ class _Candidate:
 	var fault: FaultDefinition
 
 
-## Tire entre MIN_CUSTOMERS et MAX_CUSTOMERS clients, chacun avec une panne applicable dont le
+## `customers` fixe le nombre de clients ; 0 le tire entre MIN_CUSTOMERS et MAX_CUSTOMERS.
+## Tire les clients, chacun avec une panne applicable dont le
 ## tier (et celui de l'appareil) ne dépasse pas `max_tier`. Deux clients consécutifs n'ont pas
 ## la même panne quand une autre est possible. Résultat déterminé par la graine de `rng`.
 ## Renvoie un tableau vide et ajoute une erreur si aucun client n'est possible.
 static func generate(devices: Array[DeviceDefinition], faults: Array[FaultDefinition], max_tier: int,
-		rng: RandomNumberGenerator, errors: Array[String]) -> Array[RepairJob]:
+		rng: RandomNumberGenerator, errors: Array[String], customers: int = 0) -> Array[RepairJob]:
 	var jobs: Array[RepairJob] = []
 	var candidates: Array[_Candidate] = _candidates(devices, faults, max_tier)
 	if candidates.is_empty():
@@ -26,7 +27,8 @@ static func generate(devices: Array[DeviceDefinition], faults: Array[FaultDefini
 		return jobs
 
 	var previous_fault_id: String = ""
-	for i: int in rng.randi_range(MIN_CUSTOMERS, MAX_CUSTOMERS):
+	var count: int = customers if customers > 0 else rng.randi_range(MIN_CUSTOMERS, MAX_CUSTOMERS)
+	for i: int in count:
 		var pool: Array[_Candidate] = candidates.filter(func(c: _Candidate) -> bool: return c.fault.id != previous_fault_id)
 		if pool.is_empty():
 			pool = candidates

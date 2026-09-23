@@ -7,6 +7,7 @@ signal new_day_pressed
 @onready var _summary: Label = %Summary
 @onready var _jobs: VBoxContainer = %Jobs
 @onready var _new_day_button: Button = %NewDayButton
+@onready var _title: Label = %Title
 
 
 func _ready() -> void:
@@ -15,6 +16,10 @@ func _ready() -> void:
 
 ## À appeler une fois la scène dans l'arbre.
 func setup(report: DayReport, workshop: Workshop) -> void:
+	# Une seule réparation par passage : parler de « journée » n'aurait aucun sens.
+	if report.jobs.size() == 1:
+		_title.text = "Repair done"
+		_new_day_button.text = "Pick another model"
 	_summary.text = "%d/%d repaired · %d on time · %d broken part(s) · %d diagnosis error(s)\nTotal repair time: %s" % [
 		report.completed_jobs(), report.planned_jobs, report.deadlines_met(),
 		report.broken_parts_count(), report.diagnosis_errors(), UiFormat.time(report.total_time_s()),

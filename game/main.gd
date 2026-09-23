@@ -1,6 +1,7 @@
 class_name Main
 extends Control
-## Enchaînement des écrans : accueil client → réparation → client suivant… → bilan.
+## Enchaînement des écrans : choix du modèle → accueil client → réparation → bilan → choix du
+## modèle suivant.
 ## Suit les signaux de WorkDay ; le temps de jeu est transmis à core/ à chaque frame.
 
 const MODEL_SELECT_SCREEN: PackedScene = preload("res://game/ui/model_select_screen.tscn")
@@ -18,6 +19,9 @@ var current_screen: Control
 
 ## Marge minimale, même sans encoche : les coins arrondis rognent les bords.
 const MIN_SAFE_MARGIN: int = 8
+## Un client par passage au menu : on choisit son téléphone à chaque réparation plutôt que
+## d'enchaîner les clients d'une journée.
+const CUSTOMERS_PER_VISIT: int = 1
 
 ## Survit aux changements d'écran, pour ne pas couper un son en cours.
 @onready var feedback: Feedback = %Feedback
@@ -49,7 +53,7 @@ func _ready() -> void:
 		show_model_select()
 
 
-## Choix du modèle de la journée. Une journée reprise depuis une sauvegarde ne repasse pas par
+## Choix du modèle à réparer. Une réparation reprise depuis une sauvegarde ne repasse pas par
 ## là : son modèle est déjà décidé.
 func show_model_select() -> ModelSelectScreen:
 	var screen: ModelSelectScreen = _set_screen(MODEL_SELECT_SCREEN) as ModelSelectScreen
@@ -67,12 +71,13 @@ func _on_model_chosen(model_id: String) -> void:
 	start_new_day(device)
 
 
-## Une journée entière sur le modèle choisi : ce sont les pannes qui varient, pas l'appareil.
+## Une réparation sur le modèle choisi, puis retour au menu.
 func start_new_day(device: DeviceDefinition) -> void:
 	var rng: RandomNumberGenerator = RandomNumberGenerator.new()
 	rng.randomize()
 	var errors: Array[String] = []
-	var jobs: Array[RepairJob] = DayGenerator.generate([device], _catalog.faults, workshop.max_tier(), rng, errors)
+	var jobs: Array[RepairJob] = DayGenerator.generate([device], _catalog.faults, workshop.max_tier(),
+		rng, errors, CUSTOMERS_PER_VISIT)
 	if not errors.is_empty():
 		_show_error(errors)
 		return
@@ -124,7 +129,7 @@ func _on_day_completed(report: DayReport) -> void:
 	_save()
 	var screen: DayReportScreen = _set_screen(DAY_REPORT_SCREEN) as DayReportScreen
 	screen.setup(report, workshop)
-	# Le lendemain, on rechoisit : c'est là que le joueur change de modèle.
+	# On rechoisit un modèle après chaque réparation.
 	screen.new_day_pressed.connect(func() -> void: show_model_select())
 
 

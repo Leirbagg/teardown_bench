@@ -17,7 +17,8 @@ func _ready() -> void:
 
 ## À appeler une fois la scène dans l'arbre.
 func setup(job: RepairJob, number: int, total: int, workshop: Workshop) -> void:
-	_counter.text = "Day %d · Customer %d of %d · $%d" % [workshop.day, number, total, workshop.money]
+	_counter.text = "Repair %d · $%d" % [workshop.day, workshop.money] if total == 1 \
+		else "Day %d · Customer %d of %d · $%d" % [workshop.day, number, total, workshop.money]
 	_device.text = job.device.name
 	_complaint.text = "\"%s\"" % job.complaint
 	var price: int = 0

@@ -82,4 +82,9 @@ toujours, et rien d'autre ne doit évoquer une marque.
   le contrôle sous le doigt et n'atteignent pas `_unhandled_input`. Une vue tactile se
   met en `mouse_filter` STOP et lit ses gestes dans `_gui_input`.
 - En `--headless`, la fenêtre fait 0×0 : les sondes d'input ou de mise en page y
-  donnent des résultats faux. Les vérifier dans une vraie fenêtre.
+  donnent des résultats faux. Les vérifier dans une vraie fenêtre — et vérifier d'abord que la
+  cible du doigt est bien **à l'écran** : toucher une ligne hors champ ne déclenche rien et fait
+  croire à un bug.
+- Un `Button` en `mouse_filter` STOP dans un `ScrollContainer` **avale le glissement** : la liste
+  ne défile plus au doigt. Le mettre en PASS et reconnaître le tap soi-même (voir
+  `ModelSelectScreen._on_row_input`).

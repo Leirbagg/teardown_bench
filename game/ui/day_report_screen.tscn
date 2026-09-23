@@ -39,6 +39,7 @@ layout_mode = 2
 theme_override_constants/separation = 12
 
 [node name="Title" type="Label" parent="Margin/Layout"]
+unique_name_in_owner = true
 layout_mode = 2
 theme_override_font_sizes/font_size = 24
 text = "End of day"
@@ -54,6 +55,7 @@ autowrap_mode = 3
 layout_mode = 2
 size_flags_vertical = 3
 horizontal_scroll_mode = 0
+scroll_deadzone = 24
 
 [node name="Jobs" type="VBoxContainer" parent="Margin/Layout/Scroll"]
 unique_name_in_owner = true

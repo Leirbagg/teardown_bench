@@ -53,7 +53,7 @@ func _choose_first_playable(main: Main) -> CustomerScreen:
 	assert_no_errors(errors)
 	var playable: Array[ModelCatalog.Model] = catalog.playable()
 	assert_false(playable.is_empty(), "au moins un modèle se joue")
-	screen.button_for(playable[0].id).pressed.emit()
+	screen.choose(playable[0].id)
 	return main.current_screen as CustomerScreen
 
 
@@ -589,7 +589,7 @@ func test_a_new_day_starts_after_the_last_client() -> void:
 	# La journée sauvegardée était terminée : on ne reprend rien, on rechoisit un modèle.
 	assert_true((next_launch.current_screen as ModelSelectScreen) != null, "retour au choix du modèle")
 	assert_true(_choose_first_playable(next_launch) != null, "puis le premier client arrive")
-	assert_true(next_launch.day.jobs.size() >= DayGenerator.MIN_CUSTOMERS, "une nouvelle journée est générée")
+	assert_eq(next_launch.day.jobs.size(), Main.CUSTOMERS_PER_VISIT, "une réparation par passage au menu")
 	next_launch.free()
 
 
@@ -616,7 +616,7 @@ func test_the_model_picker_shows_the_whole_line_up_and_opens_only_what_exists() 
 	var chosen: Array[String] = []
 	screen.model_chosen.connect(func(id: String) -> void: chosen.append(id))
 	var playable: ModelCatalog.Model = catalog.playable()[0]
-	screen.button_for(playable.id).pressed.emit()
+	screen.choose(playable.id)
 	assert_eq(chosen, [playable.id] as Array[String], "choisir un modèle l'annonce")
 	var customer: CustomerScreen = main.current_screen as CustomerScreen
 	assert_true(customer != null, "et le premier client se présente")
@@ -706,3 +706,64 @@ func test_front_sensors_travel_with_the_open_screen() -> void:
 	assert_eq(view.component_at(view.open_panel_rect("display").position + Vector2(4.0, 4.0)), "display",
 		"le reste du panneau referme toujours l'écran")
 	view.free()
+
+
+## Une réparation, puis le menu : plus d'enchaînement de clients dans une journée.
+func test_a_repair_sends_you_back_to_the_model_menu() -> void:
+	var main: Main = _fresh_main()
+	_choose_first_playable(main)
+	assert_eq(main.day.jobs.size(), 1, "un seul client par passage")
+	_finish_current_job(main, 30.0)
+	var report: DayReportScreen = main.current_screen as DayReportScreen
+	assert_true(report != null, "le bilan de la réparation s'affiche")
+	if report != null:
+		assert_eq((report.get_node("%Title") as Label).text, "Repair done", "il parle de réparation, pas de journée")
+		assert_true((report.get_node("%NewDayButton") as Button).text.contains("model"), "et renvoie au choix du modèle")
+		report.new_day_pressed.emit()
+	assert_true((main.current_screen as ModelSelectScreen) != null, "retour au menu des modèles")
+	main.free()
+
+
+## Régression : sur le téléphone, la liste ne défilait pas. Un bouton en MOUSE_FILTER_STOP avale
+## le glissement du doigt, qui n'atteint jamais le conteneur — vérifié dans une vraie fenêtre :
+## en STOP le défilement reste à zéro, en PASS il suit le doigt.
+func test_the_model_rows_let_the_drag_through_to_the_list() -> void:
+	var main: Main = _fresh_main()
+	var screen: ModelSelectScreen = main.current_screen as ModelSelectScreen
+	var errors: Array[String] = []
+	var catalog: ModelCatalog = ModelCatalog.load_from(ModelCatalog.PATH, errors)
+	assert_no_errors(errors)
+	for model: ModelCatalog.Model in catalog.models:
+		var row: Button = screen.button_for(model.id)
+		assert_eq(row.mouse_filter, Control.MOUSE_FILTER_PASS,
+			"%s : la ligne doit laisser passer le glissement, sinon la liste ne défile plus" % model.id)
+	var scroll: ScrollContainer = screen.get_node("Margin/Layout/Scroll") as ScrollContainer
+	assert_true(scroll.scroll_deadzone > 0, "une petite zone morte évite qu'un tremblement fasse défiler")
+	main.free()
+
+
+## Le tap n'est plus celui du bouton : on le reconnaît nous-mêmes, et un glissement ne doit
+## jamais valoir un choix.
+func test_a_tap_picks_a_model_but_a_drag_does_not() -> void:
+	var main: Main = _fresh_main()
+	var screen: ModelSelectScreen = main.current_screen as ModelSelectScreen
+	var chosen: Array[String] = []
+	screen.model_chosen.connect(func(id: String) -> void: chosen.append(id))
+	var errors: Array[String] = []
+	var catalog: ModelCatalog = ModelCatalog.load_from(ModelCatalog.PATH, errors)
+	assert_no_errors(errors)
+	var playable: String = catalog.playable()[0].id
+
+	# Doigt qui glisse : la liste défile, rien n'est choisi.
+	screen._on_row_input(_touch(Vector2(40, 20), true), playable)
+	var drag: InputEventScreenDrag = InputEventScreenDrag.new()
+	drag.relative = Vector2(0, -ModelSelectScreen.TAP_TOLERANCE * 2.0)
+	screen._on_row_input(drag, playable)
+	screen._on_row_input(_touch(Vector2(40, 20), false), playable)
+	assert_eq(chosen, [] as Array[String], "glisser ne choisit pas un modèle")
+
+	# Doigt qui tape : le modèle est choisi.
+	screen._on_row_input(_touch(Vector2(40, 20), true), playable)
+	screen._on_row_input(_touch(Vector2(40, 20), false), playable)
+	assert_eq(chosen, [playable] as Array[String], "taper choisit le modèle")
+	main.free()

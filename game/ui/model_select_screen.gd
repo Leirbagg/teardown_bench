@@ -13,11 +13,16 @@ const NOTE_COLOR: Color = Color(1, 1, 1, 0.55)
 const SOON_COLOR: Color = Color(1, 1, 1, 0.38)
 ## Deux lignes de texte, sans descendre sous la cible tactile.
 const ROW_HEIGHT: float = 56.0
+## Au-delà, le doigt fait défiler la liste : ce n'est plus un choix.
+const TAP_TOLERANCE: float = 24.0
 
 @onready var _list: VBoxContainer = %Models
 @onready var _summary: Label = %Summary
 
 var _buttons: Dictionary[String, Button] = {}
+## Ligne sous le doigt et distance parcourue depuis l'appui.
+var _pressed_id: String = ""
+var _travelled: float = 0.0
 
 
 ## À appeler une fois la scène dans l'arbre.
@@ -44,6 +49,11 @@ func button_for(model_id: String) -> Button:
 	return _buttons.get(model_id)
 
 
+## Choisit un modèle, comme un tap sur sa ligne.
+func choose(model_id: String) -> void:
+	model_chosen.emit(model_id)
+
+
 func _family_header(family: ModelCatalog.Family) -> VBoxContainer:
 	var box: VBoxContainer = VBoxContainer.new()
 	box.add_theme_constant_override("separation", 2)
@@ -62,6 +72,9 @@ func _family_header(family: ModelCatalog.Family) -> VBoxContainer:
 
 func _model_button(model: ModelCatalog.Model) -> Button:
 	var button: Button = Button.new()
+	# PASS et non STOP : sinon la ligne avale le glissement du doigt et la liste ne défile plus.
+	# Vérifié à la main dans une fenêtre : en STOP, un glissement parti d'une ligne ne bouge rien.
+	button.mouse_filter = Control.MOUSE_FILTER_PASS
 	button.custom_minimum_size = Vector2(0, ROW_HEIGHT)
 	button.clip_text = true
 	button.alignment = HORIZONTAL_ALIGNMENT_LEFT
@@ -70,8 +83,27 @@ func _model_button(model: ModelCatalog.Model) -> Button:
 	if not model.is_playable():
 		button.tooltip_text = "Teardown not built yet."
 	else:
-		button.pressed.connect(func() -> void: model_chosen.emit(model.id))
+		button.gui_input.connect(func(event: InputEvent) -> void: _on_row_input(event, model.id))
 	return button
+
+
+## Choix d'une ligne. En MOUSE_FILTER_PASS le bouton ne se déclenche plus tout seul : c'est le
+## prix à payer pour que le glissement atteigne la liste, alors on distingue nous-mêmes le tap
+## du défilement.
+func _on_row_input(event: InputEvent, model_id: String) -> void:
+	var touch: InputEventScreenTouch = event as InputEventScreenTouch
+	if touch != null:
+		if touch.pressed:
+			_pressed_id = model_id
+			_travelled = 0.0
+		elif _pressed_id == model_id:
+			_pressed_id = ""
+			if _travelled <= TAP_TOLERANCE:
+				choose(model_id)
+		return
+	var drag: InputEventScreenDrag = event as InputEventScreenDrag
+	if drag != null:
+		_travelled += drag.relative.length()
 
 
 ## Ligne de caractéristiques, telle qu'on lit une fiche : année, écran, port, et l'état du
